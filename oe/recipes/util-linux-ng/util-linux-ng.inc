@@ -1,7 +1,8 @@
 DESCRIPTION = "Util-linux-ng is a suite of essential utilities for any Linux system."
 SECTION = "base"
 LICENSE = "GPL"
-DEPENDS = "${@base_contains('DISTRO_FEATURES', 'pam', 'libpam', '', d)} zlib ncurses"
+#MobiAqua: added pkgconfig-native
+DEPENDS = "${@base_contains('DISTRO_FEATURES', 'pam', 'libpam', '', d)} zlib ncurses pkgconfig-native"
 #MobiAqua: added gtk-doc-native
 DEPENDS_virtclass-native = "zlib-native pkgconfig-native gtk-doc-native"
 
