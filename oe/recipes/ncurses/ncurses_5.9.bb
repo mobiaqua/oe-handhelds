@@ -194,7 +194,7 @@ pkg_prerm_ncurses-tools () {
         fi
 }
 
-#MobiAqua: disable native
+#MobiAqua: disable native to keep old version
 BBCLASSEXTEND = "sdk"
 #BBCLASSEXTEND = "native sdk"
 

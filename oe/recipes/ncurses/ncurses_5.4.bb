@@ -4,6 +4,7 @@ SRC_URI = "${GNU_MIRROR}/ncurses/ncurses-${PV}.tar.gz \
            file://visibility.patch"
 S = "${WORKDIR}/ncurses-${PV}"
 
+#MobiAqua: keep this version for native
 require ncurses.inc
 PR = "${INC_PR}.0"
 
