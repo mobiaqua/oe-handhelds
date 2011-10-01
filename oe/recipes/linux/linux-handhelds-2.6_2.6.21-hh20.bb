@@ -3,6 +3,8 @@ DESCRIPTION = "handhelds.org Linux kernel 2.6 for PocketPCs and other consumer h
 LICENSE = "GPLv2"
 PR = "r26"
 
+DEPENDS = "coreutils-native"
+
 # Override where to look for defconfigs and patches,
 # we have per-kernel-release sets.
 FILESPATHPKG =. "linux-handhelds-2.6-2.6.21/${MACHINE}:linux-handhelds-2.6-2.6.21:"
