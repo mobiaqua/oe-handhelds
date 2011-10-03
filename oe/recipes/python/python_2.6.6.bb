@@ -5,6 +5,7 @@ DEPENDS_sharprom = "python-native db readline zlib gdbm openssl"
 # set to .0 on every increase of INC_PR
 PR = "${INC_PR}.3"
 
+#MobiAqua: added fixed-system.patch
 SRC_URI = "\
   http://www.python.org/ftp/python/${PV}/Python-${PV}.tar.bz2 \
   file://00-fix-parallel-make.patch \
@@ -18,6 +19,7 @@ SRC_URI = "\
   file://python-module-rpath-fix.patch \
   file://sitecustomize.py \
   file://pkgconfig-support.patch \
+  file://fixed-system.patch \
 "
 SRC_URI[md5sum] = "cf4e6881bb84a7ce6089e4a307f71f14"
 SRC_URI[sha256sum] = "134c5e0736bae2e5570d0b915693374f11108ded63c35a23a35d282737d2ce83"
