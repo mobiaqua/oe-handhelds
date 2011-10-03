@@ -25,6 +25,7 @@ do_install () {
 	#MobiAqua: below 'if' fix stdc++ includes
 	if [ -e ${S}/build.${HOST_SYS}.${TARGET_SYS}/${TARGET_SYS}/libstdc++-v3/include/${TARGET_SYS}/bits ]; then
 		install -d ${D}${target_includedir}/c++/bits
+		install -d ${STAGING_DIR_TARGET}${target_includedir}/c++/bits/
 		cp -RL ${S}/build.${HOST_SYS}.${TARGET_SYS}/${TARGET_SYS}/libstdc++-v3/include/${TARGET_SYS}/bits/* ${STAGING_DIR_TARGET}${target_includedir}/c++/bits/
 	fi
 
