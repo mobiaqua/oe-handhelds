@@ -2,7 +2,7 @@
 
 if [ -e /bin/uname ]; then
     os=`/bin/uname -s`
-elif [ -e /usr/bin/uname ]
+elif [ -e /usr/bin/uname ]; then
     os=`/usr/bin/uname -s`
 fi
 
