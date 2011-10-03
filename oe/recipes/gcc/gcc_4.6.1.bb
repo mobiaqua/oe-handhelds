@@ -11,3 +11,16 @@ FILES_${PN} += "\
 "
 
 ARCH_FLAGS_FOR_TARGET += "-isystem${STAGING_INCDIR}"
+
+#MobiAqua: added below lines:
+export CPP="gcc -E"
+export BUILD_LDFLAGS="-L${STAGING_LIBDIR_NATIVE}"
+
+DEPENDS = "mpfr gmp libelf"
+RDEPENDS = "libmpc-static"
+
+SRC_URI += "\
+	file://workaround-missing-auto-build.patch \
+	file://auto-build.h \
+	file://workaround-wrong-native-ldflags.patch \
+"
