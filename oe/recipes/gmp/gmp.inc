@@ -4,12 +4,10 @@ HOMEPAGE = "http://www.swox.com/gmp/"
 LICENSE = "GPL LGPL"
 INC_PR = "r1"
 
-#MobiAqua: added patches from MacPorts: patch-config.guess.i7.diff, patch-gmp-h.in.diff
+#MobiAqua: fixed configure.patch by replace echo -n with printf
 SRC_URI = "${GNU_MIRROR}/gmp/gmp-${PV}.tar.bz2;name=gmp \
 	   file://configure.patch \
-	   file://amd64.patch \
-	   file://patch-config.guess.i7.diff;striplevel=0 \
-	   file://patch-gmp-h.in.diff;striplevel=0"
+	   file://amd64.patch"
 
 inherit autotools 
 

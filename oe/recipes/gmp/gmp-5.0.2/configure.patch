@@ -95,8 +95,8 @@ diff -rdup gmp-5.0.1.oorig/acinclude.m4 gmp-5.0.1/acinclude.m4
  
  # All CPUs use asm-defs.m4
 -echo ["include][(CONFIG_TOP_SRCDIR\`/mpn/asm-defs.m4')"] >>$gmp_tmpconfigm4i
-+echo -n ["include("] >>$gmp_tmpconfigm4i
-+echo -n ["CONFIG_TOP_SRCDIR\`/mpn/asm-defs.m4'"] >>$gmp_tmpconfigm4i
++printf ["include("] >>$gmp_tmpconfigm4i
++printf ["CONFIG_TOP_SRCDIR\`/mpn/asm-defs.m4'"] >>$gmp_tmpconfigm4i
 +echo [")"] >>$gmp_tmpconfigm4i
  ])
  
