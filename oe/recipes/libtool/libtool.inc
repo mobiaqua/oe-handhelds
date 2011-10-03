@@ -25,10 +25,11 @@ SRC_URI = "${GNU_MIRROR}/libtool/libtool-${PV}.tar.gz \
 do_configure_prepend () {
 	if ${@['true', 'false'][bb.data.inherits_class('native', d) or bb.data.inherits_class('sdk', d) or (bb.data.getVar('PN', d, 1) == 'libtool-cross')]}
 	then
-		export ac_cv_path_SED="${ac_cv_path_SED=${base_bindir}/sed}"
-		export ac_cv_path_GREP="${ac_cv_path_GREP=${base_bindir}/grep}"
-		export ac_cv_path_EGREP="${ac_cv_path_EGREP=${base_bindir}/grep -E}"
-		export ac_cv_path_FGREP="${ac_cv_path_FGREP=${base_bindir}/grep -F}"
+		#MobiAqua: fixed paths
+		export ac_cv_path_SED="sed"
+		export ac_cv_path_GREP="grep"
+		export ac_cv_path_EGREP="grep -E"
+		export ac_cv_path_FGREP="grep -F"
 	fi
 }
 do_compile_prepend () {
