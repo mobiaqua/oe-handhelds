@@ -69,6 +69,8 @@ SRC_URI = "ftp://ftp.funet.fi/pub/CPAN/src/perl-${PV}.tar.gz;name=perl-${PV} \
         file://generate-sh.patch \
         file://shared-ldflags.patch \
 	file://cross-generate_uudmap.patch \
+	file://fix-extensions.patch \
+	file://fix-errno.patch \
         file://config.sh \
         file://config.sh-32 \
         file://config.sh-32-le \
@@ -139,9 +141,10 @@ do_configure() {
 	${@base_contains('DISTRO_FEATURES', 'largefile', '', 'do_nolargefile', d)}
 
         # Update some paths in the configuration
+        #MobiAqua: fixup OE path for -e "s%/usr/include/%${STAGING_DIR_HOST}/usr/include/%g"
         sed -i -e 's,@DESTDIR@,${D},g' \
                -e 's,@ARCH@,${TARGET_ARCH}-${TARGET_OS},g' \
-               -e "s%/usr/include/%${STAGING_INCDIR}/%g" \
+               -e "s%/usr/include/%${STAGING_DIR_HOST}/usr/include/%g" \
 	       -e 's,/usr/,${exec_prefix}/,g' \
             config.sh-${TARGET_ARCH}-${TARGET_OS}
 
@@ -159,7 +162,8 @@ do_configure() {
         # These are strewn all over the source tree
         for foo in `grep -lrI -m1 \/usr\/include\/.*\\.h ${WORKDIR}/*` ; do
             echo Fixing: $foo
-            sed -e "s%/usr/include/%${STAGING_INCDIR}/%g" -i $foo
+            #LocalChange: fixup OE path for sed -e "s%/usr/include/%${STAGING_DIR_HOST}/usr/include/%g" -i $foo
+            sed -e "s%/usr/include/%${STAGING_DIR_HOST}/usr/include/%g" -i $foo
         done
 
         rm -f config
@@ -167,7 +171,8 @@ do_configure() {
         echo "OS = ${TARGET_OS}" >> config
 }
 do_compile() {
-        sed -i -e 's|/usr/include|${STAGING_INCDIR}|g' ext/Errno/Errno_pm.PL
+#MobiAqua: it's allready done above
+#        sed -i -e 's|/usr/include|${STAGING_INCDIR}|g' ext/Errno/Errno_pm.PL
         cd Cross
         oe_runmake perl LD="${CCLD}"
 }
@@ -190,6 +195,13 @@ do_install() {
         ln -sf libperl.so.${PV} ${D}/${libdir}/libperl.so.5
 
         # Fix up installed configuration
+        #MobiAqua: check for paths, and added $path
+        if [ -e ${D}${datadir}/perl/${PV}/pod ]; then
+            path=${D}${datadir}/perl/${PV}/pod/*.pod
+        fi
+        if [ -e ${D}${datadir}/perl/${PV}/pods ]; then
+            path=${D}${datadir}/perl/${PV}/pods/*.pod
+        fi
         sed -i -e "s,${D},,g" \
                -e "s,-isystem${STAGING_INCDIR} ,,g" \
                -e "s,${STAGING_LIBDIR},${libdir},g" \
@@ -198,7 +210,7 @@ do_install() {
                -e "s,${TOOLCHAIN_PATH}${base_bindir}/,,g" \
             ${D}${bindir}/h2xs \
             ${D}${bindir}/h2ph \
-            ${D}${datadir}/perl/${PV}/pod/*.pod \
+            $path \
             ${D}${datadir}/perl/${PV}/cacheout.pl \
             ${D}${datadir}/perl/${PV}/FileCache.pm \
             ${D}${libdir}/perl/${PV}/Config.pm \
