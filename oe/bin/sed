@@ -1,6 +1,12 @@
 #!/bin/sh
 
-case `/usr/bin/uname -s` in
+if [ -e /bin/uname ]; then
+    os=`/bin/uname -s`
+elif [ -e /usr/bin/uname ]
+    os=`/usr/bin/uname -s`
+fi
+
+case $os in
     Darwin)
         if [ -e /opt/local/bin/gsed ]; then
                 exec "/opt/local/bin/gsed" "$@"
