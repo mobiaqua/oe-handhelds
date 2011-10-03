@@ -5,7 +5,7 @@ diff -ur old/include/libbb.h new/include/libbb.h
  /* If using busybox's shadow implementation, do not include the shadow.h
   * header as the toolchain may not provide it at all.
   */
-+#if !__APPLE__
++#ifndef __APPLE__
  #  include <shadow.h>
 +#endif
  # endif
