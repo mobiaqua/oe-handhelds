@@ -28,9 +28,8 @@ PARALLEL_MAKE = ""
 inherit autotools
 
 NATIVECONF = "--disable-rpath"
-#MobiAqua: disable "--enable-relocatable"
-#NATIVECONF_virtclass-native += "--enable-relocatable --disable-curses"
-NATIVECONF_virtclass-native += "--disable-curses"
+#MobiAqua: removed "--enable-relocatable", added "--with-included-gettext --enable-nls"
+NATIVECONF_virtclass-native += "--disable-curses --with-included-gettext --enable-nls"
 
 EXTRA_OECONF += "--without-lispdir \
 		 --disable-csharp \
