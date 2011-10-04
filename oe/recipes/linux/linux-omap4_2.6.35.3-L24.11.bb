@@ -4,6 +4,9 @@ LICENSE = "GPLv2"
 KERNEL_IMAGETYPE = "uImage"
 COMPATIBLE_MACHINE = "pandaboard"
 
+DEFAULT_PREFERENCE = "-1"
+DEFAULT_PREFERENCE_pandaboard = "1"
+
 DEPENDS = "coreutils-native"
 
 require linux.inc
