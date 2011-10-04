@@ -11,10 +11,18 @@ error() {
 setup() {
 	export OE_BASE=`pwd -P`
 
-	DISTRO=${DISTRO:=mobiaqua}
-	DL_DIR=${DL_DIR:="$HOME/sources"}
+	if [ "$1" = "tv" ]; then
+		DISTRO=mobiaqua-tv
+		MACHINE=pandaboard
+	elif [ "$1" = "car" ]; then
+		DISTRO=mobiaqua-car
+		MACHINE=igep0030
+	else
+		DISTRO=mobiaqua
+		MACHINE=${MACHINE:=h2200}
+	fi
 
-	MACHINE=${MACHINE:=h2200}
+	DL_DIR=${DL_DIR:="$HOME/sources"}
 
 	mkdir -p  ${OE_BASE}/build-${DISTRO}/conf
 
@@ -74,4 +82,4 @@ ERROR=
 
 [ "$ERROR" != 1 ] && [ -z "$BASH_VERSION" ] && error "Script NOT running in 'bash' shell"
 
-[ "$ERROR" != 1 ] && setup
+[ "$ERROR" != 1 ] && setup $1
