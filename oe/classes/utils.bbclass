@@ -331,6 +331,8 @@ oe_libinstall() {
 					oefatal "oe_libinstall: $dir/$f not found."
 				fi
 			elif [ -L "$f" ]; then
+				#MobiAqua: remove before copy
+				rm -f "$destpath/$f"
 				__runcmd cp -P "$f" $destpath/
 			elif [ ! -L "$f" ]; then
 				libfile="$f"
