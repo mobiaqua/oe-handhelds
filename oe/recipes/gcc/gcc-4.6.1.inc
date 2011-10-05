@@ -25,6 +25,7 @@ SRC_URI = "${GNU_MIRROR}/gcc/gcc-${PV}/gcc-${PV}.tar.bz2 \
 	   file://COLLECT_GCC_OPTIONS.patch \
 	   file://volatile_access_backport.patch \
 	   file://fix-for-ice-50099.patch \
+	   file://ICE_fix_for_arm.patch \
 	  "
 
 # Language Overrides
