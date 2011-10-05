@@ -14,12 +14,15 @@ setup() {
 	if [ "$1" = "tv" ]; then
 		DISTRO=mobiaqua-tv
 		MACHINE=pandaboard
+		image=rootfs-image-tv
 	elif [ "$1" = "car" ]; then
 		DISTRO=mobiaqua-car
 		MACHINE=igep0030
+		image=rootfs-image-car
 	else
 		DISTRO=mobiaqua
 		MACHINE=${MACHINE:=h2200}
+		image=rootfs-image
 	fi
 
 	DL_DIR=${DL_DIR:="$HOME/sources"}
@@ -66,7 +69,7 @@ fi
 	echo
 	echo "--- MobiAqua OE configuration finished ---"
 	echo
-	echo "--- Usage example: bitbake rootfs-image ---"
+	echo "--- Usage example: bitbake $image ---"
 	echo
 }
 
