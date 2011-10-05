@@ -5,6 +5,9 @@ S = "${WORKDIR}/gmp-${PV}"
 
 inherit native
 
+#MobiAqua: attached coreutils-native as generic native depedency
+DEPENDS = "coreutils-native"
+
 # darwin 'hacks'
 EXTRA_OECONF_build-darwin = " --enable-shared "
 OLD_STAGING := "${STAGING_BINDIR}"
