@@ -181,7 +181,8 @@ do_install () {
 	install -d ${D}${sysconfdir}/default/
 	echo 'MOUNTALL="-t nonfs,nosmbfs,noncpfs"' > ${D}${sysconfdir}/default/mountall.${PN}
 
-	rm ${D}${sbindir}/swapoff -f
+	#MobiAqua: -f after rm
+	rm -f ${D}${sbindir}/swapoff
 	ln -sf ${base_sbindir}/swapon.${PN} ${D}${base_sbindir}/swapoff.${PN}
 	ln -sf ${base_sbindir}/shutdown ${D}${base_sbindir}/reboot.${PN}
 	ln -sf ${base_sbindir}/shutdown ${D}${base_sbindir}/halt.${PN}
