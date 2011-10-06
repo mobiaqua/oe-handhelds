@@ -27,9 +27,9 @@ index 75251b4..0241b4d 100644
  					   omap4-wakeupgen.o
  
 -AFLAGS_omap44xx-smc.o			:=-Wa,-march=armv7-a
-+plus_sec := $(call as-instr,.arch_extension sec,+sec)
-+AFLAGS_omap-headsmp.o                  :=-Wa,-march=armv7-a$(plus_sec)
-+AFLAGS_omap44xx-smc.o                  :=-Wa,-march=armv7-a$(plus_sec)
++AFLAGS_sleep44xx.o                     :=-Wa,-march=armv7-a+sec
++AFLAGS_omap-headsmp.o                  :=-Wa,-march=armv7-a+sec
++AFLAGS_omap44xx-smc.o                  :=-Wa,-march=armv7-a+sec
  
  # Functions loaded to SRAM
  obj-$(CONFIG_ARCH_OMAP2420)		+= sram242x.o

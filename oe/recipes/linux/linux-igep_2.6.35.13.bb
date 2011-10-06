@@ -13,9 +13,8 @@ inherit kernel
 
 PR = "r1"
 KV = "${PV}-3"
-SRCREV = "linux-igep-2.6.35.y"
 
-SRC_URI = "git://git.igep.es/pub/scm/linux-omap-2.6.git;protocol=git;branch=linux-2.6.35.y"
+SRC_URI = "http://downloads.igep.es/sources/linux-omap-${KV}.tar.gz"
 
 do_configure() {
 	rm -f ${S}/.config || true
