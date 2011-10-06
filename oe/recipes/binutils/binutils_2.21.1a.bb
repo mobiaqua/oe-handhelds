@@ -14,7 +14,7 @@ SRC_URI = "${GNU_MIRROR}/binutils/binutils-${PV}.tar.bz2 \
      file://libtool-update-new.patch \
      file://binutils-2.19.1-ld-sysroot.patch \
      file://libiberty_path_fix.patch \
-     file://libtool-rpath-fix.patch \
+#     file://libtool-rpath-fix.patch \
      "
 SRC_URI[md5sum] = "bde820eac53fa3a8d8696667418557ad"
 SRC_URI[sha256sum] = "cdecfa69f02aa7b05fbcdf678e33137151f361313b2f3e48aba925f64eabf654"
