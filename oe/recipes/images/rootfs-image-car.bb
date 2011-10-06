@@ -6,7 +6,7 @@ DESCRIPTION = "<description>"
 PV = "0.0.1"
 PR = "r0"
 
-INSTALL_PKGS += ""
+INSTALL_PKGS += "x-load-igep u-boot-igep"
 RRECOMMENDS = ""
 
 IMAGE_FSTYPES = "tar.gz"

@@ -6,7 +6,7 @@ DESCRIPTION = "<description>"
 PV = "0.0.1"
 PR = "r0"
 
-INSTALL_PKGS += "x-loader-pandaboard u-boot-pandaboard"
+INSTALL_PKGS += "x-load-pandaboard u-boot-pandaboard"
 RRECOMMENDS = ""
 
 IMAGE_FSTYPES = "tar.gz"
