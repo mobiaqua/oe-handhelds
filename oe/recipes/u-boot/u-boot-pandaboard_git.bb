@@ -53,13 +53,12 @@ do_install () {
 	ln -sf ${UBOOT_IMAGE} ${D}/boot/${UBOOT_BINARY}
 
 	if [ -e ${WORKDIR}/fw_env.config ] ; then
-	    install -d ${D}${base_sbindir}
+		install -d ${D}${base_sbindir}
 		install -d ${D}${sysconfdir}
 		install -m 644 ${WORKDIR}/fw_env.config ${D}${sysconfdir}/fw_env.config
 		install -m 755 ${S}/tools/env/fw_printenv ${D}${base_sbindir}/fw_printenv
 		install -m 755 ${S}/tools/env/fw_printenv ${D}${base_sbindir}/fw_setenv
 	fi
-
 }
 
 FILES_${PN} = "/boot"
