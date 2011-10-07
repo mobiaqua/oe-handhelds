@@ -26,5 +26,3 @@ do_install() {
 }
 
 PACKAGE_STRIP = "no"
-
-
