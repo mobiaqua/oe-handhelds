@@ -12,7 +12,7 @@ PARALLEL_MAKE=""
 PACKAGE_ARCH = "${MACHINE_ARCH}"
 
 SRC_URI = "http://downloads.igep.es/sources/x-loader-${PV}.tar.gz \
-	   file://armv7-a.patch;patch=1 \
+	   file://armv7-a.patch \
 	  "
 
 do_compile () {
