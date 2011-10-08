@@ -11,7 +11,7 @@ DEPENDS = "coreutils-native"
 
 inherit kernel
 
-FILESPATHPKG =. "linux-omap4-2.6.35.3-L24.1/${MACHINE}:linux-omap4-2.6.35.3-L24.1:"
+FILESPATHPKG =. "linux-omap4-2.6.35.3-L24.1:"
 
 SRCREV = "ti-ubuntu-2.6.35-980.1release14"
 
