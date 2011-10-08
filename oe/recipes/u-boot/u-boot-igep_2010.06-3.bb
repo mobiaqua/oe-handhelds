@@ -12,15 +12,21 @@ PR = "r1"
 
 COMPATIBLE_MACHINE = "igep0030"
 
-SRC_URI = "http://downloads.igep.es/sources/${PN}-${PV}.tar.gz \
-	file://fw_env.config "
+SRC_URI = "http://downloads.igep.es/sources/u-boot-arm-${PV}.tar.gz \
+	   file://no_getline.patch \
+	  "
+
+S = "${WORKDIR}/u-boot-arm-${PV}"
+
+SRC_URI[md5sum] = "3f5f8bad8a6d8a6965b54dda6356915a"
+SRC_URI[sha256sum] = "ffee2ad7743ac6cfbb44dd3b551487af73f585ff533a08872ae0018c7ff6b907"
 
 PACKAGE_ARCH = "${MACHINE_ARCH}"
 PARALLEL_MAKE = ""
 
 EXTRA_OEMAKE = "CROSS_COMPILE=${TARGET_PREFIX}"
 
-UBOOT_MACHINE = "igep0030_sd_config"
+UBOOT_MACHINE = "igep0030_config"
 
 UBOOT_BINARY ?= "u-boot.bin"
 UBOOT_IMAGE ?= "u-boot-${MACHINE}-${PV}-${PR}.bin"

@@ -12,19 +12,33 @@ PARALLEL_MAKE=""
 PACKAGE_ARCH = "${MACHINE_ARCH}"
 
 SRC_URI = "http://downloads.igep.es/sources/x-loader-${PV}.tar.gz \
-	   file://armv7-a.patch \
 	  "
+
+SRC_URI[md5sum] = "77e06d7dbae12c3951422dc966c773cf"
+SRC_URI[sha256sum] = "c44efbc94ae419f24d418a1af3afaa3b208f21cf9300e0a5bbc530120c7da2a5"
+
+S = "${WORKDIR}/x-loader-${PV}"
+
+XLOAD_MACHINE = "igep0030-sdcard_config"
+
+EXTRA_OEMAKE = "CROSS_COMPILE=${TARGET_PREFIX}"
+
+MLO_IMAGE ?= "MLO-${MACHINE}-${PV}-${PR}"
+MLO_SYMLINK ?= "MLO-${MACHINE}"
+MLO_SYMLINK_NOMACHINE ?= "MLO"
 
 do_compile () {
 	unset LDFLAGS
 	unset CFLAGS
 	unset CPPFLAGS
 	oe_runmake distclean
-	oe_runmake igep0030-sdcard_config
+	oe_runmake ${XLOAD_MACHINE}
 	oe_runmake
 }
 
 do_install () {
+	signGP ${S}/x-load.bin
+
 	install -d ${D}/boot
 	install ${S}/x-load.bin.ift ${D}/boot/${MLO_IMAGE}
 	ln -sf ${MLO_IMAGE} ${D}/boot/${MLO_SYMLINK_NOMACHINE}
