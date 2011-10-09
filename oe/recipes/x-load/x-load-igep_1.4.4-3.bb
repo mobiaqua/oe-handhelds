@@ -24,7 +24,7 @@ XLOAD_MACHINE = "igep0030-sdcard_config"
 EXTRA_OEMAKE = "CROSS_COMPILE=${TARGET_PREFIX}"
 
 MLO_IMAGE ?= "MLO-${MACHINE}-${PV}-${PR}"
-MLO_SYMLINK ?= "MLO-${MACHINE}"
+MLO_SYMLINK ?= "MLO"
 MLO_SYMLINK_NOMACHINE ?= "MLO"
 
 do_compile () {
@@ -40,7 +40,7 @@ do_install () {
 	signGP ${S}/x-load.bin
 
 	install -d ${D}/boot
-	install ${S}/x-load.bin.ift ${D}/boot/${MLO_IMAGE}
+	install -m 0644 ${S}/x-load.bin.ift ${D}/boot/${MLO_IMAGE}
 	ln -sf ${MLO_IMAGE} ${D}/boot/${MLO_SYMLINK_NOMACHINE}
 }
 
@@ -49,7 +49,7 @@ FILES_${PN} = "/boot"
 do_deploy () {
 	signGP ${S}/x-load.bin
 	install -d ${DEPLOY_DIR_IMAGE}
-	install ${S}/x-load.bin.ift ${DEPLOY_DIR_IMAGE}/${MLO_IMAGE}
+	install -m 0644 ${S}/x-load.bin.ift ${DEPLOY_DIR_IMAGE}/${MLO_IMAGE}
 	package_stagefile_shell ${DEPLOY_DIR_IMAGE}/${MLO_IMAGE}
 
 	cd ${DEPLOY_DIR_IMAGE}

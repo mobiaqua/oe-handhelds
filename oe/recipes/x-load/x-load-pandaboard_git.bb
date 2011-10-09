@@ -27,8 +27,7 @@ EXTRA_OEMAKE = "CROSS_COMPILE=${TARGET_PREFIX}"
 S = "${WORKDIR}/git"
 
 MLO_IMAGE ?= "MLO-${MACHINE}-${PV}-${PR}"
-MLO_SYMLINK ?= "MLO-${MACHINE}"
-MLO_SYMLINK_NOMACHINE ?= "MLO"
+MLO_SYMLINK ?= "MLO"
 
 do_compile () {
 	unset LDFLAGS
@@ -43,16 +42,16 @@ do_install () {
 	signGP ${S}/x-load.bin ${XLOAD_LOAD_ADDRESS} 1
 
 	install -d ${D}/boot
-	install ${S}/x-load.bin.ift ${D}/boot/${MLO_IMAGE}
-	ln -sf ${MLO_IMAGE} ${D}/boot/${MLO_SYMLINK_NOMACHINE}
+	install -m 0644 ${S}/x-load.bin.ift ${D}/boot/${MLO_IMAGE}
+	ln -sf ${MLO_IMAGE} ${D}/boot/${MLO_SYMLINK}
 }
 
 FILES_${PN} = "/boot"
 
 do_deploy () {
-	signGP ${S}/x-load.bin
+	signGP ${S}/x-load.bin ${XLOAD_LOAD_ADDRESS} 1
 	install -d ${DEPLOY_DIR_IMAGE}
-	install ${S}/x-load.bin.ift ${DEPLOY_DIR_IMAGE}/${MLO_IMAGE}
+	install -m 0644 ${S}/x-load.bin.ift ${DEPLOY_DIR_IMAGE}/${MLO_IMAGE}
 	package_stagefile_shell ${DEPLOY_DIR_IMAGE}/${MLO_IMAGE}
 
 	cd ${DEPLOY_DIR_IMAGE}
