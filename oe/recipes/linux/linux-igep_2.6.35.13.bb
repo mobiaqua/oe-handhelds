@@ -18,6 +18,7 @@ KV = "${PV}-3"
 
 SRC_URI = "http://downloads.igep.es/sources/linux-omap-${KV}.tar.gz \
 	   file://fix_nonlinux_compile.patch \
+	   file://linux-2.6.36-tidspbridge.patch \
 	  "
 
 do_configure() {
