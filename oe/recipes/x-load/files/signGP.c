@@ -17,6 +17,56 @@
 #include <malloc.h>
 #endif
 
+struct ch_toc {
+	unsigned int section_offset;
+	unsigned int section_size;
+	unsigned char unused[12];
+	unsigned char section_name[12];
+} __attribute__ ((__packed__));
+
+struct chsettings {
+	unsigned int section_key;
+	unsigned char valid;
+	unsigned char version;
+	unsigned short reserved;
+	unsigned int flags;
+} __attribute__ ((__packed__));
+
+struct ch_chsettings_nochram {
+	struct ch_toc toc_chsettings;
+	struct ch_toc toc_terminator;
+	struct chsettings section_chsettings;
+	unsigned char padding1[512 -
+		    (sizeof(struct ch_toc) * 2 +
+		     sizeof(struct chsettings))];
+} __attribute__ ((__packed__));
+
+static struct ch_chsettings_nochram config_header = {
+	/* CHSETTINGS TOC */
+	{(sizeof(struct ch_toc)) * 2,
+	 sizeof(struct chsettings),
+	 "",
+	 {"CHSETTINGS"}
+	},
+	/* toc terminator */
+	{0xFFFFFFFF,
+	 0xFFFFFFFF,
+	 {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
+	  0xFF},
+	 {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
+	  0xFF}
+	},
+	/* CHSETTINGS section */
+	{
+	 0xC0C0C0C1,
+	 0,
+	 1,
+	 0,
+	 0
+	},
+	""
+};
+
 main(int argc, char *argv[])
 {
 	int	i;
@@ -24,17 +74,20 @@ main(int argc, char *argv[])
 	FILE	*ifile, *ofile;
 	unsigned long	loadaddr, len;
 	struct stat	sinfo;
-
+	int ch_add = 0;
 
 	// Default to x-load.bin and 0x40200800.
 	strcpy(ifname, "x-load.bin");
 	loadaddr = 0x40200800;
 
-	if ((argc == 2) || (argc == 3))
+	if ((argc == 2) || (argc == 3) || (argc == 4))
 		strcpy(ifname, argv[1]);
 
-	if (argc == 3)
+	if ((argc == 3) || (argc == 4))
 		loadaddr = strtol(argv[2], NULL, 16);
+
+	if (argc == 4)
+		ch_add = strtol(argv[3], NULL, 16);
 
 	// Form the output file name.
 	strcpy(ofname, ifname);
@@ -59,10 +112,12 @@ main(int argc, char *argv[])
 		exit(0);
 	}
 
-	// Pad 1 sector of zeroes.
-	//ch = 0x00;
-	//for (i=0; i<0x200; i++)
-	//	fwrite(&ch, 1, 1, ofile);
+	if (ch_add) {
+		if (fwrite(&config_header, 1, 512, ofile) <= 0) {
+			fclose(ifile);
+			exit(0);
+		}
+	}
 
 	fwrite(&len, 1, 4, ofile);
 	fwrite(&loadaddr, 1, 4, ofile);

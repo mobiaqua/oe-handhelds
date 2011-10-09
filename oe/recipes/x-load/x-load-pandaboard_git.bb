@@ -19,7 +19,7 @@ SRCREV = "04b1732220078d47c18a84cbafc52e45db71f13d"
 SRC_URI = "git://gitorious.org/pandaboard/x-loader-mainline.git;branch=master;protocol=git \
 	   file://no_signGP.patch"
 
-XLOAD_LOAD_ADDRESS = 0x4030435
+XLOAD_LOAD_ADDRESS = 0x40304350
 XLOAD_MACHINE = "omap4430panda_config"
 
 EXTRA_OEMAKE = "CROSS_COMPILE=${TARGET_PREFIX}"
@@ -40,7 +40,7 @@ do_compile () {
 }
 
 do_install () {
-	signGP ${S}/x-load.bin ${XLOAD_LOAD_ADDRESS}
+	signGP ${S}/x-load.bin ${XLOAD_LOAD_ADDRESS} 1
 
 	install -d ${D}/boot
 	install ${S}/x-load.bin.ift ${D}/boot/${MLO_IMAGE}
