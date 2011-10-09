@@ -25,15 +25,37 @@ setup() {
 		image=rootfs-image
 	fi
 
-	DL_DIR=${DL_DIR:="$HOME/sources"}
+	if [ -e ${HOME}/.mobiaqua/oe/${DISTRO}_defaults ]; then
+		. ${HOME}/.mobiaqua/oe/${DISTRO}_defaults
+		echo "Reading custom settings from file '${HOME}/.mobiaqua/oe/${DISTRO}_defaults'"
+	else
+		echo "No custom settings file: '${HOME}/.mobiaqua/oe/${DISTRO}_defaults'"
+		echo "Using defaults instead."
+	fi
+
+	MA_DL_DIR=${MA_DL_DIR:="$HOME/sources"}
+	MA_TARGET_IP=${MA_TARGET_IP:="192.168.1.10"}
+	MA_TARGET_MAC=${MA_TARGET_MAC:=""}
+	MA_NFS_IP=${MA_NFS_IP:="192.168.1.1"}
+	MA_NFS_PATH=${MA_NFS_PATH:="/nfsroot"}
+
+	echo "--- Settings:"
+	echo " -  sources:    ${MA_DL_DIR}"
+	echo " -  target ip:  ${MA_TARGET_IP}"
+	echo " -  target mac: ${MA_TARGET_MAC}"
+	echo " -  nfs ip:     ${MA_NFS_IP}"
+	echo " -  nfs path:   ${MA_NFS_PATH}"
 
 	mkdir -p  ${OE_BASE}/build-${DISTRO}/conf
 
 	BBF="\${OE_BASE}/oe/recipes/*/*.bb"
 
+	DL_DIR=${DL_DIR:="$HOME/sources"}
+
 	if [ ! -f ${OE_BASE}/build-${DISTRO}/conf/local.conf ] || [ ! -f ${OE_BASE}/build-${DISTRO}/env.source ] || [ "$1" = "--force" ]; then
 		PATH_TO_TOOLS="build-${DISTRO}/tmp/sysroots/`uname -m`-`uname -s | awk '{print tolower($0)}'`/usr"
-		echo "DL_DIR = \"${DL_DIR}\"
+		echo "
+DL_DIR = \"${DL_DIR}\"
 OE_BASE = \"${OE_BASE}\"
 BBFILES = \"${BBF}\"
 MACHINE = \"${MACHINE}\"
@@ -44,26 +66,36 @@ IMAGE_KEEPROOTFS = \"1\"
 CACHE = \"${OE_BASE}/build-${DISTRO}/cache/oe-cache.\${USER}\"
 ASSUME_PROVIDED += \" git-native desktop-file-utils-native linux-libc-headers-native glib-2.0-native intltool-native \"
 PARALLEL_MAKE = \"-j 2\"
-BB_NUMBER_THREADS = \"2\"" > ${OE_BASE}/build-${DISTRO}/conf/local.conf
+BB_NUMBER_THREADS = \"2\"
+" > ${OE_BASE}/build-${DISTRO}/conf/local.conf
 
-	    echo "OE_BASE=\"${OE_BASE}\"
+
+
+		echo "
+OE_BASE=\"${OE_BASE}\"
 export BBPATH=\"\${OE_BASE}/oe/:\${OE_BASE}/bb/:\${OE_BASE}/build-${DISTRO}/\"
 if [ ! \`echo \${PATH} | grep \${OE_BASE}/bb/bin\` ]; then
 	export PATH=\${OE_BASE}/bb/bin:\${PATH}
 fi
 export LD_LIBRARY_PATH=
 export PYTHONPATH=${OE_BASE}/bb/lib
-export LANG=C" > ${OE_BASE}/build-${DISTRO}/env.source
+export LANG=C
+" > ${OE_BASE}/build-${DISTRO}/env.source
 
-	echo "
+
+
+		echo "
 source ${OE_BASE}/build-${DISTRO}/env.source
 if [ ! \`echo \${PATH} | grep arm/bin\` ]; then
 	export PATH=${OE_BASE}/${PATH_TO_TOOLS}/arm/bin:${OE_BASE}/${PATH_TO_TOOLS}/bin:\${PATH}
 fi
 " > ${OE_BASE}/build-${DISTRO}/crosstools-setup
 
-	echo "--- Created ${OE_BASE}/build-${DISTRO}/conf/local.conf, ${OE_BASE}/build-${DISTRO}/env.source and ${OE_BASE}/build-${DISTRO}/crosstools-setup ---"
 
+
+		echo "--- Created ${OE_BASE}/build-${DISTRO}/conf/local.conf,"
+		echo "-   ${OE_BASE}/build-${DISTRO}/env.source,"
+		echo "-   ${OE_BASE}/build-${DISTRO}/crosstools-setup ---"
 	fi
 
 	echo
