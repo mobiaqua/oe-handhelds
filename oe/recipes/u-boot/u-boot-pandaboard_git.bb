@@ -19,6 +19,7 @@ PE = "1"
 SRC_URI = "git://gitorious.org/pandaboard/u-boot-mainline.git;protocol=git \
 	   file://fix-break-caused-by-new-binutils.patch \
 	   file://no_getline.patch \
+	   file://panda_no_delay.patch \
 	  "
 
 S = "${WORKDIR}/git"
