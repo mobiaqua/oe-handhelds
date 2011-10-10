@@ -11,7 +11,7 @@ SRC_URI = "http://www.webdav.org/${PN}/${P}.tar.gz \
 
 inherit autotools binconfig lib_package pkgconfig
 
-#LocalChange: do not depend on gnutls but use openssl instead
+#MobiAqua: do not depend on gnutls but use openssl instead
 EXTRA_OECONF = "--with-libxml2 --with-expat --enable-shared"
 CFLAGS_append = ' -D__USE_UNIX98'
 

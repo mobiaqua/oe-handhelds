@@ -162,7 +162,7 @@ do_configure() {
         # These are strewn all over the source tree
         for foo in `grep -lrI -m1 \/usr\/include\/.*\\.h ${WORKDIR}/*` ; do
             echo Fixing: $foo
-            #LocalChange: fixup OE path for sed -e "s%/usr/include/%${STAGING_DIR_HOST}/usr/include/%g" -i $foo
+            #MobiAqua: fixup OE path for sed -e "s%/usr/include/%${STAGING_DIR_HOST}/usr/include/%g" -i $foo
             sed -e "s%/usr/include/%${STAGING_DIR_HOST}/usr/include/%g" -i $foo
         done
 
