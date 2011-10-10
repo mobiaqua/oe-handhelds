@@ -101,8 +101,9 @@ do_install () {
                 install -m 644 ${WORKDIR}/issue*  ${D}${sysconfdir}  
 
                 if [ -n "${DISTRO_NAME}" ]; then
-        		echo -n "${DISTRO_NAME} " >> ${D}${sysconfdir}/issue
-        		echo -n "${DISTRO_NAME} " >> ${D}${sysconfdir}/issue.net
+        		#MobiAqua: replace echo -n with printf
+        		printf "${DISTRO_NAME} " >> ${D}${sysconfdir}/issue
+        		printf "${DISTRO_NAME} " >> ${D}${sysconfdir}/issue.net
         		if [ -n "${DISTRO_VERSION}" ]; then
         			#MobiAqua: replace usage echo -n with printf
         			printf "${DISTRO_VERSION} " >> ${D}${sysconfdir}/issue
