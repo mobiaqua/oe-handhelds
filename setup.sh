@@ -34,10 +34,14 @@ setup() {
 	fi
 
 	MA_DL_DIR=${MA_DL_DIR:="$HOME/sources"}
-	MA_TARGET_IP=${MA_TARGET_IP:="192.168.1.10"}
-	MA_TARGET_MAC=${MA_TARGET_MAC:=""}
-	MA_NFS_IP=${MA_NFS_IP:="192.168.1.1"}
-	MA_NFS_PATH=${MA_NFS_PATH:="/nfsroot"}
+	export MA_TARGET_IP=${MA_TARGET_IP:="192.168.1.10"}
+	export MA_TARGET_MAC=${MA_TARGET_MAC:=""}
+	export MA_NFS_IP=${MA_NFS_IP:="192.168.1.1"}
+	export MA_NFS_PATH=${MA_NFS_PATH:="/nfsroot"}
+	export MA_ROOT_PASSWORD=${MA_ROOT_PASSWORD:=""}
+	export MA_DROPBEAR_KEY_FILE="$HOME/.mobiaqua/oe/${DISTRO}_dropbear_rsa_host_key"
+
+	export BB_ENV_EXTRAWHITE="MA_TARGET_IP MA_TARGET_MAC MA_NFS_IP MA_NFS_PATH MA_ROOT_PASSWORD MA_DROPBEAR_KEY_FILE"
 
 	echo "--- Settings:"
 	echo " -  sources:    ${MA_DL_DIR}"
@@ -45,7 +49,16 @@ setup() {
 	echo " -  target mac: ${MA_TARGET_MAC}"
 	echo " -  nfs ip:     ${MA_NFS_IP}"
 	echo " -  nfs path:   ${MA_NFS_PATH}"
-
+	if [ "$MA_ROOT_PASSWORD" != "" ]; then
+		echo " -  root password is defined"
+	else
+		echo " -  root password is NOT defined"
+	fi
+	if [ -f ${MA_DROPBEAR_KEY_FILE} ]; then
+		echo " -  target dropber host key file found"
+	else
+		echo " -  target dropber host key file NOT found"
+	fi
 	mkdir -p  ${OE_BASE}/build-${DISTRO}/conf
 
 	BBF="\${OE_BASE}/oe/recipes/*/*.bb"
@@ -93,7 +106,8 @@ fi
 
 
 
-		echo "--- Created ${OE_BASE}/build-${DISTRO}/conf/local.conf,"
+		echo "--- Created:"
+		echo "-   ${OE_BASE}/build-${DISTRO}/conf/local.conf,"
 		echo "-   ${OE_BASE}/build-${DISTRO}/env.source,"
 		echo "-   ${OE_BASE}/build-${DISTRO}/crosstools-setup ---"
 	fi
