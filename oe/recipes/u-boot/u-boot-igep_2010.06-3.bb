@@ -30,7 +30,7 @@ UBOOT_MACHINE = "igep0030_config"
 
 UBOOT_BINARY ?= "u-boot.bin"
 UBOOT_IMAGE ?= "u-boot-${MACHINE}-${PV}-${PR}.bin"
-UBOOT_SYMLINK ?= "u-boot-${MACHINE}.bin"
+UBOOT_SYMLINK ?= "u-boot.bin"
 UBOOT_MAKE_TARGET ?= "all"
 
 do_configure () {
@@ -47,7 +47,7 @@ do_compile () {
 
 do_install () {
 	install -d ${D}/boot
-	install ${S}/${UBOOT_BINARY} ${D}/boot/${UBOOT_IMAGE}
+	install -m 0644 ${S}/${UBOOT_BINARY} ${D}/boot/${UBOOT_IMAGE}
 	ln -sf ${UBOOT_IMAGE} ${D}/boot/${UBOOT_BINARY}
 
 	if [ -e ${WORKDIR}/fw_env.config ] ; then
@@ -70,7 +70,7 @@ INSANE_SKIP_${PN}-fw-utils = True
 
 do_deploy () {
 	install -d ${DEPLOY_DIR_IMAGE}
-	install ${S}/${UBOOT_BINARY} ${DEPLOY_DIR_IMAGE}/${UBOOT_IMAGE}
+	install -m 0644 ${S}/${UBOOT_BINARY} ${DEPLOY_DIR_IMAGE}/${UBOOT_IMAGE}
 	package_stagefile_shell ${DEPLOY_DIR_IMAGE}/${UBOOT_IMAGE}
 
 	cd ${DEPLOY_DIR_IMAGE}
