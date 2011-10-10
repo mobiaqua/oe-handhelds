@@ -1,0 +1,3 @@
+fatload mmc 0:1 0x80000000 uImage
+setenv bootargs ro elevator=noop vram=32M mem=456M@0x80000000 mem=512M@0xA0000000 root=LABEL=panda rootdelay=1 smsc95xx.macaddr=TARGET_MAC fixrtc console=ttyO2,115200n8
+bootm 0x80000000
