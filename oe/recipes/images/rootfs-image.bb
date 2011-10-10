@@ -19,7 +19,7 @@ INSTALL_PKGS = "\
 	perl-module-config-heavy perl-module-threads perl-module-thread-queue fakeroot-dev perl-module-attributes \
 	libsdl-x11-dev xserver-xorg-extension-glx xserver-xorg-extension-dri2 xserver-xorg xterm openbox \ 
 	openbox-theme-clearlooks xf86-video-omapfb xserver-nodm-init xhost xf86-input-keyboard xf86-input-mouse \
-	xf86-input-evdev xf86-video-devfb \
+	xf86-input-evdev xf86-video-fbdev \
 "
 
 RRECOMMENDS = ""
