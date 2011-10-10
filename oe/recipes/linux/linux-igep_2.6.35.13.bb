@@ -17,6 +17,13 @@ PR = "r1"
 KV = "${PV}-3"
 
 SRC_URI = "http://downloads.igep.es/sources/linux-omap-${KV}.tar.gz \
+	   file://0001-ARM-6329-1-wire-up-sys_accept4-on-ARM.patch \
+	   file://0002-ARM-Add-prompt-for-CONFIG_ALIGNMENT_TRAP.patch \
+	   file://0002-cgroupfs-create-sys-fs-cgroup-to-mount-cgroupfs-on.patch \
+	   file://0003-ARM-Print-warning-on-alignment-trap-in-kernel-mode.patch \
+	   file://0004-ARM-Expose-some-CPU-control-registers-via-sysfs.patch \
+	   file://0005-ARM-Add-option-to-allow-userspace-PLE-access.patch \
+	   file://0006-ARM-Add-option-to-allow-userspace-access-to-performa.patch \
 	   file://fix_nonlinux_compile.patch \
 	   file://linux-2.6.36-tidspbridge.patch \
 	  "
