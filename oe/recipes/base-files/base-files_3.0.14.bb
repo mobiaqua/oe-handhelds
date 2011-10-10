@@ -64,6 +64,9 @@ conffiles = "${sysconfdir}/debian_version ${sysconfdir}/host.conf \
 # set standard hostname, might be a candidate for a DISTRO variable? :M:
 #
 hostname = "openembedded"
+#MobiAqua: added custom hostnames for pandaboard and igep0030
+hostname_pandaboard = "panda"
+hostname_igep0030 = "mobi"
 hostname_slugos = "nslu2"
 hostname_mnci = "MNCI"
 hostname_rt3000 = "MNRT"
@@ -101,8 +104,9 @@ do_install () {
         		echo -n "${DISTRO_NAME} " >> ${D}${sysconfdir}/issue
         		echo -n "${DISTRO_NAME} " >> ${D}${sysconfdir}/issue.net
         		if [ -n "${DISTRO_VERSION}" ]; then
-        			echo -n "${DISTRO_VERSION} " >> ${D}${sysconfdir}/issue
-        			echo -n "${DISTRO_VERSION} " >> ${D}${sysconfdir}/issue.net
+        			#MobiAqua: replace usage echo -n with printf
+        			printf "${DISTRO_VERSION} " >> ${D}${sysconfdir}/issue
+        			printf "${DISTRO_VERSION} " >> ${D}${sysconfdir}/issue.net
         		fi
         		echo "\n \l" >> ${D}${sysconfdir}/issue
         		echo >> ${D}${sysconfdir}/issue
