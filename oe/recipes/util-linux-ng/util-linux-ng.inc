@@ -3,8 +3,7 @@ SECTION = "base"
 LICENSE = "GPL"
 #MobiAqua: added pkgconfig-native
 DEPENDS = "${@base_contains('DISTRO_FEATURES', 'pam', 'libpam', '', d)} zlib ncurses pkgconfig-native"
-#MobiAqua: added gtk-doc-native
-DEPENDS_virtclass-native = "zlib-native pkgconfig-native gtk-doc-native"
+DEPENDS_virtclass-native = "zlib-native pkgconfig-native"
 
 inherit autotools gettext
 
