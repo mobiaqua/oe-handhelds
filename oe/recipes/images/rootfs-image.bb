@@ -17,16 +17,17 @@ INSTALL_PKGS = "\
 	bzip2-dev curl-dev db-dev libelf-dev libstdc++-dev openssl-dev ncurses-dev zlib-dev \
 	libusb-dev libsqlite-dev gcc-symlinks g++-symlinks cpp-symlinks binutils-symlinks \
 	perl-module-config-heavy perl-module-threads perl-module-thread-queue fakeroot-dev perl-module-attributes \
-	libsdl-x11-dev xserver-xorg-extension-glx xserver-xorg-extension-dri2 xserver-xorg xterm openbox \ 
+	libsdl-x11-dev xserver-xorg-extension-glx xserver-xorg-extension-dri2 xserver-xorg xterm openbox \
 	openbox-theme-clearlooks xf86-video-omapfb xserver-nodm-init xhost xf86-input-keyboard xf86-input-mouse \
-	xf86-input-evdev xf86-video-fbdev \
+	xf86-input-evdev xf86-video-fbdev libgl libglu xorg-minimal-fonts \
 "
 
-RRECOMMENDS = ""
+RRECOMMENDS += ""
+RDEPENDS += ""
 
 IMAGE_FSTYPES = "tar.gz"
 IMAGE_BASENAME = "rootfs-base"
 IMAGE_LINGUAS = ""
-IMAGE_INSTALL = "${INSTALL_PKGS} "
+IMAGE_INSTALL += "${INSTALL_PKGS} "
 
 inherit image

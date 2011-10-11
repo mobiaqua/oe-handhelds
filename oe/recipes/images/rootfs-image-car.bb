@@ -10,7 +10,7 @@ INSTALL_PKGS += "x-load-igep u-boot-igep"
 #not buildable on mac os x for now
 #INSTALL_PKGS += "libgles-omap3 ti-codecs-omap3530"
 
-RRECOMMENDS = ""
+RRECOMMENDS += ""
 
 IMAGE_FSTYPES = "tar.gz"
 IMAGE_BASENAME = "rootfs-car"
