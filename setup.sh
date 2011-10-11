@@ -90,9 +90,12 @@ export BBPATH=\"\${OE_BASE}/oe/:\${OE_BASE}/bb/:\${OE_BASE}/build-${DISTRO}/\"
 if [ ! \`echo \${PATH} | grep \${OE_BASE}/bb/bin\` ]; then
 	export PATH=\${OE_BASE}/bb/bin:\${PATH}
 fi
+unset LD_LIBRARY_PATH
 export LD_LIBRARY_PATH=
 export PYTHONPATH=${OE_BASE}/bb/lib
 export LANG=C
+unset TERMINFO
+unset GCONF_SCHEMA_INSTALL_SOURCE
 " > ${OE_BASE}/build-${DISTRO}/env.source
 
 
