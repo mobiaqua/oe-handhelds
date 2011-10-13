@@ -1,0 +1,29 @@
+From f1cdbf3c3dbe6c791e7707d275efe444f5eeec08 Mon Sep 17 00:00:00 2001
+From: Ricardo Salveti de Araujo <ricardo.salveti@canonical.com>
+Date: Fri, 15 Apr 2011 03:19:53 -0300
+Subject: [PATCH] Display controller should depend on the xorg support, like before
+
+Signed-off-by: Ricardo Salveti de Araujo <ricardo.salveti@canonical.com>
+---
+ .../build/linux2/omap4430_linux/Makefile           |    4 ++++
+ 1 files changed, 4 insertions(+), 0 deletions(-)
+
+diff --git a/sgx/eurasiacon/build/linux2/omap4430_linux/Makefile b/sgx/eurasiacon/build/linux2/omap4430_linux/Makefile
+index a9f3e24..881414b 100755
+--- a/sgx/eurasiacon/build/linux2/omap4430_linux/Makefile
++++ b/sgx/eurasiacon/build/linux2/omap4430_linux/Makefile
+@@ -57,7 +57,11 @@ LDM_PLATFORM ?= 1
+ 
+ ifeq ($(LDM_PLATFORM),1)
+ SUPPORT_LINUX_USING_WORKQUEUES := 1
++ifeq ($(want_xorg),1)
++DISPLAY_CONTROLLER_COMPONENT += dc_omapfb3_linux
++else
+ DISPLAY_CONTROLLER_COMPONENT += dc_omap_linux
++endif
+ DISPLAY_CONTROLLER := omaplfb
+ else
+ SUPPORT_LINUX_USING_SHARED_WORKQUEUES := 1
+-- 
+1.7.4.1
+

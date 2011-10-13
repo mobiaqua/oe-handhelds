@@ -1,0 +1,36 @@
+From 2b3ca93c5d54a1303bd1b3932ca8ef9399aebcea Mon Sep 17 00:00:00 2001
+From: Ricardo Salveti de Araujo <ricardo.salveti@canonical.com>
+Date: Fri, 15 Apr 2011 04:53:47 -0300
+Subject: [PATCH] Provide a proper build date for the pvr module
+
+Signed-off-by: Ricardo Salveti de Araujo <ricardo.salveti@canonical.com>
+---
+ sgx/eurasiacon/build/linux2/config/core.mk |    5 ++++-
+ 1 files changed, 4 insertions(+), 1 deletions(-)
+
+diff --git a/sgx/eurasiacon/build/linux2/config/core.mk b/sgx/eurasiacon/build/linux2/config/core.mk
+index 1e5b0e2..39b8d7e 100755
+--- a/sgx/eurasiacon/build/linux2/config/core.mk
++++ b/sgx/eurasiacon/build/linux2/config/core.mk
+@@ -158,6 +158,9 @@ $(call directory-must-exist,$(TOP)/eurasiacon/build/linux2/$(PVR_BUILD_DIR))
+ BUILD	?= release
+ OUT		?= $(TOP)/eurasiacon/binary2_$(PVR_BUILD_DIR)_$(BUILD)
+ 
++# Without a build date drm fails to load
++DATE := $(shell date +%Y-%m-%d)
++
+ CONFIG_MK			:= $(OUT)/config.mk
+ CONFIG_H			:= $(OUT)/config.h
+ CONFIG_KERNEL_MK	:= $(OUT)/config_kernel.mk
+@@ -346,7 +349,7 @@ endif
+ $(eval $(call BothConfigC,LINUX,))
+ 
+ $(eval $(call BothConfigC,PVR_BUILD_DIR,"\"$(PVR_BUILD_DIR)\""))
+-$(eval $(call BothConfigC,PVR_BUILD_DATE,"\"\""))
++$(eval $(call BothConfigC,PVR_BUILD_DATE,"\"$(DATE)\""))
+ $(eval $(call BothConfigC,PVR_BUILD_TYPE,"\"$(BUILD)\""))
+ $(eval $(call BothConfigC,PVRSRV_MODNAME,"\"$(PVRSRV_MODNAME)\""))
+ $(eval $(call BothConfigMake,PVRSRV_MODNAME,$(PVRSRV_MODNAME)))
+-- 
+1.7.4.1
+

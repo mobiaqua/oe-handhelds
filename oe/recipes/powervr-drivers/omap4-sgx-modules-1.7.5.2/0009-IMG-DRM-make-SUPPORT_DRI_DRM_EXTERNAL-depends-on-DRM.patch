@@ -1,0 +1,172 @@
+From 8a297eb79e82955c561811b24919c501a17ac1d2 Mon Sep 17 00:00:00 2001
+From: Ricardo Salveti de Araujo <ricardo.salveti@canonical.com>
+Date: Sun, 5 Jun 2011 04:11:07 -0300
+Subject: [PATCH 2/2] IMG DRM: make SUPPORT_DRI_DRM_EXTERNAL depends on DRM_OMAP
+
+It only makes sense to enable SUPPORT_DRI_DRM_EXTERNAL when DRM_OMAP is
+enable at the kernel, otherwise the PVR module will not work.
+
+Signed-off-by: Ricardo Salveti de Araujo <ricardo.salveti@canonical.com>
+---
+ sgx/eurasiacon/build/linux2/common/dridrm.mk       |    4 +-
+ .../build/linux2/omap4430_linux/Makefile           |    7 ++---
+ sgx/services4/srvkm/env/linux/module.c             |   23 ++++++++++---------
+ sgx/services4/srvkm/env/linux/pvr_drm.c            |   10 ++++----
+ sgx/services4/srvkm/env/linux/pvr_drm.h            |    5 ++++
+ 5 files changed, 27 insertions(+), 22 deletions(-)
+
+diff --git a/sgx/eurasiacon/build/linux2/common/dridrm.mk b/sgx/eurasiacon/build/linux2/common/dridrm.mk
+index 86b2f08..f751bee 100755
+--- a/sgx/eurasiacon/build/linux2/common/dridrm.mk
++++ b/sgx/eurasiacon/build/linux2/common/dridrm.mk
+@@ -25,11 +25,11 @@
+ 
+ $(eval $(call TunableBothConfigC,SUPPORT_DRI_DRM,))
+ $(eval $(call TunableBothConfigC,SUPPORT_DRI_DRM_EXT,))
+-$(eval $(call TunableBothConfigC,SUPPORT_DRI_DRM_EXTERNAL,))
++$(eval $(call TunableBothConfigC,SUPPORT_DRI_TRY_DRM_EXTERNAL,))
+ 
+ 
+ $(eval $(call TunableBothConfigMake,SUPPORT_DRI_DRM,))
+-$(eval $(call TunableBothConfigMake,SUPPORT_DRI_DRM_EXTERNAL,))
++$(eval $(call TunableBothConfigMake,SUPPORT_DRI_TRY_DRM_EXTERNAL,))
+ 
+ ifeq ($(SUPPORT_DRI_DRM),1)
+ ifeq ($(SUPPORT_DRI_DRM_NO_LIBDRM),1)
+diff --git a/sgx/eurasiacon/build/linux2/omap4430_linux/Makefile b/sgx/eurasiacon/build/linux2/omap4430_linux/Makefile
+index 9f4e066..f7cd1c0 100755
+--- a/sgx/eurasiacon/build/linux2/omap4430_linux/Makefile
++++ b/sgx/eurasiacon/build/linux2/omap4430_linux/Makefile
+@@ -43,8 +43,9 @@ include ../common/xorg_test.mk
+ ifeq ($(want_xorg),1)
+ SUPPORT_DRI_DRM := 1
+ SUPPORT_BC_EXAMPLE ?= 0
+-# support for registering as plugin into external DRM driver
+-SUPPORT_DRI_DRM_EXTERNAL := 1
++# try support for registering as plugin into external DRM driver
++# only support if CONFIG_DRM_OMAP is set
++SUPPORT_DRI_TRY_DRM_EXTERNAL := 1
+ else
+ SUPPORT_BC_EXAMPLE ?= 1
+ endif
+@@ -102,11 +103,9 @@ SYS_CUSTOM_POWERLOCK_WRAP := 1
+ 
+ ifeq ($(OMAP_KERNEL_AT_LEAST_2_6_35),1)
+ ifeq ($(LDM_PLATFORM),1)
+-ifneq ($(SUPPORT_DRI_DRM_EXTERNAL),1)
+ PVR_LDM_PLATFORM_PRE_REGISTERED := 1
+ endif
+ endif
+-endif
+ 
+ BUILD_OPENCL ?= 0
+ ifneq ($(BUILD_OPENCL),1)
+diff --git a/sgx/services4/srvkm/env/linux/module.c b/sgx/services4/srvkm/env/linux/module.c
+index c8bd27a..9850eb0 100755
+--- a/sgx/services4/srvkm/env/linux/module.c
++++ b/sgx/services4/srvkm/env/linux/module.c
+@@ -32,6 +32,17 @@
+ #endif
+ #endif
+ 
++#if defined(SUPPORT_DRI_DRM)
++#include <drm/drmP.h>
++#if defined(PVR_SECURE_DRM_AUTH_EXPORT)
++#include "env_perproc.h"
++#endif
++#endif
++
++#if defined(SUPPORT_DRI_DRM)
++#include "pvr_drm.h"
++#endif
++
+ #if defined(SUPPORT_DRI_DRM) && !defined(SUPPORT_DRI_DRM_EXTERNAL)
+ #define	PVR_MOD_STATIC
+ #else
+@@ -51,7 +62,7 @@
+ #endif
+ #endif
+ 
+-#if defined(PVR_LDM_PLATFORM_PRE_REGISTERED)
++#if defined(PVR_LDM_PLATFORM_PRE_REGISTERED) && !defined(SUPPORT_DRI_DRM_EXTERNAL)
+ #if !defined(NO_HARDWARE)
+ #define PVR_USE_PRE_REGISTERED_PLATFORM_DEV
+ #endif
+@@ -63,13 +74,6 @@
+ #include <linux/fs.h>
+ #include <linux/proc_fs.h>
+ 
+-#if defined(SUPPORT_DRI_DRM)
+-#include <drm/drmP.h>
+-#if defined(PVR_SECURE_DRM_AUTH_EXPORT)
+-#include "env_perproc.h"
+-#endif
+-#endif
+-
+ #if defined(PVR_LDM_PLATFORM_MODULE)
+ #include <linux/platform_device.h>
+ #endif 
+@@ -103,9 +107,6 @@
+ #include "lock.h"
+ #include "linkage.h"
+ 
+-#if defined(SUPPORT_DRI_DRM)
+-#include "pvr_drm.h"
+-#endif
+ #define DRVNAME		PVRSRV_MODNAME
+ #define DEVNAME		PVRSRV_MODNAME
+ #if !defined(SUPPORT_DRI_DRM_EXTERNAL)
+diff --git a/sgx/services4/srvkm/env/linux/pvr_drm.c b/sgx/services4/srvkm/env/linux/pvr_drm.c
+index 7aa26ba..f89e29b 100755
+--- a/sgx/services4/srvkm/env/linux/pvr_drm.c
++++ b/sgx/services4/srvkm/env/linux/pvr_drm.c
+@@ -44,10 +44,6 @@
+ #include <drm/drmP.h>
+ #include <drm/drm.h>
+ 
+-#if defined(SUPPORT_DRI_DRM_EXTERNAL)
+-#  include <linux/omap_gpu.h>
+-#endif
+-
+ #include "img_defs.h"
+ #include "services.h"
+ #include "kerneldisplay.h"
+@@ -70,6 +66,10 @@
+ #include "linkage.h"
+ #include "pvr_drm.h"
+ 
++#if defined(SUPPORT_DRI_DRM_EXTERNAL)
++#  include <linux/omap_gpu.h>
++#endif
++
+ #if defined(PVR_DRI_DRM_NOT_PCI)
+ #include "pvr_drm_mod.h"
+ #endif
+@@ -102,7 +102,7 @@ struct drm_device *gpsPVRDRMDev;
+ 
+ #if !defined(SUPPORT_DRI_DRM_EXT)
+ #if defined(PVR_DRI_DRM_PLATFORM_DEV)
+-#if defined(PVR_LDM_PLATFORM_PRE_REGISTERED)
++#if defined(PVR_LDM_PLATFORM_PRE_REGISTERED) && !defined(SUPPORT_DRI_DRM_EXTERNAL)
+ static struct platform_device_id asPlatIdList[] = {
+ 	{SYS_SGX_DEV_NAME, 0},
+ 	{}
+diff --git a/sgx/services4/srvkm/env/linux/pvr_drm.h b/sgx/services4/srvkm/env/linux/pvr_drm.h
+index f26403f..ce0e913 100755
+--- a/sgx/services4/srvkm/env/linux/pvr_drm.h
++++ b/sgx/services4/srvkm/env/linux/pvr_drm.h
+@@ -35,6 +35,11 @@
+ 
+ #include <linux/version.h>
+ 
++/* only defines DRM_EXTERNAL if DRM_OMAP is enabled at the kernel */
++#if defined (SUPPORT_DRI_TRY_DRM_EXTERNAL) && defined(CONFIG_DRM_OMAP)
++#define SUPPORT_DRI_DRM_EXTERNAL
++#endif
++
+ #if defined(PVR_DRI_DRM_PLATFORM_DEV)
+ #define	LDM_DEV	struct platform_device
+ #endif
+-- 
+1.7.4.1
+
