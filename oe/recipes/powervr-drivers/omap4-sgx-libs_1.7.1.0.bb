@@ -37,7 +37,8 @@ do_install() {
 	cp -pR ${S}${libdir}/* ${D}${libdir}/
 
 	install -d ${D}${datadir}/X11/xorg.conf.d
-	cp ${WORKDIR}/99-pvr.conf ${D}${datadir}/X11/xorg.conf.d/
+# Not enable by default, it's not really good working
+#	cp ${WORKDIR}/99-pvr.conf ${D}${datadir}/X11/xorg.conf.d/
 }
 
 
