@@ -4,7 +4,7 @@ DESCRIPTION = "<description>"
 PV = "0.0.1"
 PR = "r0"
 
-DEPENDS_append=" virtual/kernel "
+DEPENDS_append=" virtual/kernel"
 
 INSTALL_PKGS = "\
 	base-files base-passwd busybox kernel-modules sysvinit sysvinit-pidof libstdc++ \
@@ -18,8 +18,8 @@ INSTALL_PKGS = "\
 	libusb-dev libsqlite-dev gcc-symlinks g++-symlinks cpp-symlinks binutils-symlinks \
 	perl-module-config-heavy perl-module-threads perl-module-thread-queue fakeroot-dev perl-module-attributes \
 	libsdl-x11-dev xserver-xorg-extension-glx xserver-xorg-extension-dri2 xserver-xorg xterm openbox \
-	openbox-theme-clearlooks xf86-video-omapfb xserver-nodm-init xhost xf86-input-keyboard xf86-input-mouse \
-	xf86-input-evdev xf86-video-fbdev libgl libglu xorg-minimal-fonts \
+	openbox-theme-clearlooks xf86-video-fbdev xserver-nodm-init xhost \
+	xf86-input-evdev libgl libglu xorg-minimal-fonts xserver-xorg-extension-dri \
 "
 
 RRECOMMENDS += ""

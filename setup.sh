@@ -55,9 +55,9 @@ setup() {
 		echo " -  root password is NOT defined"
 	fi
 	if [ -f ${MA_DROPBEAR_KEY_FILE} ]; then
-		echo " -  target dropber host key file found"
+		echo " -  target dropbear host key file found"
 	else
-		echo " -  target dropber host key file NOT found"
+		echo " -  target dropbear host key file NOT found"
 	fi
 	mkdir -p  ${OE_BASE}/build-${DISTRO}/conf
 

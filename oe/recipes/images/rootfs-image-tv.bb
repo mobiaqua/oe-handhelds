@@ -6,7 +6,7 @@ DESCRIPTION = "<description>"
 PV = "0.0.1"
 PR = "r0"
 
-INSTALL_PKGS += "x-load-pandaboard u-boot-pandaboard libdce omap4-sgx-libs omap4-sgx-modules"
+INSTALL_PKGS += "x-load-pandaboard u-boot-pandaboard libdce omap4-sgx-libs omap4-sgx-modules mesa-dri"
 RRECOMMENDS += ""
 
 IMAGE_FSTYPES = "tar.gz"
