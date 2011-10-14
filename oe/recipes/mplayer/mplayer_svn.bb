@@ -2,11 +2,9 @@ DESCRIPTION = "Open Source multimedia player."
 SECTION = "multimedia"
 PRIORITY = "optional"
 HOMEPAGE = "http://www.mplayerhq.hu/"
-DEPENDS = "libvpx live555 libtheora virtual/libsdl ffmpeg xsp zlib libpng jpeg liba52 freetype fontconfig alsa-lib lzo ncurses lame libxv virtual/libx11 virtual/kernel \
-	   ${@base_conditional('ENTERPRISE_DISTRO', '1', '', 'libmad liba52 lame', d)}"
+DEPENDS = "live555 zlib libpng jpeg freetype fontconfig alsa-lib libmad lzo ncurses virtual/libx11 virtual/kernel liba52"
 
 RDEPENDS_${PN} = "mplayer-common"
-RRECOMMENDS_${PN} = "libdvdcss"
 
 LICENSE = "GPL"
 SRC_URI = "svn://svn.mplayerhq.hu/mplayer;module=trunk \
@@ -50,9 +48,9 @@ STAGING_KERNEL_DIR = "${STAGING_DIR}/${MACHINE_ARCH}${TARGET_VENDOR}-${TARGET_OS
 EXTRA_OECONF = " \
 	--prefix=/usr \
 	--mandir=${mandir} \
-	--target=${SIMPLE_TARGET_SYS} \
+	--target=${TARGET_SYS} \
 	\
-	--enable-mencoder \
+	--disable-mencoder \
 	--disable-gui \
 	--enable-largefiles \
 	--disable-lirc \
@@ -91,8 +89,6 @@ EXTRA_OECONF = " \
 	\
 	--disable-ffmpeg_so \
 	\
-	--enable-tremor-low \
-	\
 	--disable-speex \
 	--disable-theora \
 	--disable-faac \
@@ -103,7 +99,7 @@ EXTRA_OECONF = " \
 	--disable-twolame \
 	--disable-xmms \
 	--disable-mp3lib \
-	--enable-libmpeg2 \
+	--disable-libmpeg2 \
 	--disable-musepack \
 	\
 	--disable-gl \
@@ -120,12 +116,12 @@ EXTRA_OECONF = " \
 	--disable-dvb \
 	--disable-mga \
 	--disable-xmga \
-	--disable-xv \
+	--enable-xv \
 	--disable-xvmc \
 	--disable-vm \
 	--disable-xinerama \
 	--enable-x11 \
-	--disable-fbdev \
+	--enable-fbdev \
 	--disable-mlib \
 	--disable-3dfx \
 	--disable-tdfxfb \
@@ -153,6 +149,7 @@ EXTRA_OECONF = " \
 	--disable-sunaudio \
 	--disable-win32waveout \
 	--enable-select \
+	--ar=${TARGET_PREFIX}ar \
 	\
 	--enable-protocol='file_protocol pipe_protocol http_protocol' \
 "
@@ -189,9 +186,9 @@ do_configure_prepend_armv7a() {
 		cp ${WORKDIR}/yuv.S ${S}/libvo
 	 	cp ${WORKDIR}/vo_omapfb.c ${S}/libvo
 	fi
-	cp ${STAGING_KERNEL_DIR}/arch/arm/plat-omap/include/mach/omapfb.h ${S}/libvo/omapfb.h || true
- 	cp ${STAGING_KERNEL_DIR}/include/asm-arm/arch-omap/omapfb.h ${S}/libvo/omapfb.h || true
-	cp ${STAGING_KERNEL_DIR}/include/linux/omapfb.h ${S}/libvo/omapfb.h || true
+	#cp ${STAGING_KERNEL_DIR}/arch/arm/plat-omap/include/mach/omapfb.h ${S}/libvo/omapfb.h || true
+ 	#cp ${STAGING_KERNEL_DIR}/include/asm-arm/arch-omap/omapfb.h ${S}/libvo/omapfb.h || true
+	cp ${STAGING_INCDIR}/linux/omapfb.h ${S}/libvo/omapfb.h || true
  	sed -e 's/__user//g' -i ${S}/libvo/omapfb.h || true
 
 	# Don't use hardfp args when using softfp
@@ -208,8 +205,9 @@ do_configure() {
 	sed -i 's|HOST_CC|BUILD_CC|' ${S}/Makefile
 
 	export SIMPLE_TARGET_SYS="$(echo ${TARGET_SYS} | sed s:${TARGET_VENDOR}::g)"
-	./configure ${EXTRA_OECONF}
-	
+	#MobiAqua: added extra libs
+	./configure ${EXTRA_OECONF} --extra-libs-mplayer="-lX11 -lXext -lstdc++" \
+		--extra-libs="-lliveMedia -lBasicUsageEnvironment -lgroupsock -lUsageEnvironment -lstdc++"
 }
 
 do_compile () {
