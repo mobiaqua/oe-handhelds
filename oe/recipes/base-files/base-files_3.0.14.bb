@@ -139,6 +139,23 @@ do_install () {
 	install -m 0644 ${WORKDIR}/nsswitch.conf ${D}${sysconfdir}/nsswitch.conf
 }
 
+do_install_append_mobiaqua() {
+	if [ ${MA_DNS_IP} ]; then
+		printf "nameserver ${MA_DNS_IP}" >${D}${sysconfdir}/resolv.conf
+	fi
+}
+
+do_install_append_mobiaqua-tv() {
+	if [ ${MA_DNS_IP} ]; then
+		printf "nameserver ${MA_DNS_IP}" >${D}${sysconfdir}/resolv.conf
+	fi
+}
+
+do_install_append_mobiaqua-car() {
+	if [ ${MA_DNS_IP} ]; then
+		printf "nameserver ${MA_DNS_IP}" >${D}${sysconfdir}/resolv.conf
+	fi
+}
 
 do_install_append_mnci () {
 	rmdir ${D}/tmp

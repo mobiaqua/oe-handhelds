@@ -36,17 +36,19 @@ setup() {
 	MA_DL_DIR=${MA_DL_DIR:="$HOME/sources"}
 	export MA_TARGET_IP=${MA_TARGET_IP:="192.168.1.10"}
 	export MA_TARGET_MAC=${MA_TARGET_MAC:=""}
+	export MA_DNS_IP=${MA_DNS_IP:="192.168.1.1"}
 	export MA_NFS_IP=${MA_NFS_IP:="192.168.1.1"}
 	export MA_NFS_PATH=${MA_NFS_PATH:="/nfsroot"}
 	export MA_ROOT_PASSWORD=${MA_ROOT_PASSWORD:=""}
 	export MA_DROPBEAR_KEY_FILE="$HOME/.mobiaqua/oe/${DISTRO}_dropbear_rsa_host_key"
 
-	export BB_ENV_EXTRAWHITE="MA_TARGET_IP MA_TARGET_MAC MA_NFS_IP MA_NFS_PATH MA_ROOT_PASSWORD MA_DROPBEAR_KEY_FILE"
+	export BB_ENV_EXTRAWHITE="MA_TARGET_IP MA_TARGET_MAC MA_DNS_IP MA_NFS_IP MA_NFS_PATH MA_ROOT_PASSWORD MA_DROPBEAR_KEY_FILE"
 
 	echo "--- Settings:"
 	echo " -  sources:    ${MA_DL_DIR}"
 	echo " -  target ip:  ${MA_TARGET_IP}"
 	echo " -  target mac: ${MA_TARGET_MAC}"
+	echo " -  dns ip:     ${MA_DNS_IP}"
 	echo " -  nfs ip:     ${MA_NFS_IP}"
 	echo " -  nfs path:   ${MA_NFS_PATH}"
 	if [ "$MA_ROOT_PASSWORD" != "" ]; then
