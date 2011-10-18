@@ -18,7 +18,7 @@ inherit module
 
 MACHINE_KERNEL_PR_append = "a"
 
-MAKE_TARGETS = "-C eurasiacon/build/linux/omap4430_linux/kbuild BUILD=release SUPPORT_XORG=1"
+MAKE_TARGETS = "-C eurasiacon/build/linux/omap4430_linux/kbuild BUILD=release SUPPORT_XORG=0"
 
 INITSCRIPT_NAME = "pvr-init.sh"
 

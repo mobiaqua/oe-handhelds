@@ -8,7 +8,7 @@ SRC_URI = "https://launchpadlibrarian.net/81314678/pvr-omap4_1.7.9.0.1.5.orig.ta
 	   "
 
 COMPATIBLE_MACHINE = "pandaboard"
-DEPENDS = "virtual/libx11 libxau libxdmcp omap4-sgx-modules"
+DEPENDS = "omap4-sgx-modules"
 PROVIDES += "virtual/egl"
 
 DEFAULT_PREFERENCE = "-1"
@@ -35,9 +35,6 @@ do_install() {
 
 	install -d ${D}${libdir}
 	cp -pR ${S}${libdir}/* ${D}${libdir}/
-
-	install -d ${D}${datadir}/X11/xorg.conf.d
-	cp ${WORKDIR}/99-pvr.conf ${D}${datadir}/X11/xorg.conf.d/
 }
 
 
