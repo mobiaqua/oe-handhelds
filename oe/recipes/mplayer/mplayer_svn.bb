@@ -2,7 +2,8 @@ DESCRIPTION = "Open Source multimedia player."
 SECTION = "multimedia"
 PRIORITY = "optional"
 HOMEPAGE = "http://www.mplayerhq.hu/"
-DEPENDS = "live555 zlib libpng jpeg freetype fontconfig alsa-lib lzo libmpg123 ncurses virtual/kernel"
+DEPENDS = "live555 zlib libpng jpeg freetype fontconfig alsa-lib lzo libmpg123 ncurses virtual/kernel \
+	   glibc-gconv-cp1250 ttf-dejavu-sans"
 RDEPENDS_${PN} = "mplayer-common"
 
 LICENSE = "GPL"
@@ -11,7 +12,6 @@ SRC_URI = "svn://svn.mplayerhq.hu/mplayer;module=trunk \
 	   git://git.videolan.org/ffmpeg.git;protocol=git;tag=1d0afec8fcfaca9736c927715ddd56a5902855ab;name=ffmpeg \
 	   file://makefile-nostrip-svn.patch \
 	   file://mplayer-arm-pld.patch \
-#	   file://offset.patch;minrev=32735 \
 "
 SRCREV_FORMAT = "ffmpeg"
 #SRCREV = "32735"
