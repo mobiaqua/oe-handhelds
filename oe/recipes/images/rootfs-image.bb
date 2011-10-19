@@ -9,7 +9,7 @@ DEPENDS_append=" virtual/kernel"
 INSTALL_PKGS = "\
 	base-files base-passwd busybox kernel-modules sysvinit sysvinit-pidof libstdc++ libgcc \
 	netbase modutils-initscripts tinylogin initscripts tinylogin update-alternatives alsa-utils alsa-state \
-	alsa-utils-alsamixer alsa-utils-amixer alsa-utils-speakertest alsa-utils-alsactl \
+	alsa-utils-alsamixer alsa-utils-amixer alsa-utils-speakertest alsa-utils-alsactl ntpclient \
 	e2fsprogs e2fsprogs-mke2fs util-linux-ng dosfstools tar gzip bzip2 module-init-tools-depmod \
 	ifupdown modutils-collateral mtd-utils dropbear bzip2 mtd-utils unzip mtools \
 	binutils gcc make patch m4 gdb python perl gdbserver automake autoconf \
