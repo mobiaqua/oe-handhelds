@@ -2,9 +2,8 @@ DESCRIPTION = "Open Source multimedia player."
 SECTION = "multimedia"
 PRIORITY = "optional"
 HOMEPAGE = "http://www.mplayerhq.hu/"
-DEPENDS = "live555 zlib libpng jpeg freetype fontconfig alsa-lib lzo libmpg123 ncurses virtual/kernel \
-	   glibc-gconv-cp1250 ttf-dejavu-sans"
-RDEPENDS_${PN} = "mplayer-common"
+DEPENDS = "live555 zlib libpng jpeg freetype fontconfig alsa-lib lzo libmpg123 ncurses virtual/kernel"
+RDEPENDS_${PN} = "mplayer-common glibc-gconv-cp1250 ttf-dejavu-sans"
 
 LICENSE = "GPL"
 
