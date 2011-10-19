@@ -112,9 +112,9 @@ fi
 
 
 		echo "--- Created:"
-		echo "-   ${OE_BASE}/build-${DISTRO}/conf/local.conf,"
-		echo "-   ${OE_BASE}/build-${DISTRO}/env.source,"
-		echo "-   ${OE_BASE}/build-${DISTRO}/crosstools-setup ---"
+		echo " -  ${OE_BASE}/build-${DISTRO}/conf/local.conf,"
+		echo " -  ${OE_BASE}/build-${DISTRO}/env.source,"
+		echo " -  ${OE_BASE}/build-${DISTRO}/crosstools-setup ---"
 	fi
 
 	echo
