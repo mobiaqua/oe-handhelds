@@ -1,0 +1,12 @@
+diff -ur old/arch/arm/boot/compressed/Makefile new/arch/arm/boot/compressed/Makefile
+--- old/arch/arm/boot/compressed/Makefile	2011-10-21 20:53:55.000000000 +0200
++++ new/arch/arm/boot/compressed/Makefile	2011-10-21 20:53:09.000000000 +0200
+@@ -122,7 +122,7 @@
+ asflags-y := -Wa,-march=all
+ 
+ # Supply kernel BSS size to the decompressor via a linker symbol.
+-KBSS_SZ = $(shell size $(obj)/../../../../vmlinux | awk 'END{print $$3}')
++KBSS_SZ = $(shell $(CROSS_COMPILE)size $(obj)/../../../../vmlinux | awk 'END{print $$3}')
+ LDFLAGS_vmlinux = --defsym _kernel_bss_size=$(KBSS_SZ)
+ # Supply ZRELADDR to the decompressor via a linker symbol.
+ ifneq ($(CONFIG_AUTO_ZRELADDR),y)

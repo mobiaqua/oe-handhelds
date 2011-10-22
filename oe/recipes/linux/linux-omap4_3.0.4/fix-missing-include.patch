@@ -1,0 +1,11 @@
+diff -ur old/include/linux/Kbuild new/include/linux/Kbuild
+--- old/include/linux/Kbuild	2011-10-21 19:27:40.000000000 +0200
++++ new/include/linux/Kbuild	2011-10-21 21:59:16.000000000 +0200
+@@ -280,7 +280,6 @@
+ header-y += nvram.h
+ header-y += omap3isp.h
+ header-y += omapfb.h
+-header-y += omap_gpu.h
+ header-y += oom.h
+ header-y += param.h
+ header-y += parport.h
