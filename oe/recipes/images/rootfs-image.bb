@@ -21,7 +21,7 @@ INSTALL_PKGS = "\
 "
 
 RRECOMMENDS += ""
-RDEPENDS += "ntpdate tzdata tzdata-europe"
+RDEPENDS += "libstdc++-dev libgcc-dev ntpdate tzdata tzdata-europe"
 
 IMAGE_FSTYPES = "tar.gz"
 IMAGE_BASENAME = "rootfs-base"
