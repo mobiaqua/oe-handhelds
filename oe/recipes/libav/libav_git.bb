@@ -16,7 +16,7 @@ B = "${S}/build.${HOST_SYS}.${TARGET_SYS}"
 FULL_OPTIMIZATION_armv7a = "-fexpensive-optimizations  -fno-tree-vectorize -fomit-frame-pointer -O4 -ffast-math"
 BUILD_OPTIMIZATION = "${FULL_OPTIMIZATION}"
 
-EXTRA_FFCONF_armv7a = "--cpu=cortex-a8"
+EXTRA_FFCONF_armv7a = "--cpu=cortex-a9"
 EXTRA_FFCONF ?= ""
 
 EXTRA_OECONF = " \
