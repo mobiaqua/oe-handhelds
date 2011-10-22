@@ -14,4 +14,10 @@ LOAD_MODULE=/sbin/modprobe
 
 [ "$VERBOSE" != no ] && echo -n "Loading PVR modules: "
 
+kernel=`uname -r | cut -c 1-8`
+if [ "$kernel" == "2.6.35.3" ]; then
+	echo "not loading PVR module"
+	exit 0
+fi
+
 modprobe omapdrm_pvr

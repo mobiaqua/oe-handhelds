@@ -2,7 +2,7 @@ DESCRIPTION = "Kernel drivers for the PowerVR SGX chipset found in the omap4 SoC
 LICENSE = "GPLv2"
 
 #MobiAqua: custom package
-DEFAULT_PREFERENCE = "-1"
+DEFAULT_PREFERENCE = "2"
 COMPATIBLE_MACHINE = "pandaboard"
 
 SRC_URI = "http://launchpadlibrarian.net/81314683/pvr-omap4-dkms_1.7.9.0.1.3.orig.tar.gz \
@@ -18,7 +18,7 @@ inherit module
 
 MACHINE_KERNEL_PR_append = "a"
 
-MAKE_TARGETS = "-C eurasiacon/build/linux2/omap4430_linux BUILD=release SUPPORT_V4L2_GFX=0 W=1"
+MAKE_TARGETS = "-C eurasiacon/build/linux2/omap4430_linux BUILD=release W=1"
 
 INITSCRIPT_NAME = "pvr-init.sh"
 

@@ -11,7 +11,7 @@ COMPATIBLE_MACHINE = "pandaboard"
 DEPENDS = "omap4-sgx-modules"
 PROVIDES += "virtual/egl"
 
-DEFAULT_PREFERENCE = "-1"
+DEFAULT_PREFERENCE = "2"
 
 SRC_URI[md5sum] = "9a8539417c7eaa2918f0510569ccb0b9"
 SRC_URI[sha256sum] = "b5f361ae19352316baf8e5ac051cc40e9831278370a29591e4944edc7b599710"
@@ -35,6 +35,9 @@ do_install() {
 
 	install -d ${D}${libdir}
 	cp -pR ${S}${libdir}/* ${D}${libdir}/
+
+	install -d ${D}${datadir}/X11/xorg.conf.d
+	cp ${WORKDIR}/99-pvr.conf ${D}${datadir}/X11/xorg.conf.d/
 }
 
 
