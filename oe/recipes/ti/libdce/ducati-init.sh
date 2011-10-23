@@ -2,7 +2,6 @@
 
 kernel=`uname -r | cut -c 1-8`
 if [ "$kernel" != "2.6.35.3" ]; then
-	echo "not loading Ducati firmware"
 	exit 0
 fi
 
