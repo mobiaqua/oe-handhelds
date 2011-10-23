@@ -38,6 +38,8 @@ do_install() {
 
 	install -d ${D}${datadir}/X11/xorg.conf.d
 	cp ${WORKDIR}/99-pvr.conf ${D}${datadir}/X11/xorg.conf.d/
+
+	cp -pR ${S}${datadir}/sgx-lib ${D}${datadir}/
 }
 
 
