@@ -49,6 +49,9 @@ iface lo inet loopback
 auto usb0
 iface usb0 inet dhcp
 
+auto eth0
+iface eth0 inet dhcp
+
 # Bluetooth networking
 iface bnep0 inet dhcp
 
