@@ -5,7 +5,7 @@ KERNEL_IMAGETYPE = "uImage"
 COMPATIBLE_MACHINE = "pandaboard"
 
 DEFAULT_PREFERENCE = "-1"
-DEFAULT_PREFERENCE_pandaboard = "2"
+DEFAULT_PREFERENCE_pandaboard = "-1"
 
 DEPENDS = "coreutils-native"
 
@@ -22,8 +22,6 @@ export OS = "Linux"
 
 SRC_URI = "git://dev.omapzoom.org/pub/scm/integration/kernel-ubuntu.git;protocol=git \
            file://0001-UBUNTU-Config-Fix-FTBS-caused-by-new-binutils.patch \
-           file://0002-ARM-Add-prompt-for-CONFIG_ALIGNMENT_TRAP.patch \
-           file://0003-ARM-Print-warning-on-alignment-trap-in-kernel-mode.patch \
            file://fix_nonlinux_compile.patch \
            file://fix-cross-size-tool.patch \
            file://fix-missing-include.patch \

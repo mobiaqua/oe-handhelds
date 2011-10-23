@@ -677,7 +677,7 @@ CONFIG_BLK_DEV_SD=y
 # CONFIG_SCSI_CONSTANTS is not set
 # CONFIG_SCSI_LOGGING is not set
 # CONFIG_SCSI_SCAN_ASYNC is not set
-CONFIG_SCSI_WAIT_SCAN=y
+CONFIG_SCSI_WAIT_SCAN=m
 
 #
 # SCSI Transports
@@ -1328,11 +1328,10 @@ CONFIG_OMAP2_DSS=y
 CONFIG_OMAP2_VRAM_SIZE=16
 CONFIG_OMAP2_DSS_DEBUG_SUPPORT=y
 # CONFIG_OMAP2_DSS_COLLECT_IRQ_STATS is not set
-# CONFIG_OMAP2_DSS_DPI is not set
+CONFIG_OMAP2_DSS_DPI=y
 # CONFIG_OMAP2_DSS_RFBI is not set
 # CONFIG_OMAP2_DSS_VENC is not set
 CONFIG_OMAP4_DSS_HDMI=y
-# CONFIG_OMAP2_DSS_SDI is not set
 CONFIG_OMAP2_DSS_DSI=y
 CONFIG_OMAP2_DSS_FAKE_VSYNC=y
 CONFIG_OMAP2_DSS_MIN_FCK_PER_PCK=0
@@ -1341,8 +1340,11 @@ CONFIG_OMAP2_DSS_SLEEP_AFTER_VENC_RESET=y
 #
 # OMAP2/3 Display Device Drivers
 #
+CONFIG_PANEL_GENERIC_DPI=y
+CONFIG_PANEL_DVI=y
+# CONFIG_PANEL_LGPHILIPS_LB035Q02 is not set
 # CONFIG_PANEL_PICODLP is not set
-# CONFIG_PANEL_TAAL is not set
+# CONFIG_PANEL_TPO_TD043MTEA1 is not set
 # CONFIG_BACKLIGHT_LCD_SUPPORT is not set
 
 #
@@ -1728,113 +1730,7 @@ CONFIG_STAGING=y
 #
 # CONFIG_DRM_I2C_CH7006 is not set
 # CONFIG_DRM_I2C_SIL164 is not set
-CONFIG_IIO=y
-# CONFIG_IIO_RING_BUFFER is not set
-# CONFIG_IIO_TRIGGER is not set
-
-#
-# Accelerometers
-#
-# CONFIG_ADIS16201 is not set
-# CONFIG_ADIS16203 is not set
-# CONFIG_ADIS16204 is not set
-# CONFIG_ADIS16209 is not set
-# CONFIG_ADIS16220 is not set
-# CONFIG_ADIS16240 is not set
-# CONFIG_KXSD9 is not set
-# CONFIG_LIS3L02DQ is not set
-
-#
-# Analog to digital convertors
-#
-# CONFIG_AD7150 is not set
-# CONFIG_AD7152 is not set
-# CONFIG_AD7291 is not set
-# CONFIG_AD7298 is not set
-# CONFIG_AD7314 is not set
-# CONFIG_AD7606 is not set
-# CONFIG_AD799X is not set
-# CONFIG_AD7476 is not set
-# CONFIG_AD7887 is not set
-# CONFIG_AD7780 is not set
-# CONFIG_AD7745 is not set
-# CONFIG_AD7816 is not set
-# CONFIG_ADT75 is not set
-# CONFIG_ADT7310 is not set
-# CONFIG_ADT7410 is not set
-# CONFIG_MAX1363 is not set
-
-#
-# Analog digital bi-direction convertors
-#
-# CONFIG_ADT7316 is not set
-
-#
-# Digital to analog convertors
-#
-# CONFIG_AD5624R_SPI is not set
-# CONFIG_AD5446 is not set
-# CONFIG_AD5504 is not set
-# CONFIG_AD5791 is not set
-# CONFIG_MAX517 is not set
-
-#
-# Direct Digital Synthesis
-#
-# CONFIG_AD5930 is not set
-# CONFIG_AD9832 is not set
-# CONFIG_AD9834 is not set
-# CONFIG_AD9850 is not set
-# CONFIG_AD9852 is not set
-# CONFIG_AD9910 is not set
-# CONFIG_AD9951 is not set
-
-#
-# Digital gyroscope sensors
-#
-# CONFIG_ADIS16060 is not set
-# CONFIG_ADIS16080 is not set
-# CONFIG_ADIS16130 is not set
-# CONFIG_ADIS16260 is not set
-# CONFIG_ADXRS450 is not set
-
-#
-# Inertial measurement units
-#
-# CONFIG_ADIS16400 is not set
-
-#
-# Light sensors
-#
-# CONFIG_SENSORS_ISL29018 is not set
-# CONFIG_SENSORS_TSL2563 is not set
-# CONFIG_TSL2583 is not set
-
-#
-# Magnetometer sensors
-#
-# CONFIG_SENSORS_AK8975 is not set
-CONFIG_SENSORS_HMC5843=y
-
-#
-# Active energy metering IC
-#
-# CONFIG_ADE7753 is not set
-# CONFIG_ADE7754 is not set
-# CONFIG_ADE7758 is not set
-# CONFIG_ADE7759 is not set
-# CONFIG_ADE7854 is not set
-
-#
-# Resolver to digital converters
-#
-# CONFIG_AD2S90 is not set
-# CONFIG_AD2S120X is not set
-# CONFIG_AD2S1210 is not set
-
-#
-# Triggers - standalone
-#
+# CONFIG_IIO is not set
 # CONFIG_XVMALLOC is not set
 # CONFIG_ZRAM is not set
 # CONFIG_FB_SM7XX is not set
@@ -2059,7 +1955,7 @@ CONFIG_NLS_UTF8=y
 # Kernel hacking
 #
 # CONFIG_PRINTK_TIME is not set
-CONFIG_DEFAULT_MESSAGE_LOGLEVEL=4
+CONFIG_DEFAULT_MESSAGE_LOGLEVEL=6
 # CONFIG_ENABLE_WARN_DEPRECATED is not set
 # CONFIG_ENABLE_MUST_CHECK is not set
 CONFIG_FRAME_WARN=1024
