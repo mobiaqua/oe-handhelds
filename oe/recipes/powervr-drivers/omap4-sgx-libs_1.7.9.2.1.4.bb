@@ -3,7 +3,7 @@ LICENSE = "proprietary-binary"
 
 PR = "r1"
 
-SRC_URI = "https://launchpadlibrarian.net/81314678/pvr-omap4_1.7.9.0.1.5.orig.tar.gz \
+SRC_URI = "http://launchpadlibrarian.net/83641534/pvr-omap4_1.7.9.2.1.4.orig.tar.gz \
 	   file://99-pvr.conf \
 	   "
 
@@ -13,10 +13,10 @@ PROVIDES += "virtual/egl"
 
 DEFAULT_PREFERENCE = "2"
 
-SRC_URI[md5sum] = "9a8539417c7eaa2918f0510569ccb0b9"
-SRC_URI[sha256sum] = "b5f361ae19352316baf8e5ac051cc40e9831278370a29591e4944edc7b599710"
+SRC_URI[md5sum] = "7e4312f2af2340e21570f8ea02619f1c"
+SRC_URI[sha256sum] = "90cca3f647721b1cb753460271b84828b1d9f41cdead384fb854fa5f57bdf758"
 
-S = "${WORKDIR}/pvr-omap4-1.7.9.0.1.5"
+S = "${WORKDIR}/pvr-omap4-1.7.9.2.1.4"
 
 do_configure() {
 	:
