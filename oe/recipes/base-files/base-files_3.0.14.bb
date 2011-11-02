@@ -66,7 +66,7 @@ conffiles = "${sysconfdir}/debian_version ${sysconfdir}/host.conf \
 hostname = "openembedded"
 #MobiAqua: added custom hostnames for pandaboard and igep0030
 hostname_pandaboard = "panda"
-hostname_igep0030 = "mobi"
+hostname_igep0030 = "igep"
 hostname_slugos = "nslu2"
 hostname_mnci = "MNCI"
 hostname_rt3000 = "MNRT"
