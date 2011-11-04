@@ -69,8 +69,7 @@ setup() {
 
 	if [ ! -f ${OE_BASE}/build-${DISTRO}/conf/local.conf ] || [ ! -f ${OE_BASE}/build-${DISTRO}/env.source ] || [ "$1" = "--force" ]; then
 		PATH_TO_TOOLS="build-${DISTRO}/tmp/sysroots/`uname -m`-`uname -s | awk '{print tolower($0)}'`/usr"
-		echo "
-DL_DIR = \"${DL_DIR}\"
+		echo "DL_DIR = \"${DL_DIR}\"
 OE_BASE = \"${OE_BASE}\"
 BBFILES = \"${BBF}\"
 MACHINE = \"${MACHINE}\"
@@ -86,8 +85,7 @@ BB_NUMBER_THREADS = \"2\"
 
 
 
-		echo "
-OE_BASE=\"${OE_BASE}\"
+		echo "OE_BASE=\"${OE_BASE}\"
 export BBPATH=\"\${OE_BASE}/oe/:\${OE_BASE}/bb/:\${OE_BASE}/build-${DISTRO}/\"
 if [ ! \`echo \${PATH} | grep \${OE_BASE}/bb/bin\` ]; then
 	export PATH=\${OE_BASE}/bb/bin:\${PATH}
@@ -102,8 +100,7 @@ unset GCONF_SCHEMA_INSTALL_SOURCE
 
 
 
-		echo "
-source ${OE_BASE}/build-${DISTRO}/env.source
+		echo "source ${OE_BASE}/build-${DISTRO}/env.source
 if [ ! \`echo \${PATH} | grep arm/bin\` ]; then
 	export PATH=${OE_BASE}/${PATH_TO_TOOLS}/arm/bin:${OE_BASE}/${PATH_TO_TOOLS}/bin:\${PATH}
 fi
