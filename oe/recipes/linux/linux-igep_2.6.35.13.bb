@@ -17,20 +17,19 @@ PR = "r1"
 KV = "${PV}-5"
 
 SRC_URI = "http://downloads.igep.es/sources/linux-omap-${KV}.tar.gz \
-#	   file://0001-ARM-6329-1-wire-up-sys_accept4-on-ARM.patch \
 #	   file://0002-cgroupfs-create-sys-fs-cgroup-to-mount-cgroupfs-on.patch \
 #	   file://0004-ARM-Expose-some-CPU-control-registers-via-sysfs.patch \
 #	   file://0005-ARM-Add-option-to-allow-userspace-PLE-access.patch \
 #	   file://0006-ARM-Add-option-to-allow-userspace-access-to-performa.patch \
 	   file://fix_nonlinux_compile.patch \
+	   file://defconfig \
 	  "
 
 do_configure() {
-	rm -f ${S}/.config || true
-
-        oe_runmake igep00x0_defconfig
+	install ${WORKDIR}/defconfig ${S}/.config
+	yes '' | oe_runmake oldconfig
 }
-           
+
 S = "${WORKDIR}/linux-omap-${KV}"
 
 SRC_URI[md5sum] = "b53f7d0967f0463c0fa172a462cedb8e"
