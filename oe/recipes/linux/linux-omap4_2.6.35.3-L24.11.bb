@@ -29,6 +29,7 @@ SRC_URI = "git://dev.omapzoom.org/pub/scm/integration/kernel-ubuntu.git;protocol
            file://0007-OMAP4-do-not-force-select-options-which-are-not-requ.patch \
            file://0001-ARM-6329-1-wire-up-sys_accept4-on-ARM.patch \
            file://0002-cgroupfs-create-sys-fs-cgroup-to-mount-cgroupfs-on.patch \
+           file://enable_data_prefetch.patch \
            file://fix_nonlinux_compile.patch \
            file://defconfig"
 
