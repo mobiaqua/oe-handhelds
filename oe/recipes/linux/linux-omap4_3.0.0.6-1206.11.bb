@@ -23,7 +23,6 @@ export OS = "Linux"
 SRC_URI = "git://kernel.ubuntu.com/ubuntu/ubuntu-oneiric.git;protocol=git;branch=ti-omap4 \
            file://fix-for-new-binutils.patch \
            file://fix_nonlinux_compile.patch \
-           file://fix-cross-size-tool.patch \
            file://fix-missing-include.patch \
            file://v4l2.patch;striplevel=2 \
            file://defconfig"
