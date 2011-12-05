@@ -2,8 +2,7 @@ DESCRIPTION = "ALSA Utilities"
 HOMEPAGE = "http://www.alsa-project.org"
 SECTION = "console/utils"
 LICENSE = "GPLv2"
-#MobiAqua: added alsa-plugins
-DEPENDS = "alsa-lib ncurses alsa-plugins"
+DEPENDS = "alsa-lib ncurses"
 
 PR = "r1"
 
