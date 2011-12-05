@@ -4,17 +4,16 @@ LICENSE = "GPLv2"
 
 PV = "2.0"
 PR = "${MACHINE_KERNEL_PR}"
-PR_append = "-24.11a+gitr${SRCREV}"
+PR_append = "+m2+gitr-${SRCREV}"
 
-# ti-syslink-mpu-rls-24.11-p1 tag
-SRCREV = "16f0cebd8b5a430d943bc6bcfa0fe592bad425b9"
+SRCREV = "b1b8045b89402a0fe4f4ca133d400ee12a40d55a"
 SRC_URI = "git://git.omapzoom.org/platform/hardware/ti/syslink.git;protocol=git;branch=syslink-2.0"
 
 inherit autotools
 
 export ARCH = "${TARGET_ARCH}"
 export CROSS_COMPILE = "${TARGET_PREFIX}"
-export TILER_INC_PATH= "${STAGING_INCDIR}/memmgr"
+export TILER_INC_PATH= "${STAGING_INCDIR}/timemmgr"
 
 S = "${WORKDIR}/git/syslink/d2c"
 

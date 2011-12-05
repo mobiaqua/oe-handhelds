@@ -1,12 +1,12 @@
+#MobiAqua: update to new git revision
 LICENSE = "GPLv2"
 
-PV = "1.00"
+PV = "2.00"
 PR = "${MACHINE_KERNEL_PR}"
-PR_append = "-24.11a+gitr${SRCREV}"
+PR_append = "+gitr-${SRCREV}"
 
-# 24.11 tag
-SRCREV = "d74be6020e970228f6bd25112fde12ecb4322f65"
-SRC_URI = "git://git.omapzoom.org/platform/hardware/ti/tiler.git;protocol=git"
+SRCREV = "a6dda467f9689cb8c4e2c252f53524afd07c2392"
+SRC_URI = "git://git.omapzoom.org/platform/hardware/ti/tiler.git;protocol=git;branch=memmgr_2.0"
 
 inherit autotools
 
@@ -15,7 +15,7 @@ export CROSS_COMPILE = "${TARGET_PREFIX}"
 
 EXTRA_OECONF = "--enable-tilermgr"
 
-S = "${WORKDIR}/git/memmgr"
+S = "${WORKDIR}/git/"
 
 do_configure_prepend() {
 	sed -i -e 's:-Werror::g' configure.ac
