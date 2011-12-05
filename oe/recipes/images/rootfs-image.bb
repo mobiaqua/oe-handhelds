@@ -7,7 +7,7 @@ PR = "r0"
 DEPENDS_append=" virtual/kernel"
 
 INSTALL_PKGS = "\
-	base-files base-passwd busybox kernel-modules sysvinit sysvinit-pidof libstdc++ libgcc \
+	base-files base-passwd busybox kernel-modules sysvinit sysvinit-pidof libstdc++ libgcc libgcc-dev \
 	netbase modutils-initscripts tinylogin initscripts tinylogin update-alternatives alsa-utils alsa-state \
 	alsa-utils-alsamixer alsa-utils-amixer alsa-utils-speakertest alsa-utils-alsactl \
 	e2fsprogs e2fsprogs-mke2fs util-linux-ng dosfstools tar gzip bzip2 module-init-tools-depmod \
@@ -21,7 +21,7 @@ INSTALL_PKGS = "\
 "
 
 RRECOMMENDS += ""
-RDEPENDS += "libstdc++-dev libgcc-dev ntpdate tzdata tzdata-europe"
+RDEPENDS += "libstdc++-dev ntpdate tzdata tzdata-europe"
 
 IMAGE_FSTYPES = "tar.gz"
 IMAGE_BASENAME = "rootfs-base"
