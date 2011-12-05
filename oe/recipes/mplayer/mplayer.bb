@@ -13,18 +13,18 @@ SRC_URI = "svn://svn.mplayerhq.hu/mplayer;module=trunk \
 	   file://mplayer-arm-pld.patch \
 "
 SRCREV_FORMAT = "ffmpeg"
-#SRCREV = "32735"
 SRCREV = "34199"
 SRC_URI_append_armv7a = " \
-	file://vo_omapfb.c \
-	file://yuv.S \
+	file://yuv420_to_yuv422.S \
+	file://yuv420_to_nv12.S \
 	file://omapfb.patch \
+	file://vo_omapfb.c \
 	"
 
 ARM_INSTRUCTION_SET = "ARM"
 
 PV = "0.0+1.0rc5+svnr${SRCPV}"
-PR = "r29"
+PR = "r1"
 
 PARALLEL_MAKE = ""
 
@@ -115,7 +115,7 @@ EXTRA_OECONF = " \
 	--disable-vm \
 	--disable-xinerama \
 	--disable-x11 \
-	--enable-fbdev \
+	--disable-fbdev \
 	--disable-mlib \
 	--disable-3dfx \
 	--disable-tdfxfb \
@@ -176,7 +176,8 @@ do_unpack2() {
 addtask unpack2 after do_unpack before do_patch
 
 do_configure_prepend_armv7a() {
-	cp ${WORKDIR}/yuv.S ${S}/libvo
+	cp ${WORKDIR}/yuv420_to_yuv422.S ${S}/libvo
+	cp ${WORKDIR}/yuv420_to_nv12.S ${S}/libvo
 	cp ${WORKDIR}/vo_omapfb.c ${S}/libvo
 	cp ${STAGING_INCDIR}/linux/omapfb.h ${S}/libvo/omapfb.h || true
 	sed -e 's/__user//g' -i ${S}/libvo/omapfb.h || true
@@ -193,9 +194,6 @@ do_configure() {
 	sed -i 's|/usr/\S*include[\w/]*||g' ${S}/configure
 	sed -i 's|/usr/\S*lib[\w/]*||g' ${S}/configure
 	sed -i 's|HOST_CC|BUILD_CC|' ${S}/Makefile
-
-	#export SIMPLE_TARGET_SYS="$(echo ${TARGET_SYS} | sed s:${TARGET_VENDOR}::g)"
-	#MobiAqua: added extra libs
 
 	./configure ${EXTRA_OECONF} --extra-libs-mplayer="-lstdc++" \
 		--extra-libs="-lliveMedia -lBasicUsageEnvironment -lgroupsock -lUsageEnvironment -lstdc++ -lmpg123"

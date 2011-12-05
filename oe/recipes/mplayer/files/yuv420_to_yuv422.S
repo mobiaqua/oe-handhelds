@@ -123,7 +123,8 @@ yuv420_to_yuv422:
         pop             {r3-r11,pc}
         .endfunc
 
-        .func   neon_open
+        .global yuv420_to_yuv422_open
+        .func   yuv420_to_yuv422_open
 neon_open:
         push            {r4-r8,lr}
         ldrd            r4,  r5,  [r0, #16]
@@ -135,7 +136,8 @@ neon_open:
         pop             {r4-r8,pc}
         .endfunc
 
-        .func   neon_convert
+        .global yuv420_to_yuv422_convert
+        .func   yuv420_to_yuv422_convert
 neon_convert:
         push            {r4-r11,lr}
         ldr             r0,  [r0]
@@ -144,27 +146,7 @@ neon_convert:
         b               .Ldo_conv
         .endfunc
 
-        .func   neon_nop
-neon_nop:
-        bx              lr
-        .endfunc
-
         .section .bss
 conv_params:
         .skip           5*4
         .size           conv_params, . - conv_params
-
-        .section        .rodata
-.Lname: .asciz          "neon"
-ofb_pixconv_neon:
-        .word           .Lname
-        .word           0               @ flags
-        .word           neon_open
-        .word           neon_convert
-        .word           neon_nop        @ finish
-        .word           neon_nop        @ close
-        .size           ofb_pixconv_neon, . - ofb_pixconv_neon
-
-        .section        .ofb_pixconv, "a"
-ofb_pixconv_neon_p:
-        .word           ofb_pixconv_neon
