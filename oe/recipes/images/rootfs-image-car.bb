@@ -6,8 +6,8 @@ DESCRIPTION = "<description>"
 PV = "0.0.1"
 PR = "r0"
 
-INSTALL_PKGS += "x-load-igep-mlo omap3-sgx-libs"
-#not use currently: "u-boot-igep"
+INSTALL_PKGS += "x-load-igep-mlo"
+#not use currently: "u-boot-igep omap3-sgx-libs"
 #not buildable on mac os x for now
 #INSTALL_PKGS += "libgles-omap3 ti-codecs-omap3530"
 

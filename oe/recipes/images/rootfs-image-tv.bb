@@ -11,7 +11,8 @@ INSTALL_PKGS += "x-load-pandaboard u-boot-pandaboard libdce-dev ti-syslink-dev l
 		 openbox-theme-clearlooks xf86-video-fbdev xserver-nodm-init xhost \
 		 xf86-input-evdev libgl libglu xorg-minimal-fonts xserver-xorg-extension-dri mesa-dri \
 		"
-#		 omap4-sgx-libs omap4-sgx-modules"
+#not used currently:
+# omap4-sgx-libs omap4-sgx-modules"
 RRECOMMENDS += ""
 
 IMAGE_FSTYPES = "tar.gz"
