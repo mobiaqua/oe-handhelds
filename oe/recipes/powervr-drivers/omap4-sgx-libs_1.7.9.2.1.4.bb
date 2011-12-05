@@ -4,7 +4,7 @@ LICENSE = "proprietary-binary"
 PR = "r1"
 
 SRC_URI = "http://launchpadlibrarian.net/83641534/pvr-omap4_1.7.9.2.1.4.orig.tar.gz \
-	   file://99-pvr.conf \
+	   file://LICENSE.txt \
 	   "
 
 COMPATIBLE_MACHINE = "pandaboard"
@@ -36,10 +36,11 @@ do_install() {
 	install -d ${D}${libdir}
 	cp -pR ${S}${libdir}/* ${D}${libdir}/
 
-	install -d ${D}${datadir}/X11/xorg.conf.d
-	cp ${WORKDIR}/99-pvr.conf ${D}${datadir}/X11/xorg.conf.d/
-
+	install -d ${D}${datadir}
 	cp -pR ${S}${datadir}/sgx-lib ${D}${datadir}/
+
+	install -d ${D}/usr/share/doc/${PN}
+	install -m 0666 ${WORKDIR}/LICENSE.txt ${D}/usr/share/doc/${PN}
 }
 
 
@@ -48,4 +49,4 @@ INHIBIT_PACKAGE_STRIP = "1"
 
 PACKAGES = "${PN}"
 
-FILES_${PN} = "${bindir} ${libdir} ${datadir}"
+FILES_${PN} = "${bindir} ${libdir} ${datadir} ${includedir} /usr/share/doc/"

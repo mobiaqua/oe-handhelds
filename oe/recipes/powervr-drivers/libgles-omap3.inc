@@ -10,7 +10,6 @@ PROVIDES += "virtual/egl"
 SRC_URI = "http://software-dl.ti.com/dsps/dsps_public_sw/sdo_sb/targetcontent/gfxsdk/${SGXPV}/exports/OMAP35x_Graphics_SDK_setuplinux_${SGXPV}.bin \
 		   file://cputype \
 		   file://rc.pvr \
-		   file://sample.desktop \
 		   file://99-bufferclass.rules  \
 "
 
