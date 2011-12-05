@@ -21,7 +21,7 @@ export ARCH = "arm"
 export OS = "Linux"
 
 SRC_URI = "git://dev.omapzoom.org/pub/scm/integration/kernel-ubuntu.git;protocol=git \
-           file://0001-UBUNTU-Config-Fix-FTBS-caused-by-new-binutils.patch \
+           file://fix-for-new-binutils.patch \
            file://fix_nonlinux_compile.patch \
            file://fix-cross-size-tool.patch \
            file://fix-missing-include.patch \

@@ -5,7 +5,7 @@ KERNEL_IMAGETYPE = "uImage"
 COMPATIBLE_MACHINE = "pandaboard"
 
 DEFAULT_PREFERENCE = "-1"
-DEFAULT_PREFERENCE_pandaboard = "-1"
+DEFAULT_PREFERENCE_pandaboard = "5"
 
 DEPENDS = "coreutils-native"
 
@@ -21,9 +21,11 @@ export ARCH = "arm"
 export OS = "Linux"
 
 SRC_URI = "git://kernel.ubuntu.com/ubuntu/ubuntu-oneiric.git;protocol=git;branch=ti-omap4 \
-           file://0001-UBUNTU-Config-Fix-FTBS-caused-by-new-binutils.patch \
+           file://fix-for-new-binutils.patch \
            file://fix_nonlinux_compile.patch \
+           file://fix-cross-size-tool.patch \
            file://fix-missing-include.patch \
+           file://v4l2.patch;striplevel=2 \
            file://defconfig"
 
 SRC_URI[md5sum] = "3f52da7b22960aec5f86a605df8c745a"

@@ -5,7 +5,7 @@ KERNEL_IMAGETYPE = "uImage"
 COMPATIBLE_MACHINE = "pandaboard"
 
 DEFAULT_PREFERENCE = "-1"
-DEFAULT_PREFERENCE_pandaboard = "1"
+DEFAULT_PREFERENCE_pandaboard = "-1"
 
 DEPENDS = "coreutils-native"
 
@@ -22,7 +22,7 @@ export OS = "Linux"
 
 SRC_URI = "git://dev.omapzoom.org/pub/scm/integration/kernel-ubuntu.git;protocol=git;branch=ti-ubuntu-L24.11 \
            file://0001-tiler-avoid-lock-ups-due-to-unmapped-DMM-entries.patch \
-           file://0001-UBUNTU-Config-Fix-FTBS-caused-by-new-binutils.patch \
+           file://fix-for-new-binutils.patch \
            file://0004-ARM-Expose-some-CPU-control-registers-via-sysfs.patch \
            file://0005-ARM-Add-option-to-allow-userspace-PLE-access.patch \
            file://0006-ARM-Add-option-to-allow-userspace-access-to-performa.patch \
