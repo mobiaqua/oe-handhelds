@@ -1,0 +1,25 @@
+From df1841ae1b2a4c88287f29d4168b109290c462c1 Mon Sep 17 00:00:00 2001
+From: Pawel Kolodziejski <aquadran@users.sourceforge.net>
+Date: Wed, 7 Dec 2011 17:25:38 +0100
+Subject: [PATCH] fix distribute missing include
+
+---
+ include/linux/Kbuild |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
+
+diff --git a/include/linux/Kbuild b/include/linux/Kbuild
+index d96ab26..fd14a83 100644
+--- a/include/linux/Kbuild
++++ b/include/linux/Kbuild
+@@ -277,7 +277,7 @@ header-y += nl80211.h
+ header-y += nubus.h
+ header-y += nvram.h
+ header-y += omapfb.h
+-header-y += omap_gpu.h
++header-y += omap_drm.h
+ header-y += oom.h
+ header-y += param.h
+ header-y += parport.h
+-- 
+1.7.5.4
+

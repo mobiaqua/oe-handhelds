@@ -1,0 +1,3782 @@
+From b8f05a863c87910e619c471f6db3cde861bcee95 Mon Sep 17 00:00:00 2001
+From: Pawel Kolodziejski <aquadran@users.sourceforge.net>
+Date: Wed, 7 Dec 2011 19:07:27 +0100
+Subject: [PATCH] copy back syslink/tiler code from 11.10 ubuntu kernel 3.0
+
+---
+ arch/arm/mach-omap2/include/mach/tiler.h           |   33 +
+ arch/arm/plat-omap/include/syslink/ipc.h           |    3 +-
+ arch/arm/plat-omap/include/syslink/ipc_ioctl.h     |    1 +
+ drivers/dsp/syslink/devh/44xx/devh44xx.c           |    9 +-
+ drivers/dsp/syslink/multicore_ipc/ipc_drv.c        |    5 +-
+ drivers/dsp/syslink/multicore_ipc/platform.c       |   11 +-
+ drivers/dsp/syslink/multicore_ipc/transportshm.c   |   39 +-
+ .../syslink/notify_ducatidriver/notify_ducati.c    |   45 ++-
+ drivers/dsp/syslink/omap_notify/notify.c           |   13 +-
+ drivers/media/video/tiler/Kconfig                  |   18 +
+ drivers/media/video/tiler/Makefile                 |    9 +-
+ drivers/media/video/tiler/_tiler.h                 |   31 +-
+ drivers/media/video/tiler/tcm.h                    |   13 +
+ drivers/media/video/tiler/tcm/tcm-sita.c           |    2 +
+ drivers/media/video/tiler/tiler-iface.c            |  546 +----------------
+ drivers/media/video/tiler/tiler-ioctl.c            |  531 ++++++++++++++++
+ drivers/media/video/tiler/tiler-main.c             |  632 ++++++++++++++++----
+ drivers/media/video/tiler/tiler-nv12.c             |  423 +++++++++++++
+ drivers/media/video/tiler/tiler-reserve.c          |  397 +------------
+ drivers/media/video/tiler/tmm-pat.c                |   36 +-
+ drivers/media/video/tiler/tmm.h                    |   22 +-
+ 21 files changed, 1708 insertions(+), 1111 deletions(-)
+ create mode 100644 drivers/media/video/tiler/tiler-ioctl.c
+ create mode 100644 drivers/media/video/tiler/tiler-nv12.c
+
+diff --git a/arch/arm/mach-omap2/include/mach/tiler.h b/arch/arm/mach-omap2/include/mach/tiler.h
+index d72f322..20a1b36 100644
+--- a/arch/arm/mach-omap2/include/mach/tiler.h
++++ b/arch/arm/mach-omap2/include/mach/tiler.h
+@@ -103,6 +103,15 @@ s32 tiler_reg_notifier(struct notifier_block *nb);
+ s32 tiler_unreg_notifier(struct notifier_block *nb);
+ 
+ /**
++ * Get the physical address for a given user va.
++ *
++ * @param usr	user virtual address
++ *
++ * @return valid pa or 0 for error
++ */
++u32 tiler_virt2phys(u32 usr);
++
++/**
+  * Reserves a 1D or 2D TILER block area and memory for the
+  * current process with group ID 0.
+  *
+@@ -345,6 +354,30 @@ s32 tilview_rotate(struct tiler_view_t *view, s32 rotation);
+ s32 tilview_flip(struct tiler_view_t *view, bool flip_x, bool flip_y);
+ 
+ /*
++ * -------------------- TILER hooks for ION/HWC migration --------------------
++ */
++
++/* type of tiler memory */
++enum tiler_memtype {
++	TILER_MEM_ALLOCED,		/* tiler allocated the memory */
++	TILER_MEM_GOT_PAGES,		/* tiler used get_user_pages */
++	TILER_MEM_USING,		/* tiler is using the pages */
++};
++
++/* physical pages to pin - mem must be kmalloced */
++struct tiler_pa_info {
++	u32 num_pg;			/* number of pages in page-list */
++	u32 *mem;			/* list of phys page addresses */
++	enum tiler_memtype memtype;	/* how we got physical pages */
++};
++
++typedef struct mem_info *tiler_blk_handle;
++
++/* NOTE: this will take ownership pa->mem (will free it) */
++tiler_blk_handle tiler_map_1d_block(struct tiler_pa_info *pa);
++void tiler_free_block(tiler_blk_handle block);
++
++/*
+  * ---------------------------- IOCTL Definitions ----------------------------
+  */
+ 
+diff --git a/arch/arm/plat-omap/include/syslink/ipc.h b/arch/arm/plat-omap/include/syslink/ipc.h
+index ceb2392..14ac732 100644
+--- a/arch/arm/plat-omap/include/syslink/ipc.h
++++ b/arch/arm/plat-omap/include/syslink/ipc.h
+@@ -181,9 +181,8 @@ int ipc_unregister_notifier(struct notifier_block *nb);
+ /* check if ipc is in recovery state */
+ #ifdef CONFIG_SYSLINK_RECOVERY
+ bool ipc_recovering(void);
+-#endif
+ 
+ /* Indicate to schedule the recovery mechanism */
+ void ipc_recover_schedule(void);
+-
++#endif /* ifdef CONFIG_SYSLINK_RECOVERY */
+ #endif /* ifndef _IPC_H_ */
+diff --git a/arch/arm/plat-omap/include/syslink/ipc_ioctl.h b/arch/arm/plat-omap/include/syslink/ipc_ioctl.h
+index 7230baf..ea2fdea 100644
+--- a/arch/arm/plat-omap/include/syslink/ipc_ioctl.h
++++ b/arch/arm/plat-omap/include/syslink/ipc_ioctl.h
+@@ -100,6 +100,7 @@ struct ipc_process_context {
+ 	spinlock_t res_lock;
+ 
+ 	struct ipc_device *dev;
++	pid_t tgid;
+ };
+ 
+ void add_pr_res(struct ipc_process_context *pr_ctxt, unsigned int cmd,
+diff --git a/drivers/dsp/syslink/devh/44xx/devh44xx.c b/drivers/dsp/syslink/devh/44xx/devh44xx.c
+index 2aa7425..92ead7d 100644
+--- a/drivers/dsp/syslink/devh/44xx/devh44xx.c
++++ b/drivers/dsp/syslink/devh/44xx/devh44xx.c
+@@ -98,9 +98,10 @@ static void devh_notification_handler(u16 proc_id, u16 line_id, u32 event_id,
+ 	pr_warning("Sys Error occured in Ducati for proc_id = %d\n",
+ 		proc_id);
+ 
++#ifdef CONFIG_SYSLINK_RECOVERY
+ 	/* schedule the recovery */
+ 	ipc_recover_schedule();
+-
++#endif /* ifdef CONFIG_SYSLINK_RECOVERY */
+ 	devh_notify_event((struct omap_devh *)arg, DEV_SYS_ERROR);
+ }
+ 
+@@ -109,7 +110,6 @@ static int devh44xx_notifier_call(struct notifier_block *nb,
+ 					struct omap_devh_platform_data *pdata)
+ {
+ 	int err = 0;
+-	pid_t my_pid = current->tgid;
+ 	struct omap_devh_runtime_info *pinfo = NULL;
+ 	struct omap_devh_platform_data *pdata2 = NULL;
+ 
+@@ -123,7 +123,7 @@ static int devh44xx_notifier_call(struct notifier_block *nb,
+ 		if (err)
+ 			goto exit;
+ 		err = ipu_pm_notifications(APP_M3, PM_PID_DEATH,
+-								(void *)my_pid);
++								(void *)v);
+ 		if (err) {
+ 			pinfo->brd_state = DEVH_BRDST_ERROR;
+ 			if (!strcmp(pdata->name, "SysM3")) {
+@@ -230,9 +230,10 @@ static int devh44xx_wdt_ipc_notifier_call(struct notifier_block *nb,
+ 
+ 	pr_warning("Ducati Watch Dog fired\n");
+ 
++#ifdef CONFIG_SYSLINK_RECOVERY
+ 	/* schedule the recovery */
+ 	ipc_recover_schedule();
+-
++#endif /* ifdef CONFIG_SYSLINK_RECOVERY */
+ 	while (i--) {
+ 		obj = devh_get_obj(i);
+ 		devh_notify_event(obj, DEV_WATCHDOG_ERROR);
+diff --git a/drivers/dsp/syslink/multicore_ipc/ipc_drv.c b/drivers/dsp/syslink/multicore_ipc/ipc_drv.c
+index d3c5a1b..23852f6 100644
+--- a/drivers/dsp/syslink/multicore_ipc/ipc_drv.c
++++ b/drivers/dsp/syslink/multicore_ipc/ipc_drv.c
+@@ -186,6 +186,7 @@ static int ipc_open(struct inode *inode, struct file *filp)
+ 		dev = container_of(inode->i_cdev, struct ipc_device,
+ 					cdev);
+ 		pr_ctxt->dev = dev;
++		pr_ctxt->tgid = current->tgid;
+ 		filp->private_data = pr_ctxt;
+ 	}
+ 
+@@ -213,9 +214,9 @@ static int ipc_release(struct inode *inode, struct file *filp)
+ 		goto err;
+ 	}
+ 
+-	ipc_notify_event(IPC_CLOSE, (void *)NULL);
+-
+ 	pr_ctxt = filp->private_data;
++	ipc_notify_event(IPC_CLOSE, (void *)pr_ctxt->tgid);
++
+ 
+ 	list_for_each_entry_safe(info, temp, &pr_ctxt->resources, res) {
+ 		retval = ipc_release_resource(info->cmd, (ulong)info->data,
+diff --git a/drivers/dsp/syslink/multicore_ipc/platform.c b/drivers/dsp/syslink/multicore_ipc/platform.c
+index 5ae0127..3c5ca29 100644
+--- a/drivers/dsp/syslink/multicore_ipc/platform.c
++++ b/drivers/dsp/syslink/multicore_ipc/platform.c
+@@ -1721,17 +1721,18 @@ EXPORT_SYMBOL(platform_load_callback);
+ int platform_start_callback(u16 proc_id, void *arg)
+ {
+ 	int status = PLATFORM_S_SUCCESS;
++	int retry_count = 100;
+ 
+ 	do {
+ 		status = ipc_attach(proc_id);
+-		msleep(1);
+-	} while (status < 0);
++		msleep(5);
++	} while (--retry_count && status < 0);
+ 
+ 	if (status < 0)
+-		pr_err("platform_load_callback failed, status [0x%x]\n",
++		pr_err("platform_start_callback failed, status [0x%x]\n",
+ 			status);
+-
+-	ipc_notify_event(IPC_START, &proc_id);
++	else
++		ipc_notify_event(IPC_START, &proc_id);
+ 
+ 	return status;
+ }
+diff --git a/drivers/dsp/syslink/multicore_ipc/transportshm.c b/drivers/dsp/syslink/multicore_ipc/transportshm.c
+index 621bcaf..ad0bffa 100644
+--- a/drivers/dsp/syslink/multicore_ipc/transportshm.c
++++ b/drivers/dsp/syslink/multicore_ipc/transportshm.c
+@@ -462,6 +462,13 @@ int transportshm_delete(void **handle_ptr)
+ 
+ 	handle = (struct transportshm_object *) (*handle_ptr);
+ 	if (handle != NULL) {
++		messageq_unregister_transport(handle->
++				remote_proc_id, handle->params.priority);
++
++		status = notify_unregister_event_single(handle->
++						remote_proc_id,
++						0,
++						handle->notify_event_id);
+ 		if (handle->self != NULL) {
+ 			proc_id = handle->self->creator_proc_id;
+ 			/* Clear handle in the local array */
+@@ -481,8 +488,8 @@ int transportshm_delete(void **handle_ptr)
+ 		}
+ 
+ 		if (handle->local_list != NULL) {
+-			status = listmp_delete(&handle->local_list);
+-			if (status < 0)
++			tmp_status = listmp_delete(&handle->local_list);
++			if (tmp_status < 0 && status >= 0)
+ 				pr_warn("transportshm_delete: "
+ 						"Failed to delete local listmp "
+ 						"instance!\n");
+@@ -498,13 +505,6 @@ int transportshm_delete(void **handle_ptr)
+ 			}
+ 		}
+ 
+-		messageq_unregister_transport(handle->
+-				remote_proc_id, handle->params.priority);
+-
+-		tmp_status = notify_unregister_event_single(handle->
+-						remote_proc_id,
+-						0,
+-						handle->notify_event_id);
+ 		if (tmp_status < 0) {
+ 			status = tmp_status;
+ 			pr_warn("transportshm_delete: Failed to "
+@@ -633,8 +633,12 @@ transportshm_close(void **handle_ptr)
+ 	}
+ 
+ 	obj = (struct transportshm_object *)(*handle_ptr);
+-	transportshm_module->transports[obj->remote_proc_id]
+-					[obj->params.priority] = NULL;
++
++	messageq_unregister_transport(obj->remote_proc_id,
++					obj->params.priority);
++
++	status = notify_unregister_event_single(obj->remote_proc_id, 0,
++			(obj->notify_event_id | (NOTIFY_SYSTEMKEY << 16)));
+ 
+ 	if (obj->other != NULL) {
+ 		/* other flag was set by remote proc */
+@@ -651,8 +655,8 @@ transportshm_close(void **handle_ptr)
+ 	}
+ 
+ 	if (obj->gate != NULL) {
+-		status = gatemp_close(&obj->gate);
+-		if (status < 0) {
++		tmp_status = gatemp_close(&obj->gate);
++		if (tmp_status < 0 && status >= 0) {
+ 			status = TRANSPORTSHM_E_FAIL;
+ 			pr_err("transportshm_close: "
+ 				"gatemp_close failed, status [0x%x]\n",
+@@ -680,13 +684,8 @@ transportshm_close(void **handle_ptr)
+ 		}
+ 	}
+ 
+-	messageq_unregister_transport(obj->remote_proc_id,
+-					obj->params.priority);
+-
+-	tmp_status = notify_unregister_event_single(obj->remote_proc_id, 0,
+-			(obj->notify_event_id | (NOTIFY_SYSTEMKEY << 16)));
+-	if ((tmp_status < 0) && (status >= 0))
+-		status = TRANSPORTSHM_E_FAIL;
++	transportshm_module->transports[obj->remote_proc_id]
++					[obj->params.priority] = NULL;
+ 
+ 	kfree(obj);
+ 	*handle_ptr = NULL;
+diff --git a/drivers/dsp/syslink/notify_ducatidriver/notify_ducati.c b/drivers/dsp/syslink/notify_ducatidriver/notify_ducati.c
+index 5ffc099..29f72c6 100644
+--- a/drivers/dsp/syslink/notify_ducatidriver/notify_ducati.c
++++ b/drivers/dsp/syslink/notify_ducatidriver/notify_ducati.c
+@@ -103,6 +103,8 @@ struct notify_ducatidrv_module {
+ 	struct notify_ducatidrv_object *driver_handles
+ 				[MULTIPROC_MAXPROCESSORS][NOTIFY_MAX_INTLINES];
+ 	/* Loader handle array. */
++	struct mutex dh_lock;
++	/* mutext for adding/removing driver handles safety */
+ 	atomic_t mbox2_ref_count;
+ 	/* Reference count for enabling/disabling ducati mailbox interrupt */
+ 	atomic_t mbox1_ref_count;
+@@ -219,6 +221,7 @@ int notify_ducatidrv_setup(struct notify_ducatidrv_config *cfg)
+ 		goto error_exit;
+ 	}
+ 	mutex_init(notify_ducatidriver_state.gate_handle);
++	mutex_init(&notify_ducatidriver_state.dh_lock);
+ 
+ 	for (i = 0 ; i < MULTIPROC_MAXPROCESSORS; i++)
+ 		for (j = 0 ; j < NOTIFY_MAX_INTLINES; j++)
+@@ -435,9 +438,6 @@ struct notify_ducatidrv_object *notify_ducatidrv_create(
+ 	memcpy(&(obj->params), (void *) params,
+ 				sizeof(struct notify_ducatidrv_params));
+ 	obj->num_events = notify_state.cfg.num_events;
+-	/* Set the handle in the driverHandles array. */
+-	notify_ducatidriver_state.driver_handles
+-		[params->remote_proc_id][params->line_id] = obj;
+ 	/* Point to the generic drvHandle object from this specific
+ 	 * NotifyDriverShm object. */
+ 	obj->drv_handle = drv_handle;
+@@ -534,6 +534,12 @@ struct notify_ducatidrv_object *notify_ducatidrv_create(
+ #endif
+ 
+ 	drv_handle->is_init = NOTIFY_DRIVERINITSTATUS_DONE;
++
++	mutex_lock_killable(&notify_ducatidriver_state.dh_lock);
++	/* Set the handle in the driverHandles array. */
++	notify_ducatidriver_state.driver_handles
++		[params->remote_proc_id][params->line_id] = obj;
++	mutex_unlock(&notify_ducatidriver_state.dh_lock);
+ 	mutex_unlock(notify_ducatidriver_state.gate_handle);
+ 	return obj;
+ 
+@@ -559,8 +565,6 @@ error_clean_and_exit:
+ 	if (drv_handle != NULL) {
+ 		/* Unregister driver from the Notify module*/
+ 		notify_unregister_driver(drv_handle);
+-		notify_ducatidriver_state.driver_handles
+-			[params->remote_proc_id][params->line_id] = NULL;
+ 		drv_handle = NULL;
+ 	}
+ error_unlock_and_return:
+@@ -600,6 +604,7 @@ int notify_ducatidrv_delete(struct notify_ducatidrv_object **handle_ptr)
+ 
+ 	obj = (struct notify_ducatidrv_object *)(*handle_ptr);
+ 	if (obj != NULL) {
++		mutex_lock_killable(&notify_ducatidriver_state.dh_lock);
+ 		if (obj->remote_proc_id) {
+ 			mbox = ducati_mbox;
+ 			mbx_cnt = &notify_ducatidriver_state.mbox2_ref_count;
+@@ -633,9 +638,9 @@ int notify_ducatidrv_delete(struct notify_ducatidrv_object **handle_ptr)
+ 		notify_ducatidriver_state.driver_handles
+ 			[obj->params.remote_proc_id][obj->params.line_id] = \
+ 									NULL;
+-
+ 		kfree(obj);
+ 		obj = NULL;
++		mutex_unlock(&notify_ducatidriver_state.dh_lock);
+ 	}
+ 
+ exit:
+@@ -1296,10 +1301,32 @@ static int notify_shmdrv_isr(struct notifier_block *nb, unsigned long val,
+ {
+ 	/* Decode the msg to identify the processor that has sent the message */
+ 	u32 proc_id = (u32)ntfy_msg;
++	u16 sysm3_id = multiproc_get_id("SysM3");
++	u16 appm3_id = multiproc_get_id("AppM3");
++	struct notify_ducatidrv_object *obj;
+ 
+-	/* Call the corresponding prpc_id callback */
+-	notify_shmdrv_isr_callback(notify_ducatidriver_state.driver_handles
+-		[proc_id][0], ntfy_msg);
++	if (WARN_ON((MULTIPROC_MAXPROCESSORS <= sysm3_id) ||
++		(MULTIPROC_MAXPROCESSORS <= appm3_id) ||
++		(MULTIPROC_MAXPROCESSORS <= proc_id))) {
++		return NOTIFY_E_INVALIDARG;
++	}
++
++	mutex_lock_killable(&notify_ducatidriver_state.dh_lock);
++	/* process both cores ipc stack for each notification event since
++	 ducati won't be sending notifcation if one is already pending*/
++	if (proc_id == sysm3_id || proc_id == appm3_id) {
++		obj = notify_ducatidriver_state.driver_handles[appm3_id][0];
++		if (obj)
++			notify_shmdrv_isr_callback(obj, ntfy_msg);
++		obj = notify_ducatidriver_state.driver_handles[sysm3_id][0];
++		if (obj)
++			notify_shmdrv_isr_callback(obj, ntfy_msg);
++	} else if (proc_id == multiproc_get_id("Tesla")) {
++		obj = notify_ducatidriver_state.driver_handles[proc_id][0];
++		if (obj)
++			notify_shmdrv_isr_callback(obj, ntfy_msg);
++	}
++	mutex_unlock(&notify_ducatidriver_state.dh_lock);
+ 
+ 	return 0;
+ }
+diff --git a/drivers/dsp/syslink/omap_notify/notify.c b/drivers/dsp/syslink/omap_notify/notify.c
+index 6d4614c..5e2db4b 100644
+--- a/drivers/dsp/syslink/omap_notify/notify.c
++++ b/drivers/dsp/syslink/omap_notify/notify.c
+@@ -439,6 +439,7 @@ int notify_register_event_single(u16 proc_id, u16 line_id, u32 event_id,
+ 		goto exit;
+ 	}
+ 
++	mutex_lock_killable(&obj->lock);
+ 	obj->callbacks[stripped_event_id].fn_notify_cbck = notify_callback_fxn;
+ 	obj->callbacks[stripped_event_id].cbck_arg = cbck_arg;
+ 
+@@ -446,6 +447,7 @@ int notify_register_event_single(u16 proc_id, u16 line_id, u32 event_id,
+ 		status = driver_handle->fxn_table.register_event(driver_handle,
+ 							stripped_event_id);
+ 	}
++	mutex_unlock(&obj->lock);
+ exit:
+ 	if (status < 0) {
+ 		pr_err("notify_register_event_single failed! "
+@@ -535,12 +537,11 @@ int notify_unregister_event(u16 proc_id, u16 line_id, u32 event_id,
+ 		mutex_unlock(&obj->lock);
+ 		goto exit;
+ 	}
+-
++	mutex_unlock(&obj->lock);
+ 	if (list_empty(event_list)) {
+ 		status = notify_unregister_event_single(proc_id, line_id,
+ 								event_id);
+ 	}
+-	mutex_unlock(&obj->lock);
+ 	kfree(listener);
+ exit:
+ 	if (status < 0) {
+@@ -606,12 +607,14 @@ int notify_unregister_event_single(u16 proc_id, u16 line_id, u32 event_id)
+ 		goto exit;
+ 	}
+ 
++	mutex_lock_killable(&obj->lock);
+ 	obj->callbacks[stripped_event_id].fn_notify_cbck = NULL;
+ 	obj->callbacks[stripped_event_id].cbck_arg = NULL;
+ 	if (proc_id != multiproc_self()) {
+ 		status = driver_handle->fxn_table.unregister_event(
+ 					driver_handle, stripped_event_id);
+ 	}
++	mutex_unlock(&obj->lock);
+ exit:
+ 	if (status < 0) {
+ 		pr_err("notify_unregister_event_single failed! "
+@@ -1054,6 +1057,7 @@ void notify_exec(struct notify_object *obj, u32 event_id, u32 payload)
+ 		(event_id >= NOTIFY_MAXEVENTS))) {
+ 		pr_err("Invalid event_id %d\n", event_id);
+ 	} else {
++		mutex_lock_killable(&obj->lock);
+ 		callback = &(obj->callbacks[event_id]);
+ 		WARN_ON(callback->fn_notify_cbck == NULL);
+ 
+@@ -1061,6 +1065,7 @@ void notify_exec(struct notify_object *obj, u32 event_id, u32 payload)
+ 		   and the payload */
+ 		callback->fn_notify_cbck(obj->remote_proc_id, obj->line_id,
+ 				event_id, callback->cbck_arg, payload);
++		mutex_unlock(&obj->lock);
+ 	}
+ }
+ 
+@@ -1082,13 +1087,9 @@ static void _notify_exec_many(u16 proc_id, u16 line_id, u32 event_id, uint *arg,
+ 	/* Both loopback and the the event itself are enabled */
+ 	event_list = &(obj->event_list[event_id]);
+ 
+-	/* Enter critical section protection. */
+-	mutex_lock_killable(&obj->lock);
+ 	/* Use "NULL" to get the first EventListener on the list */
+ 	list_for_each_entry(listener, event_list, element) {
+ 		listener->callback.fn_notify_cbck(proc_id, line_id, event_id,
+ 				listener->callback.cbck_arg, payload);
+ 	}
+-	/* Leave critical section protection. */
+-	mutex_unlock(&obj->lock);
+ }
+diff --git a/drivers/media/video/tiler/Kconfig b/drivers/media/video/tiler/Kconfig
+index 00461eb..65f8d7e 100644
+--- a/drivers/media/video/tiler/Kconfig
++++ b/drivers/media/video/tiler/Kconfig
+@@ -124,3 +124,21 @@ config TILER_EXPOSE_SSPTR
+ 
+            You can use this flag to see if the userspace is relying on
+            having access to the SSPtr.
++
++config TILER_ENABLE_NV12
++        bool "Enable NV12 support"
++        default y
++        depends on TI_TILER
++        help
++            This option enables NV12 functionality in the TILER driver.
++
++	    If set, nv12 support will be compiled into the driver and APIs
++	    will be enabled.
++
++config TILER_ENABLE_USERSPACE
++	bool "Enable userspace API"
++	default y
++	depends on TI_TILER
++	help
++	    This option enabled the userspace API.  If set, an ioctl interface
++	    will be available to users.
+diff --git a/drivers/media/video/tiler/Makefile b/drivers/media/video/tiler/Makefile
+index b327644..dc5fdaa 100644
+--- a/drivers/media/video/tiler/Makefile
++++ b/drivers/media/video/tiler/Makefile
+@@ -3,6 +3,13 @@ obj-$(CONFIG_TI_TILER) += tcm/
+ obj-$(CONFIG_TI_TILER) += tiler.o
+ tiler-objs = tiler-geom.o tiler-main.o tiler-iface.o tiler-reserve.o tmm-pat.o
+ 
++ifdef CONFIG_TILER_ENABLE_NV12
++tiler-objs += tiler-nv12.o
++endif
++
++ifdef CONFIG_TILER_ENABLE_USERSPACE
++tiler-objs += tiler-ioctl.o
++endif
++
+ obj-$(CONFIG_TI_TILER) += tiler_dmm.o
+ tiler_dmm-objs = dmm.o
+-
+diff --git a/drivers/media/video/tiler/_tiler.h b/drivers/media/video/tiler/_tiler.h
+index aeec9f6..4ca856a 100644
+--- a/drivers/media/video/tiler/_tiler.h
++++ b/drivers/media/video/tiler/_tiler.h
+@@ -36,6 +36,12 @@ struct process_info {
+ 	bool kernel;			/* tracking kernel objects */
+ };
+ 
++struct __buf_info {
++	struct list_head by_pid;		/* list of buffers per pid */
++	struct tiler_buf_info buf_info;
++	struct mem_info *mi[TILER_MAX_NUM_BLOCKS];	/* blocks */
++};
++
+ /* per group info (within a process) */
+ struct gid_info {
+ 	struct list_head by_pid;	/* other groups */
+@@ -61,11 +67,8 @@ struct area_info {
+ struct mem_info {
+ 	struct list_head global;	/* reserved / global blocks */
+ 	struct tiler_block_t blk;	/* block info */
+-	u32 num_pg;			/* number of pages in page-list */
+-	u32 usr;			/* user space address */
+-	u32 *pg_ptr;			/* list of mapped struct page ptrs */
++	struct tiler_pa_info pa;	/* pinned physical pages */
+ 	struct tcm_area area;
+-	u32 *mem;			/* list of alloced phys addresses */
+ 	int refs;			/* number of times referenced */
+ 	bool alloced;			/* still alloced */
+ 
+@@ -90,7 +93,7 @@ struct tiler_ops {
+ 			u32 align, u32 offs, u32 key,
+ 			u32 gid, struct process_info *pi,
+ 			struct mem_info **info);
+-	s32 (*map) (enum tiler_fmt fmt, u32 width, u32 height,
++	s32 (*pin) (enum tiler_fmt fmt, u32 width, u32 height,
+ 			u32 key, u32 gid, struct process_info *pi,
+ 			struct mem_info **info, u32 usr_addr);
+ 	void (*reserve_nv12) (u32 n, u32 width, u32 height, u32 align, u32 offs,
+@@ -108,8 +111,10 @@ struct tiler_ops {
+ 	s32 (*lay_2d) (enum tiler_fmt fmt, u16 n, u16 w, u16 h, u16 band,
+ 			u16 align, u16 offs, struct gid_info *gi,
+ 			struct list_head *pos);
++#ifdef CONFIG_TILER_ENABLE_NV12
+ 	s32 (*lay_nv12) (int n, u16 w, u16 w1, u16 h, struct gid_info *gi,
+-									u8 *p);
++			 u8 *p);
++#endif
+ 	/* group operations */
+ 	struct gid_info * (*get_gi) (struct process_info *pi, u32 gid);
+ 	void (*release_gi) (struct gid_info *gi);
+@@ -134,15 +139,27 @@ struct tiler_ops {
+ 
+ 	/* additional info */
+ 	const struct file_operations *fops;
+-
++#ifdef CONFIG_TILER_ENABLE_NV12
+ 	bool nv12_packed;	/* whether NV12 is packed into same container */
++#endif
+ 	u32 page;		/* page size */
+ 	u32 width;		/* container width */
+ 	u32 height;		/* container height */
++
++	struct mutex mtx;	/* mutex for interfaces and ioctls */
+ };
+ 
+ void tiler_iface_init(struct tiler_ops *tiler);
+ void tiler_geom_init(struct tiler_ops *tiler);
+ void tiler_reserve_init(struct tiler_ops *tiler);
++void tiler_nv12_init(struct tiler_ops *tiler);
++u32 tiler_best2pack(u16 o, u16 a, u16 b, u16 w, u16 *n, u16 *_area);
++void tiler_ioctl_init(struct tiler_ops *tiler);
++struct process_info *__get_pi(pid_t pid, bool kernel);
++void _m_unregister_buf(struct __buf_info *_b);
++s32 tiler_notify_event(int event, void *data);
++void _m_free_process_info(struct process_info *pi);
++
++struct process_info *__get_pi(pid_t pid, bool kernel);
+ 
+ #endif
+diff --git a/drivers/media/video/tiler/tcm.h b/drivers/media/video/tiler/tcm.h
+index 68b0d68..11f3fa9 100644
+--- a/drivers/media/video/tiler/tcm.h
++++ b/drivers/media/video/tiler/tcm.h
+@@ -289,6 +289,19 @@ static inline u16 __tcm_sizeof(struct tcm_area *area)
+ #define tcm_aheight(area) __tcm_area_height(&(area))
+ #define tcm_is_in(pt, area) __tcm_is_in(&(pt), &(area))
+ 
++/* limit a 1D area to the first N pages */
++static inline s32 tcm_1d_limit(struct tcm_area *a, u32 num_pg)
++{
++	if (__tcm_sizeof(a) < num_pg)
++		return -ENOMEM;
++	if (!num_pg)
++		return -EINVAL;
++
++	a->p1.x = (a->p0.x + num_pg - 1) % a->tcm->width;
++	a->p1.y = a->p0.y + ((a->p0.x + num_pg - 1) / a->tcm->width);
++	return 0;
++}
++
+ /**
+  * Iterate through 2D slices of a valid area. Behaves
+  * syntactically as a for(;;) statement.
+diff --git a/drivers/media/video/tiler/tcm/tcm-sita.c b/drivers/media/video/tiler/tcm/tcm-sita.c
+index 71b9213..d0784c6 100644
+--- a/drivers/media/video/tiler/tcm/tcm-sita.c
++++ b/drivers/media/video/tiler/tcm/tcm-sita.c
+@@ -685,6 +685,8 @@ static s32 scan_r2l_b2t_one_dim(struct tcm *tcm, u32 num_slots,
+ 		} else {
+ 			/* count consecutive free slots */
+ 			found++;
++			if (found == num_slots)
++				break;
+ 		}
+ 
+ 		/* move to the left */
+diff --git a/drivers/media/video/tiler/tiler-iface.c b/drivers/media/video/tiler/tiler-iface.c
+index 9a967bc..69bfe81 100644
+--- a/drivers/media/video/tiler/tiler-iface.c
++++ b/drivers/media/video/tiler/tiler-iface.c
+@@ -30,152 +30,13 @@
+ #include "_tiler.h"
+ 
+ static bool security = CONFIG_TILER_SECURITY;
+-static bool ssptr_lookup = true;
+-static bool offset_lookup = true;
+ 
+ module_param(security, bool, 0644);
+ MODULE_PARM_DESC(security,
+ 	"Separate allocations by different processes into different pages");
+-module_param(ssptr_lookup, bool, 0644);
+-MODULE_PARM_DESC(ssptr_lookup,
+-	"Allow looking up a block by ssptr - This is a security risk");
+-module_param(offset_lookup, bool, 0644);
+-MODULE_PARM_DESC(offset_lookup,
+-	"Allow looking up a buffer by offset - This is a security risk");
+-
+-static struct mutex mtx;
++
+ static struct list_head procs;	/* list of process info structs */
+ static struct tiler_ops *ops;	/* shared methods and variables */
+-static struct blocking_notifier_head notifier;	/* notifier for events */
+-
+-/*
+- *  Event notification methods
+- *  ==========================================================================
+- */
+-
+-static s32 tiler_notify_event(int event, void *data)
+-{
+-	return blocking_notifier_call_chain(&notifier, event, data);
+-}
+-
+-/*
+- *  Buffer handling methods
+- *  ==========================================================================
+- */
+-
+-struct __buf_info {
+-	struct list_head by_pid;		/* list of buffers per pid */
+-	struct tiler_buf_info buf_info;
+-	struct mem_info *mi[TILER_MAX_NUM_BLOCKS];	/* blocks */
+-};
+-
+-/* check if an offset is used */
+-static bool _m_offs_in_use(u32 offs, u32 length, struct process_info *pi)
+-{
+-	struct __buf_info *_b;
+-	/* have mutex */
+-	list_for_each_entry(_b, &pi->bufs, by_pid)
+-		if (_b->buf_info.offset < offs + length &&
+-		    _b->buf_info.offset + _b->buf_info.length > offs)
+-			return 1;
+-	return 0;
+-}
+-
+-/* get an offset */
+-static u32 _m_get_offs(struct process_info *pi, u32 length)
+-{
+-	static u32 offs = 0xda7a;
+-
+-	/* ensure no-one is using this offset */
+-	while ((offs << PAGE_SHIFT) + length < length ||
+-	       _m_offs_in_use(offs << PAGE_SHIFT, length, pi)) {
+-		/* use a pseudo-random generator to get a new offset to try */
+-
+-		/* Galois LSF: 20, 17 */
+-		offs = (offs >> 1) ^ (u32)((0 - (offs & 1u)) & 0x90000);
+-	}
+-
+-	return offs << PAGE_SHIFT;
+-}
+-
+-/* find and lock a block.  process_info is optional */
+-static struct mem_info *
+-_m_lock_block(u32 key, u32 id, struct process_info *pi) {
+-	struct gid_info *gi;
+-	struct mem_info *mi;
+-
+-	/* if process_info is given, look there first */
+-	if (pi) {
+-		/* have mutex */
+-
+-		/* find block in process list and free it */
+-		list_for_each_entry(gi, &pi->groups, by_pid) {
+-			mi = ops->lock(key, id, gi);
+-			if (mi)
+-				return mi;
+-		}
+-	}
+-
+-	/* if not found or no process_info given, find block in global list */
+-	return ops->lock(key, id, NULL);
+-}
+-
+-/* register a buffer */
+-static s32 _m_register_buf(struct __buf_info *_b, struct process_info *pi)
+-{
+-	struct mem_info *mi;
+-	struct tiler_buf_info *b = &_b->buf_info;
+-	u32 i, num = b->num_blocks, offs;
+-
+-	/* check validity */
+-	if (num > TILER_MAX_NUM_BLOCKS || num == 0)
+-		return -EINVAL;
+-
+-	/* find each block */
+-	b->length = 0;
+-	for (i = 0; i < num; i++) {
+-		mi = _m_lock_block(b->blocks[i].key, b->blocks[i].id, pi);
+-		if (!mi) {
+-			/* unlock any blocks already found */
+-			while (i--)
+-				ops->unlock_free(_b->mi[i], false);
+-			return -EACCES;
+-		}
+-		_b->mi[i] = mi;
+-
+-		/* we don't keep track of ptr and 1D stride so clear them */
+-		b->blocks[i].ptr = NULL;
+-		b->blocks[i].stride = 0;
+-
+-		ops->describe(mi, b->blocks + i);
+-		b->length += tiler_size(&mi->blk);
+-	}
+-
+-	/* if found all, register buffer */
+-	offs = _b->mi[0]->blk.phys & ~PAGE_MASK;
+-	b->offset = _m_get_offs(pi, b->length) + offs;
+-	b->length -= offs;
+-
+-	/* have mutex */
+-	list_add(&_b->by_pid, &pi->bufs);
+-
+-	return 0;
+-}
+-
+-/* unregister a buffer */
+-static void _m_unregister_buf(struct __buf_info *_b)
+-{
+-	u32 i;
+-
+-	/* unregister */
+-	list_del(&_b->by_pid);
+-
+-	/* no longer using the blocks */
+-	for (i = 0; i < _b->buf_info.num_blocks; i++)
+-		ops->unlock_free(_b->mi[i], false);
+-
+-	kfree(_b);
+-}
+ 
+ /*
+  *  process_info handling methods
+@@ -183,7 +44,7 @@ static void _m_unregister_buf(struct __buf_info *_b)
+  */
+ 
+ /* get process info, and increment refs for device tracking */
+-static struct process_info *__get_pi(pid_t pid, bool kernel)
++struct process_info *__get_pi(pid_t pid, bool kernel)
+ {
+ 	struct process_info *pi;
+ 
+@@ -196,7 +57,7 @@ static struct process_info *__get_pi(pid_t pid, bool kernel)
+ 		pid = 0;
+ 
+ 	/* find process context */
+-	mutex_lock(&mtx);
++	mutex_lock(&ops->mtx);
+ 	list_for_each_entry(pi, &procs, list) {
+ 		if (pi->pid == pid && pi->kernel == kernel)
+ 			goto done;
+@@ -217,7 +78,7 @@ done:
+ 	/* increment reference count */
+ 	if (pi && !kernel)
+ 		pi->refs++;
+-	mutex_unlock(&mtx);
++	mutex_unlock(&ops->mtx);
+ 	return pi;
+ }
+ 
+@@ -225,21 +86,22 @@ done:
+  * Free all info kept by a process: all registered buffers, allocated blocks,
+  * and unreferenced blocks.  Any blocks/areas still referenced will move to the
+  * orphaned lists to avoid issues if a new process is created with the same pid.
++ *
++ *    caller MUST already have mtx
+  */
+-static void _m_free_process_info(struct process_info *pi)
++void _m_free_process_info(struct process_info *pi)
+ {
+ 	struct gid_info *gi, *gi_;
++#ifdef CONFIG_TILER_ENABLE_USERSPACE
+ 	struct __buf_info *_b = NULL, *_b_ = NULL;
+ 
+-	/* have mutex */
+-
+ 	if (!list_empty(&pi->bufs))
+ 		tiler_notify_event(TILER_DEVICE_CLOSE, NULL);
+ 
+ 	/* unregister all buffers */
+ 	list_for_each_entry_safe(_b, _b_, &pi->bufs, by_pid)
+ 		_m_unregister_buf(_b);
+-
++#endif
+ 	BUG_ON(!list_empty(&pi->bufs));
+ 
+ 	/* free all allocated blocks, and remove unreferenced ones */
+@@ -251,383 +113,30 @@ static void _m_free_process_info(struct process_info *pi)
+ 	kfree(pi);
+ }
+ 
+-/* Free all info kept by all processes.  Called on cleanup. */
+ static void destroy_processes(void)
+ {
+ 	struct process_info *pi, *pi_;
+ 
+-	mutex_lock(&mtx);
++	mutex_lock(&ops->mtx);
+ 
+ 	list_for_each_entry_safe(pi, pi_, &procs, list)
+ 		_m_free_process_info(pi);
+ 	BUG_ON(!list_empty(&procs));
+ 
+-	mutex_unlock(&mtx);
+-}
+-
+-/*
+- *  File operations (mmap, ioctl, open, close)
+- *  ==========================================================================
+- */
+-
+-/* mmap tiler buffer into user's virtual space */
+-static s32 tiler_mmap(struct file *filp, struct vm_area_struct *vma)
+-{
+-	struct __buf_info *_b;
+-	struct tiler_buf_info *b = NULL;
+-	u32 i, map_offs, map_size, blk_offs, blk_size, mapped_size;
+-	struct process_info *pi = filp->private_data;
+-	u32 offs = vma->vm_pgoff << PAGE_SHIFT;
+-	u32 size = vma->vm_end - vma->vm_start;
+-
+-	vma->vm_page_prot = pgprot_noncached(vma->vm_page_prot);
+-
+-	/* find tiler buffer to mmap */
+-	mutex_lock(&mtx);
+-	list_for_each_entry(_b, &pi->bufs, by_pid) {
+-		/* we support partial mmaping of a whole tiler buffer */
+-		if (offs >= (_b->buf_info.offset & PAGE_MASK) &&
+-		    offs + size <= PAGE_ALIGN(_b->buf_info.offset +
+-						_b->buf_info.length)) {
+-			b = &_b->buf_info;
+-			break;
+-		}
+-	}
+-	mutex_unlock(&mtx);
+-
+-	/* we use b to detect if we found the bufffer */
+-	if (!b)
+-		return -ENXIO;
+-
+-	/* mmap relevant blocks */
+-	blk_offs = _b->buf_info.offset;
+-
+-	/* start at the beginning of the region */
+-	mapped_size = 0;
+-	for (i = 0; i < b->num_blocks; i++, blk_offs += blk_size) {
+-		blk_size = tiler_size(&_b->mi[i]->blk);
+-		/* see if tiler block is inside the requested region */
+-		if (offs >= blk_offs + blk_size || offs + size < blk_offs)
+-			continue;
+-		/* get the offset and map size for this particular block */
+-		map_offs = max(offs, blk_offs) - blk_offs;
+-		map_size = min(size - mapped_size, blk_size);
+-
+-		/* mmap block */
+-		if (tiler_mmap_blk(&_b->mi[i]->blk, map_offs, map_size, vma,
+-				   mapped_size))
+-			return -EAGAIN;
+-
+-		/* update mmap region pointer */
+-		mapped_size += map_size;
+-	}
+-	return 0;
+-}
+-
+-/* ioctl handler */
+-static long tiler_ioctl(struct file *filp, u32 cmd, unsigned long arg)
+-{
+-	pgd_t *pgd;
+-	pmd_t *pmd;
+-	pte_t *ptep, pte;
+-	s32 r;
+-	void __user *data = (void __user *)arg;
+-	struct process_info *pi = filp->private_data;
+-	struct __buf_info *_b;
+-	struct tiler_buf_info buf_info = {0};
+-	struct tiler_block_info block_info = {0};
+-	struct mem_info *mi;
+-
+-	switch (cmd) {
+-	/* allocate block */
+-	case TILIOC_GBLK:
+-		if (copy_from_user(&block_info, data, sizeof(block_info)))
+-			return -EFAULT;
+-
+-		switch (block_info.fmt) {
+-		case TILFMT_PAGE:
+-			r = ops->alloc(block_info.fmt, block_info.dim.len, 1,
+-					block_info.align, block_info.offs,
+-					block_info.key, block_info.group_id,
+-					pi, &mi);
+-			break;
+-		case TILFMT_8BIT:
+-		case TILFMT_16BIT:
+-		case TILFMT_32BIT:
+-			r = ops->alloc(block_info.fmt,
+-					block_info.dim.area.width,
+-					block_info.dim.area.height,
+-					block_info.align, block_info.offs,
+-					block_info.key, block_info.group_id,
+-					pi, &mi);
+-			break;
+-		default:
+-			return -EINVAL;
+-		}
+-		if (r)
+-			return r;
+-
+-		/* fill out block info */
+-		if (mi) {
+-			block_info.ptr = NULL;
+-			ops->describe(mi, &block_info);
+-		}
+-
+-		if (copy_to_user(data, &block_info, sizeof(block_info)))
+-			return -EFAULT;
+-		break;
+-	/* free/unmap block */
+-	case TILIOC_FBLK:
+-	case TILIOC_UMBLK:
+-		if (copy_from_user(&block_info, data, sizeof(block_info)))
+-			return -EFAULT;
+-
+-		/* search current process first, then all processes */
+-		mutex_lock(&mtx);
+-		mi = _m_lock_block(block_info.key, block_info.id, pi);
+-		mutex_unlock(&mtx);
+-		if (mi)
+-			ops->unlock_free(mi, true);
+-
+-		/* free always succeeds */
+-		break;
+-	/* get physical address */
+-	case TILIOC_GSSP:
+-		pgd = pgd_offset(current->mm, arg);
+-		if (!(pgd_none(*pgd) || pgd_bad(*pgd))) {
+-			pmd = pmd_offset(pgd, arg);
+-			if (!(pmd_none(*pmd) || pmd_bad(*pmd))) {
+-				ptep = pte_offset_map(pmd, arg);
+-				if (ptep) {
+-					pte = *ptep;
+-					if (pte_present(pte))
+-						return (pte & PAGE_MASK) |
+-							(~PAGE_MASK & arg);
+-				}
+-			}
+-		}
+-		/* va not in page table, return NULL */
+-		return (s32) NULL;
+-		break;
+-	/* map block */
+-	case TILIOC_MBLK:
+-		if (copy_from_user(&block_info, data, sizeof(block_info)))
+-			return -EFAULT;
+-
+-		if (!block_info.ptr)
+-			return -EFAULT;
+-
+-		r = ops->map(block_info.fmt, block_info.dim.len, 1,
+-			      block_info.key, block_info.group_id, pi,
+-			      &mi, (u32)block_info.ptr);
+-		if (r)
+-			return r;
+-
+-		/* fill out block info */
+-		if (mi)
+-			ops->describe(mi, &block_info);
+-
+-		if (copy_to_user(data, &block_info, sizeof(block_info)))
+-			return -EFAULT;
+-		break;
+-#ifndef CONFIG_TILER_SECURE
+-	/* query buffer information by offset */
+-	case TILIOC_QBUF:
+-		if (!offset_lookup)
+-			return -EPERM;
+-
+-		if (copy_from_user(&buf_info, data, sizeof(buf_info)))
+-			return -EFAULT;
+-
+-		/* find buffer */
+-		mutex_lock(&mtx);
+-		r = -ENOENT;
+-		/* buffer registration is per process */
+-		list_for_each_entry(_b, &pi->bufs, by_pid) {
+-			if (buf_info.offset == _b->buf_info.offset) {
+-				memcpy(&buf_info, &_b->buf_info,
+-					sizeof(buf_info));
+-				r = 0;
+-				break;
+-			}
+-		}
+-		mutex_unlock(&mtx);
+-
+-		if (r)
+-			return r;
+-
+-		if (copy_to_user(data, &_b->buf_info, sizeof(_b->buf_info)))
+-			return -EFAULT;
+-		break;
+-#endif
+-	/* register buffer */
+-	case TILIOC_RBUF:
+-		/* save buffer information */
+-		_b = kmalloc(sizeof(*_b), GFP_KERNEL);
+-		if (!_b)
+-			return -ENOMEM;
+-		memset(_b, 0, sizeof(*_b));
+-
+-		if (copy_from_user(&_b->buf_info, data, sizeof(_b->buf_info))) {
+-			kfree(_b);
+-			return -EFAULT;
+-		}
+-
+-		mutex_lock(&mtx);
+-		r = _m_register_buf(_b, pi);
+-		mutex_unlock(&mtx);
+-
+-		if (r) {
+-			kfree(_b);
+-			return -EACCES;
+-		}
+-
+-		/* undo registration on failure */
+-		if (copy_to_user(data, &_b->buf_info, sizeof(_b->buf_info))) {
+-			mutex_lock(&mtx);
+-			_m_unregister_buf(_b);
+-			mutex_unlock(&mtx);
+-			return -EFAULT;
+-		}
+-		break;
+-	/* unregister a buffer */
+-	case TILIOC_URBUF:
+-		if (copy_from_user(&buf_info, data, sizeof(buf_info)))
+-			return -EFAULT;
+-
+-		/* find buffer */
+-		r = -EFAULT;
+-		mutex_lock(&mtx);
+-		/* buffer registration is per process */
+-		list_for_each_entry(_b, &pi->bufs, by_pid) {
+-			if (buf_info.offset == _b->buf_info.offset) {
+-				_m_unregister_buf(_b);
+-				/* only retrieve buffer length */
+-				buf_info.length = _b->buf_info.length;
+-				r = 0;
+-				break;
+-			}
+-		}
+-		mutex_unlock(&mtx);
+-
+-		if (r)
+-			return r;
+-
+-		if (copy_to_user(data, &buf_info, sizeof(buf_info)))
+-			return -EFAULT;
+-		break;
+-	/* prereserv blocks */
+-	case TILIOC_PRBLK:
+-		if (copy_from_user(&block_info, data, sizeof(block_info)))
+-			return -EFAULT;
+-
+-		if (block_info.fmt == TILFMT_8AND16)
+-			ops->reserve_nv12(block_info.key,
+-					  block_info.dim.area.width,
+-					  block_info.dim.area.height,
+-					  block_info.align,
+-					  block_info.offs,
+-					  block_info.group_id, pi);
+-		else
+-			ops->reserve(block_info.key,
+-				     block_info.fmt,
+-				     block_info.dim.area.width,
+-				     block_info.dim.area.height,
+-				     block_info.align,
+-				     block_info.offs,
+-				     block_info.group_id, pi);
+-		break;
+-	/* unreserve blocks */
+-	case TILIOC_URBLK:
+-		ops->unreserve(arg, pi);
+-		break;
+-	/* query a tiler block */
+-	case TILIOC_QBLK:
+-		if (copy_from_user(&block_info, data, sizeof(block_info)))
+-			return -EFAULT;
+-
+-		if (block_info.id) {
+-			/* look up by id if specified */
+-			mutex_lock(&mtx);
+-			mi = _m_lock_block(block_info.key, block_info.id, pi);
+-			mutex_unlock(&mtx);
+-		} else
+-#ifndef CONFIG_TILER_SECURE
+-		if (ssptr_lookup) {
+-			/* otherwise, look up by ssptr if allowed */
+-			mi = ops->lock_by_ssptr(block_info.ssptr);
+-		} else
+-#endif
+-			return -EPERM;
+-
+-		if (!mi)
+-			return -EFAULT;
+-
+-		/* we don't keep track of ptr and 1D stride so clear them */
+-		block_info.ptr = NULL;
+-		block_info.stride = 0;
+-
+-		ops->describe(mi, &block_info);
+-		ops->unlock_free(mi, false);
+-
+-		if (copy_to_user(data, &block_info, sizeof(block_info)))
+-			return -EFAULT;
+-		break;
+-	default:
+-		return -EINVAL;
+-	}
+-	return 0;
+-}
+-
+-/* open tiler driver */
+-static s32 tiler_open(struct inode *ip, struct file *filp)
+-{
+-	struct process_info *pi = __get_pi(current->tgid, false);
+-	if (!pi)
+-		return -ENOMEM;
+-
+-	filp->private_data = pi;
+-	return 0;
+-}
+-
+-/* close tiler driver */
+-static s32 tiler_release(struct inode *ip, struct file *filp)
+-{
+-	struct process_info *pi = filp->private_data;
+-
+-	mutex_lock(&mtx);
+-	/* free resources if last device in this process */
+-	if (0 == --pi->refs)
+-		_m_free_process_info(pi);
+-
+-	mutex_unlock(&mtx);
+-
+-	return 0;
++	mutex_unlock(&ops->mtx);
+ }
+ 
+-/* tiler driver file operations */
+-static const struct file_operations tiler_fops = {
+-	.open = tiler_open,
+-	.unlocked_ioctl = tiler_ioctl,
+-	.release = tiler_release,
+-	.mmap = tiler_mmap,
+-};
+ 
+ /* initialize tiler interface */
+ void tiler_iface_init(struct tiler_ops *tiler)
+ {
+ 	ops = tiler;
+ 	ops->cleanup = destroy_processes;
+-	ops->fops = &tiler_fops;
+ 
+ #ifdef CONFIG_TILER_SECURE
+ 	security = true;
+-	offset_lookup = ssptr_lookup = false;
+ #endif
+-
+-	mutex_init(&mtx);
+ 	INIT_LIST_HEAD(&procs);
+-	BLOCKING_INIT_NOTIFIER_HEAD(&notifier);
+ }
+ 
+ /*
+@@ -635,21 +144,26 @@ void tiler_iface_init(struct tiler_ops *tiler)
+  *  ==========================================================================
+  */
+ 
+-s32 tiler_reg_notifier(struct notifier_block *nb)
++u32 tiler_virt2phys(u32 usr)
+ {
+-	if (!nb)
+-		return -EINVAL;
+-	return blocking_notifier_chain_register(&notifier, nb);
+-}
+-EXPORT_SYMBOL(tiler_reg_notifier);
++	pmd_t *pmd;
++	pte_t *ptep;
++	pgd_t *pgd = pgd_offset(current->mm, usr);
+ 
+-s32 tiler_unreg_notifier(struct notifier_block *nb)
+-{
+-	if (!nb)
+-		return -EINVAL;
+-	return blocking_notifier_chain_unregister(&notifier, nb);
++	if (pgd_none(*pgd) || pgd_bad(*pgd))
++		return 0;
++
++	pmd = pmd_offset(pgd, usr);
++	if (pmd_none(*pmd) || pmd_bad(*pmd))
++		return 0;
++
++	ptep = pte_offset_map(pmd, usr);
++	if (ptep && pte_present(*ptep))
++		return (*ptep & PAGE_MASK) | (~PAGE_MASK & usr);
++
++	return 0;
+ }
+-EXPORT_SYMBOL(tiler_unreg_notifier);
++EXPORT_SYMBOL(tiler_virt2phys);
+ 
+ void tiler_reservex(u32 n, enum tiler_fmt fmt, u32 width, u32 height,
+ 		   u32 align, u32 offs, u32 gid, pid_t pid)
+@@ -668,6 +182,7 @@ void tiler_reserve(u32 n, enum tiler_fmt fmt, u32 width, u32 height,
+ }
+ EXPORT_SYMBOL(tiler_reserve);
+ 
++#ifdef CONFIG_TILER_ENABLE_NV12
+ void tiler_reservex_nv12(u32 n, u32 width, u32 height, u32 align, u32 offs,
+ 			u32 gid, pid_t pid)
+ {
+@@ -683,6 +198,7 @@ void tiler_reserve_nv12(u32 n, u32 width, u32 height, u32 align, u32 offs)
+ 	tiler_reservex_nv12(n, width, height, align, offs, 0, current->tgid);
+ }
+ EXPORT_SYMBOL(tiler_reserve_nv12);
++#endif
+ 
+ s32 tiler_allocx(struct tiler_block_t *blk, enum tiler_fmt fmt,
+ 				u32 align, u32 offs, u32 gid, pid_t pid)
+@@ -727,7 +243,7 @@ s32 tiler_mapx(struct tiler_block_t *blk, enum tiler_fmt fmt, u32 gid,
+ 	if (!pi)
+ 		return -ENOMEM;
+ 
+-	res = ops->map(fmt, blk->width, blk->height, blk->key, gid, pi, &mi,
++	res = ops->pin(fmt, blk->width, blk->height, blk->key, gid, pi, &mi,
+ 								usr_addr);
+ 	if (mi) {
+ 		blk->phys = mi->blk.phys;
+diff --git a/drivers/media/video/tiler/tiler-ioctl.c b/drivers/media/video/tiler/tiler-ioctl.c
+new file mode 100644
+index 0000000..ff57e88
+--- /dev/null
++++ b/drivers/media/video/tiler/tiler-ioctl.c
+@@ -0,0 +1,531 @@
++/*
++ * tiler-ioctl.c
++ *
++ * TILER driver userspace interface functions for TI TILER hardware block.
++ *
++ * Authors: Lajos Molnar <molnar@ti.com>
++ *          David Sin <davidsin@ti.com>
++ *
++ * Copyright (C) 2009-2010 Texas Instruments, Inc.
++ *
++ * This package is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ *
++ * THIS PACKAGE IS PROVIDED ``AS IS'' AND WITHOUT ANY EXPRESS OR
++ * IMPLIED WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED
++ * WARRANTIES OF MERCHANTIBILITY AND FITNESS FOR A PARTICULAR PURPOSE.
++ */
++
++#include <linux/module.h>
++#include <linux/mutex.h>
++#include <linux/fs.h>		/* fops */
++#include <linux/uaccess.h>	/* copy_to_user */
++#include <linux/slab.h>		/* kmalloc */
++#include <linux/sched.h>	/* current */
++#include <linux/mm.h>
++#include <linux/mm_types.h>
++#include <asm/mach/map.h>	/* for ioremap_page */
++
++#include "_tiler.h"
++
++static bool ssptr_lookup = true;
++static bool offset_lookup = true;
++
++module_param(ssptr_lookup, bool, 0644);
++MODULE_PARM_DESC(ssptr_lookup,
++	"Allow looking up a block by ssptr - This is a security risk");
++module_param(offset_lookup, bool, 0644);
++MODULE_PARM_DESC(offset_lookup,
++	"Allow looking up a buffer by offset - This is a security risk");
++
++static struct tiler_ops *ops;	/* shared methods and variables */
++static struct blocking_notifier_head notifier;	/* notifier for events */
++
++/*
++ *  Event notification methods
++ *  ==========================================================================
++ */
++
++s32 tiler_notify_event(int event, void *data)
++{
++	return blocking_notifier_call_chain(&notifier, event, data);
++}
++
++/*
++ *  Buffer handling methods
++ *  ==========================================================================
++ */
++
++/* check if an offset is used */
++static bool _m_offs_in_use(u32 offs, u32 length, struct process_info *pi)
++{
++	struct __buf_info *_b;
++	/* have mutex */
++	list_for_each_entry(_b, &pi->bufs, by_pid)
++		if (_b->buf_info.offset < offs + length &&
++		    _b->buf_info.offset + _b->buf_info.length > offs)
++			return 1;
++	return 0;
++}
++
++/* get an offset */
++static u32 _m_get_offs(struct process_info *pi, u32 length)
++{
++	static u32 offs = 0xda7a;
++
++	/* ensure no-one is using this offset */
++	while ((offs << PAGE_SHIFT) + length < length ||
++	       _m_offs_in_use(offs << PAGE_SHIFT, length, pi)) {
++		/* use a pseudo-random generator to get a new offset to try */
++
++		/* Galois LSF: 20, 17 */
++		offs = (offs >> 1) ^ (u32)((0 - (offs & 1u)) & 0x90000);
++	}
++
++	return offs << PAGE_SHIFT;
++}
++
++/* find and lock a block.  process_info is optional */
++static struct mem_info *
++_m_lock_block(u32 key, u32 id, struct process_info *pi) {
++	struct gid_info *gi;
++	struct mem_info *mi;
++
++	/* if process_info is given, look there first */
++	if (pi) {
++		/* have mutex */
++
++		/* find block in process list and free it */
++		list_for_each_entry(gi, &pi->groups, by_pid) {
++			mi = ops->lock(key, id, gi);
++			if (mi)
++				return mi;
++		}
++	}
++
++	/* if not found or no process_info given, find block in global list */
++	return ops->lock(key, id, NULL);
++}
++
++/* register a buffer */
++static s32 _m_register_buf(struct __buf_info *_b, struct process_info *pi)
++{
++	struct mem_info *mi;
++	struct tiler_buf_info *b = &_b->buf_info;
++	u32 i, num = b->num_blocks, offs;
++
++	/* check validity */
++	if (num > TILER_MAX_NUM_BLOCKS || num == 0)
++		return -EINVAL;
++
++	/* find each block */
++	b->length = 0;
++	for (i = 0; i < num; i++) {
++		mi = _m_lock_block(b->blocks[i].key, b->blocks[i].id, pi);
++		if (!mi) {
++			/* unlock any blocks already found */
++			while (i--)
++				ops->unlock_free(_b->mi[i], false);
++			return -EACCES;
++		}
++		_b->mi[i] = mi;
++
++		/* we don't keep track of ptr and 1D stride so clear them */
++		b->blocks[i].ptr = NULL;
++		b->blocks[i].stride = 0;
++
++		ops->describe(mi, b->blocks + i);
++		b->length += tiler_size(&mi->blk);
++	}
++
++	/* if found all, register buffer */
++	offs = _b->mi[0]->blk.phys & ~PAGE_MASK;
++	b->offset = _m_get_offs(pi, b->length) + offs;
++	b->length -= offs;
++
++	/* have mutex */
++	list_add(&_b->by_pid, &pi->bufs);
++
++	return 0;
++}
++
++/* unregister a buffer */
++void _m_unregister_buf(struct __buf_info *_b)
++{
++	u32 i;
++
++	/* unregister */
++	list_del(&_b->by_pid);
++
++	/* no longer using the blocks */
++	for (i = 0; i < _b->buf_info.num_blocks; i++)
++		ops->unlock_free(_b->mi[i], false);
++
++	kfree(_b);
++}
++
++
++/*
++ *  File operations (mmap, ioctl, open, close)
++ *  ==========================================================================
++ */
++
++/* mmap tiler buffer into user's virtual space */
++static s32 tiler_mmap(struct file *filp, struct vm_area_struct *vma)
++{
++	struct __buf_info *_b;
++	struct tiler_buf_info *b = NULL;
++	u32 i, map_offs, map_size, blk_offs, blk_size, mapped_size;
++	struct process_info *pi = filp->private_data;
++	u32 offs = vma->vm_pgoff << PAGE_SHIFT;
++	u32 size = vma->vm_end - vma->vm_start;
++
++	vma->vm_page_prot = pgprot_writecombine(vma->vm_page_prot);
++
++	/* find tiler buffer to mmap */
++	mutex_lock(&ops->mtx);
++	list_for_each_entry(_b, &pi->bufs, by_pid) {
++		/* we support partial mmaping of a whole tiler buffer */
++		if (offs >= (_b->buf_info.offset & PAGE_MASK) &&
++		    offs + size <= PAGE_ALIGN(_b->buf_info.offset +
++						_b->buf_info.length)) {
++			b = &_b->buf_info;
++			break;
++		}
++	}
++	mutex_unlock(&ops->mtx);
++
++	/* we use b to detect if we found the bufffer */
++	if (!b)
++		return -ENXIO;
++
++	/* mmap relevant blocks */
++	blk_offs = _b->buf_info.offset;
++
++	/* start at the beginning of the region */
++	mapped_size = 0;
++	for (i = 0; i < b->num_blocks; i++, blk_offs += blk_size) {
++		blk_size = tiler_size(&_b->mi[i]->blk);
++		/* see if tiler block is inside the requested region */
++		if (offs >= blk_offs + blk_size || offs + size < blk_offs)
++			continue;
++		/* get the offset and map size for this particular block */
++		map_offs = max(offs, blk_offs) - blk_offs;
++		map_size = min(size - mapped_size, blk_size);
++
++		/* mmap block */
++		if (tiler_mmap_blk(&_b->mi[i]->blk, map_offs, map_size, vma,
++				   mapped_size))
++			return -EAGAIN;
++
++		/* update mmap region pointer */
++		mapped_size += map_size;
++	}
++	return 0;
++}
++
++/* ioctl handler */
++static long tiler_ioctl(struct file *filp, u32 cmd, unsigned long arg)
++{
++	s32 r;
++	void __user *data = (void __user *)arg;
++	struct process_info *pi = filp->private_data;
++	struct __buf_info *_b;
++	struct tiler_buf_info buf_info = {0};
++	struct tiler_block_info block_info = {0};
++	struct mem_info *mi;
++
++	switch (cmd) {
++	/* allocate block */
++	case TILIOC_GBLK:
++		if (copy_from_user(&block_info, data, sizeof(block_info)))
++			return -EFAULT;
++
++		switch (block_info.fmt) {
++		case TILFMT_PAGE:
++			r = ops->alloc(block_info.fmt, block_info.dim.len, 1,
++					block_info.align, block_info.offs,
++					block_info.key, block_info.group_id,
++					pi, &mi);
++			break;
++		case TILFMT_8BIT:
++		case TILFMT_16BIT:
++		case TILFMT_32BIT:
++			r = ops->alloc(block_info.fmt,
++					block_info.dim.area.width,
++					block_info.dim.area.height,
++					block_info.align, block_info.offs,
++					block_info.key, block_info.group_id,
++					pi, &mi);
++			break;
++		default:
++			return -EINVAL;
++		}
++		if (r)
++			return r;
++
++		/* fill out block info */
++		if (mi) {
++			block_info.ptr = NULL;
++			ops->describe(mi, &block_info);
++		}
++
++		if (copy_to_user(data, &block_info, sizeof(block_info)))
++			return -EFAULT;
++		break;
++	/* free/unmap block */
++	case TILIOC_FBLK:
++	case TILIOC_UMBLK:
++		if (copy_from_user(&block_info, data, sizeof(block_info)))
++			return -EFAULT;
++
++		/* search current process first, then all processes */
++		mutex_lock(&ops->mtx);
++		mi = _m_lock_block(block_info.key, block_info.id, pi);
++		mutex_unlock(&ops->mtx);
++		if (mi)
++			ops->unlock_free(mi, true);
++
++		/* free always succeeds */
++		break;
++	/* get physical address */
++	case TILIOC_GSSP:
++		return tiler_virt2phys(arg);
++		break;
++	/* map block */
++	case TILIOC_MBLK:
++		if (copy_from_user(&block_info, data, sizeof(block_info)))
++			return -EFAULT;
++
++		if (!block_info.ptr)
++			return -EFAULT;
++
++		r = ops->pin(block_info.fmt, block_info.dim.len, 1,
++			      block_info.key, block_info.group_id, pi,
++			      &mi, (u32)block_info.ptr);
++		if (r)
++			return r;
++
++		/* fill out block info */
++		if (mi)
++			ops->describe(mi, &block_info);
++
++		if (copy_to_user(data, &block_info, sizeof(block_info)))
++			return -EFAULT;
++		break;
++#ifndef CONFIG_TILER_SECURE
++	/* query buffer information by offset */
++	case TILIOC_QBUF:
++		if (!offset_lookup)
++			return -EPERM;
++
++		if (copy_from_user(&buf_info, data, sizeof(buf_info)))
++			return -EFAULT;
++
++		/* find buffer */
++		mutex_lock(&ops->mtx);
++		r = -ENOENT;
++		/* buffer registration is per process */
++		list_for_each_entry(_b, &pi->bufs, by_pid) {
++			if (buf_info.offset == _b->buf_info.offset) {
++				memcpy(&buf_info, &_b->buf_info,
++					sizeof(buf_info));
++				r = 0;
++				break;
++			}
++		}
++		mutex_unlock(&ops->mtx);
++
++		if (r)
++			return r;
++
++		if (copy_to_user(data, &_b->buf_info, sizeof(_b->buf_info)))
++			return -EFAULT;
++		break;
++#endif
++	/* register buffer */
++	case TILIOC_RBUF:
++		/* save buffer information */
++		_b = kmalloc(sizeof(*_b), GFP_KERNEL);
++		if (!_b)
++			return -ENOMEM;
++		memset(_b, 0, sizeof(*_b));
++
++		if (copy_from_user(&_b->buf_info, data, sizeof(_b->buf_info))) {
++			kfree(_b);
++			return -EFAULT;
++		}
++
++		mutex_lock(&ops->mtx);
++		r = _m_register_buf(_b, pi);
++		mutex_unlock(&ops->mtx);
++
++		if (r) {
++			kfree(_b);
++			return -EACCES;
++		}
++
++		/* undo registration on failure */
++		if (copy_to_user(data, &_b->buf_info, sizeof(_b->buf_info))) {
++			mutex_lock(&ops->mtx);
++			_m_unregister_buf(_b);
++			mutex_unlock(&ops->mtx);
++			return -EFAULT;
++		}
++		break;
++	/* unregister a buffer */
++	case TILIOC_URBUF:
++		if (copy_from_user(&buf_info, data, sizeof(buf_info)))
++			return -EFAULT;
++
++		/* find buffer */
++		r = -EFAULT;
++		mutex_lock(&ops->mtx);
++		/* buffer registration is per process */
++		list_for_each_entry(_b, &pi->bufs, by_pid) {
++			if (buf_info.offset == _b->buf_info.offset) {
++				/* only retrieve buffer length */
++				buf_info.length = _b->buf_info.length;
++				_m_unregister_buf(_b);
++				r = 0;
++				break;
++			}
++		}
++		mutex_unlock(&ops->mtx);
++
++		if (r)
++			return r;
++
++		if (copy_to_user(data, &buf_info, sizeof(buf_info)))
++			return -EFAULT;
++		break;
++	/* prereserv blocks */
++	case TILIOC_PRBLK:
++		if (copy_from_user(&block_info, data, sizeof(block_info)))
++			return -EFAULT;
++
++		if (block_info.fmt == TILFMT_8AND16)
++#ifdef CONFIG_TILER_ENABLE_NV12
++			ops->reserve_nv12(block_info.key,
++					  block_info.dim.area.width,
++					  block_info.dim.area.height,
++					  block_info.align,
++					  block_info.offs,
++					  block_info.group_id, pi);
++#else
++			return -EINVAL;
++#endif
++		else
++			ops->reserve(block_info.key,
++				     block_info.fmt,
++				     block_info.dim.area.width,
++				     block_info.dim.area.height,
++				     block_info.align,
++				     block_info.offs,
++				     block_info.group_id, pi);
++		break;
++	/* unreserve blocks */
++	case TILIOC_URBLK:
++		ops->unreserve(arg, pi);
++		break;
++	/* query a tiler block */
++	case TILIOC_QBLK:
++		if (copy_from_user(&block_info, data, sizeof(block_info)))
++			return -EFAULT;
++
++		if (block_info.id) {
++			/* look up by id if specified */
++			mutex_lock(&ops->mtx);
++			mi = _m_lock_block(block_info.key, block_info.id, pi);
++			mutex_unlock(&ops->mtx);
++		} else
++#ifndef CONFIG_TILER_SECURE
++		if (ssptr_lookup) {
++			/* otherwise, look up by ssptr if allowed */
++			mi = ops->lock_by_ssptr(block_info.ssptr);
++		} else
++#endif
++			return -EPERM;
++
++		if (!mi)
++			return -EFAULT;
++
++		/* we don't keep track of ptr and 1D stride so clear them */
++		block_info.ptr = NULL;
++		block_info.stride = 0;
++
++		ops->describe(mi, &block_info);
++		ops->unlock_free(mi, false);
++
++		if (copy_to_user(data, &block_info, sizeof(block_info)))
++			return -EFAULT;
++		break;
++	default:
++		return -EINVAL;
++	}
++	return 0;
++}
++
++/* open tiler driver */
++static s32 tiler_open(struct inode *ip, struct file *filp)
++{
++	struct process_info *pi = __get_pi(current->tgid, false);
++	if (!pi)
++		return -ENOMEM;
++
++	filp->private_data = pi;
++	return 0;
++}
++
++/* close tiler driver */
++static s32 tiler_release(struct inode *ip, struct file *filp)
++{
++	struct process_info *pi = filp->private_data;
++
++	mutex_lock(&ops->mtx);
++	/* free resources if last device in this process */
++	if (0 == --pi->refs)
++		_m_free_process_info(pi);
++
++	mutex_unlock(&ops->mtx);
++
++	return 0;
++}
++
++/* tiler driver file operations */
++static const struct file_operations tiler_fops = {
++	.open = tiler_open,
++	.unlocked_ioctl = tiler_ioctl,
++	.release = tiler_release,
++	.mmap = tiler_mmap,
++};
++
++
++void tiler_ioctl_init(struct tiler_ops *tiler)
++{
++	ops = tiler;
++	ops->fops = &tiler_fops;
++
++#ifdef CONFIG_TILER_SECURE
++	offset_lookup = ssptr_lookup = false;
++#endif
++	BLOCKING_INIT_NOTIFIER_HEAD(&notifier);
++}
++
++
++s32 tiler_reg_notifier(struct notifier_block *nb)
++{
++	if (!nb)
++		return -EINVAL;
++	return blocking_notifier_chain_register(&notifier, nb);
++}
++EXPORT_SYMBOL(tiler_reg_notifier);
++
++s32 tiler_unreg_notifier(struct notifier_block *nb)
++{
++	if (!nb)
++		return -EINVAL;
++	return blocking_notifier_chain_unregister(&notifier, nb);
++}
++EXPORT_SYMBOL(tiler_unreg_notifier);
+diff --git a/drivers/media/video/tiler/tiler-main.c b/drivers/media/video/tiler/tiler-main.c
+index 4d33d09..5feb835 100644
+--- a/drivers/media/video/tiler/tiler-main.c
++++ b/drivers/media/video/tiler/tiler-main.c
+@@ -31,6 +31,8 @@
+ #include <linux/pagemap.h>		/* page_cache_release() */
+ #include <linux/slab.h>
+ #include <linux/sched.h>
++#include <linux/debugfs.h>
++#include <linux/seq_file.h>
+ 
+ #include <mach/dmm.h>
+ #include "tmm.h"
+@@ -40,6 +42,7 @@
+ static bool ssptr_id = CONFIG_TILER_SSPTR_ID;
+ static uint default_align = CONFIG_TILER_ALIGNMENT;
+ static uint granularity = CONFIG_TILER_GRANULARITY;
++static u32 tiler_alloc_debug;
+ 
+ /*
+  * We can only change ssptr_id if there are no blocks allocated, so that
+@@ -52,10 +55,14 @@ module_param_named(align, default_align, uint, 0644);
+ MODULE_PARM_DESC(align, "Default block ssptr alignment");
+ module_param_named(grain, granularity, uint, 0644);
+ MODULE_PARM_DESC(grain, "Granularity (bytes)");
++module_param_named(alloc_debug, tiler_alloc_debug, uint, 0644);
++MODULE_PARM_DESC(alloc_debug, "Allocation debug flag");
+ 
+ struct tiler_dev {
+ 	struct cdev cdev;
+ };
++static struct dentry *dbgfs;
++static struct dentry *dbg_map;
+ 
+ struct platform_driver tiler_driver_ldm = {
+ 	.driver = {
+@@ -87,13 +94,16 @@ static dma_addr_t dmac_pa;
+  *  TMM connectors
+  *  ==========================================================================
+  */
+-/* wrapper around tmm_map */
+-static s32 refill_pat(struct tmm *tmm, struct tcm_area *area, u32 *ptr)
++/* wrapper around tmm_pin */
++static s32 pin_mem_to_area(struct tmm *tmm, struct tcm_area *area, u32 *ptr)
+ {
+ 	s32 res = 0;
+ 	struct pat_area p_area = {0};
+ 	struct tcm_area slice, area_s;
+ 
++	/* Ensure the data reaches to main memory before PAT refill */
++	wmb();
++
+ 	tcm_for_each_slice(slice, *area, area_s) {
+ 		p_area.x0 = slice.p0.x;
+ 		p_area.y0 = slice.p0.y;
+@@ -103,7 +113,8 @@ static s32 refill_pat(struct tmm *tmm, struct tcm_area *area, u32 *ptr)
+ 		memcpy(dmac_va, ptr, sizeof(*ptr) * tcm_sizeof(slice));
+ 		ptr += tcm_sizeof(slice);
+ 
+-		if (tmm_map(tmm, p_area, dmac_pa)) {
++		/* pin memory into DMM */
++		if (tmm_pin(tmm, p_area, dmac_pa)) {
+ 			res = -EFAULT;
+ 			break;
+ 		}
+@@ -112,8 +123,8 @@ static s32 refill_pat(struct tmm *tmm, struct tcm_area *area, u32 *ptr)
+ 	return res;
+ }
+ 
+-/* wrapper around tmm_clear */
+-static void clear_pat(struct tmm *tmm, struct tcm_area *area)
++/* wrapper around tmm_unpin */
++static void unpin_mem_from_area(struct tmm *tmm, struct tcm_area *area)
+ {
+ 	struct pat_area p_area = {0};
+ 	struct tcm_area slice, area_s;
+@@ -124,7 +135,7 @@ static void clear_pat(struct tmm *tmm, struct tcm_area *area)
+ 		p_area.x1 = slice.p1.x;
+ 		p_area.y1 = slice.p1.y;
+ 
+-		tmm_clear(tmm, p_area);
++		tmm_unpin(tmm, p_area);
+ 	}
+ }
+ 
+@@ -159,6 +170,152 @@ static u32 _m_get_id(void)
+ 	return id;
+ }
+ 
++#define TILER_WIDTH 256
++#define TILER_HEIGHT 128
++
++static void fill_map(char **map, int div, struct tcm_area *a, char c, bool ovw)
++{
++	int x, y;
++	for (y = a->p0.y; y <= a->p1.y; y++)
++		for (x = a->p0.x / div; x <= a->p1.x / div; x++)
++			if (map[y][x] == ' ' || ovw)
++				map[y][x] = c;
++}
++
++static void fill_map_pt(char **map, int div, struct tcm_pt *p, char c)
++{
++	map[p->y][p->x / div] = c;
++}
++
++static char read_map_pt(char **map, int div, struct tcm_pt *p)
++{
++	return map[p->y][p->x / div];
++}
++
++static int map_width(int div, int x0, int x1)
++{
++	return (x1 / div) - (x0 / div) + 1;
++}
++
++static void text_map(char **map, int div, char *nice, int y, int x0, int x1)
++{
++	char *p = map[y] + (x0 / div);
++	int w = (map_width(div, x0, x1) - strlen(nice)) / 2;
++	if (w >= 0) {
++		p += w;
++		while (*nice)
++			*p++ = *nice++;
++	}
++}
++
++static void map_1d_info(char **map, int div, char *nice, struct tcm_area *a)
++{
++	sprintf(nice, "%dK", tcm_sizeof(*a) * 4);
++	if (a->p0.y + 1 < a->p1.y) {
++		text_map(map, div, nice, (a->p0.y + a->p1.y) / 2, 0,
++							TILER_WIDTH - 1);
++	} else if (a->p0.y < a->p1.y) {
++		if (strlen(nice) < map_width(div, a->p0.x, TILER_WIDTH - 1))
++			text_map(map, div, nice, a->p0.y, a->p0.x + div,
++							TILER_WIDTH - 1);
++		else if (strlen(nice) < map_width(div, 0, a->p1.x))
++			text_map(map, div, nice, a->p1.y, 0, a->p1.y - div);
++	} else if (strlen(nice) + 1 < map_width(div, a->p0.x, a->p1.x)) {
++		text_map(map, div, nice, a->p0.y, a->p0.x, a->p1.x);
++	}
++}
++
++static void map_2d_info(char **map, int div, char *nice, struct tcm_area *a)
++{
++	sprintf(nice, "(%d*%d)", tcm_awidth(*a), tcm_aheight(*a));
++	if (strlen(nice) + 1 < map_width(div, a->p0.x, a->p1.x))
++		text_map(map, div, nice, (a->p0.y + a->p1.y) / 2, a->p0.x,
++			 a->p1.x);
++}
++
++static void debug_allocation_map(struct seq_file *s)
++{
++	int div = 2;
++	int i;
++	char **map, *global_map;
++	struct area_info *ai;
++	struct mem_info *mi;
++	struct tcm_area a, p;
++	static char *m2d = "abcdefghijklmnopqrstuvwxyz"
++					"ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
++	static char *a2d = ".,:;'\"`~!^-+";
++	char *m2dp = m2d, *a2dp = a2d;
++	char nice[128];
++
++	/* allocate map */
++	map = kzalloc(TILER_HEIGHT * sizeof(*map), GFP_KERNEL);
++	global_map = kzalloc((TILER_WIDTH / div + 1) * TILER_HEIGHT,
++								GFP_KERNEL);
++	if (!map || !global_map) {
++		printk(KERN_ERR "could not allocate map for debug print\n");
++		goto error;
++	}
++	memset(global_map, ' ', (TILER_WIDTH / div + 1) * TILER_HEIGHT);
++	for (i = 0; i < TILER_HEIGHT; i++) {
++		map[i] = global_map + i * (TILER_WIDTH / div + 1);
++		map[i][TILER_WIDTH / div] = 0;
++	}
++
++	/* get all allocations */
++	mutex_lock(&mtx);
++
++	list_for_each_entry(mi, &blocks, global) {
++		if (mi->area.is2d) {
++			ai = mi->parent;
++			fill_map(map, div, &ai->area, *a2dp, false);
++			fill_map(map, div, &mi->area, *m2dp, true);
++			if (!*++a2dp)
++				a2dp = a2d;
++			if (!*++m2dp)
++				m2dp = m2d;
++			map_2d_info(map, div, nice, &mi->area);
++		} else {
++			bool start = read_map_pt(map, div, &mi->area.p0) == ' ';
++			bool end = read_map_pt(map, div, &mi->area.p1) == ' ';
++			tcm_for_each_slice(a, mi->area, p)
++			fill_map(map, div, &a, '=', true);
++			fill_map_pt(map, div, &mi->area.p0, start ? '<' : 'X');
++			fill_map_pt(map, div, &mi->area.p1, end ? '>' : 'X');
++			map_1d_info(map, div, nice, &mi->area);
++		}
++	}
++
++	seq_printf(s, "BEGIN TILER MAP\n");
++	for (i = 0; i < TILER_HEIGHT; i++)
++		seq_printf(s, "%03d:%s\n", i, map[i]);
++	seq_printf(s, "END TILER MAP\n");
++
++	mutex_unlock(&mtx);
++
++error:
++	kfree(map);
++	kfree(global_map);
++}
++
++static int tiler_debug_show(struct seq_file *s, void *unused)
++{
++	void (*func)(struct seq_file *) = s->private;
++	func(s);
++	return 0;
++}
++
++static int tiler_debug_open(struct inode *inode, struct file *file)
++{
++	return single_open(file, tiler_debug_show, inode->i_private);
++}
++
++static const struct file_operations tiler_debug_fops = {
++	.open           = tiler_debug_open,
++	.read           = seq_read,
++	.llseek         = seq_lseek,
++	.release        = single_release,
++};
++
+ /*
+  *  gid_info handling methods
+  *  ==========================================================================
+@@ -430,6 +587,16 @@ static struct mem_info *get_2d_area(u16 w, u16 h, u16 align, u16 offs, u16 band,
+ 
+ 			/* remove from reserved list */
+ 			list_del(&mi->global);
++			if (tiler_alloc_debug & 1)
++				 printk(KERN_ERR "(=2d (%d-%d,%d-%d) in (%d-%d,%d-%d) prereserved)\n",
++				 mi->area.p0.x, mi->area.p1.x,
++				 mi->area.p0.y, mi->area.p1.y,
++				 ((struct area_info *) mi->parent)->area.p0.x,
++				 ((struct area_info *) mi->parent)->area.p1.x,
++				 ((struct area_info *) mi->parent)->area.p0.y,
++				 ((struct area_info *) mi->parent)->area.p1.y);
++
++
+ 			goto done;
+ 		}
+ 	}
+@@ -450,6 +617,16 @@ static struct mem_info *get_2d_area(u16 w, u16 h, u16 align, u16 offs, u16 band,
+ 			x = _m_blk_find_fit(w, align, offs, ai, &before);
+ 			if (x) {
+ 				_m_add2area(mi, ai, x - w, w, before);
++
++				if (tiler_alloc_debug & 1)
++					printk(KERN_ERR "(+2d (%d-%d,%d-%d) in (%d-%d,%d-%d) existing)\n",
++					mi->area.p0.x, mi->area.p1.x,
++					mi->area.p0.y, mi->area.p1.y,
++					((struct area_info *) mi->parent)->area.p0.x,
++					((struct area_info *) mi->parent)->area.p1.x,
++					((struct area_info *) mi->parent)->area.p0.y,
++					((struct area_info *) mi->parent)->area.p1.y);
++
+ 				goto done;
+ 			}
+ 		}
+@@ -461,6 +638,13 @@ static struct mem_info *get_2d_area(u16 w, u16 h, u16 align, u16 offs, u16 band,
+ 		      max(band, align), tcm, gi);
+ 	if (ai) {
+ 		_m_add2area(mi, ai, ai->area.p0.x + offs, w, &ai->blocks);
++		if (tiler_alloc_debug & 1)
++			printk(KERN_ERR "(+2d (%d-%d,%d-%d) in (%d-%d,%d-%d) new)\n",
++					mi->area.p0.x, mi->area.p1.x,
++					mi->area.p0.y, mi->area.p1.y,
++					ai->area.p0.x, ai->area.p1.x,
++					ai->area.p0.y, ai->area.p1.y);
++
+ 	} else {
+ 		/* clean up */
+ 		kfree(mi);
+@@ -509,6 +693,7 @@ static s32 lay_2d(enum tiler_fmt fmt, u16 n, u16 w, u16 h, u16 band,
+ 	return n;
+ }
+ 
++#ifdef CONFIG_TILER_ENABLE_NV12
+ /* layout reserved nv12 blocks in a larger area */
+ /* NOTE: area w(idth), w1 (8-bit block width), h(eight) are in slots */
+ /* p is a pointer to a packing description, which is a list of offsets in
+@@ -554,30 +739,42 @@ static s32 lay_nv12(int n, u16 w, u16 w1, u16 h, struct gid_info *gi, u8 *p)
+ 	mutex_unlock(&mtx);
+ 	return n;
+ }
++#endif
+ 
+-/* (must have mutex) free block and any freed areas */
+-static s32 _m_free(struct mem_info *mi)
++static void _m_unpin(struct mem_info *mi)
+ {
+-	struct area_info *ai = NULL;
+-	struct page *page = NULL;
+-	s32 res = 0;
+-	u32 i;
+-
+ 	/* release memory */
+-	if (mi->pg_ptr) {
+-		for (i = 0; i < mi->num_pg; i++) {
+-			page = (struct page *)mi->pg_ptr[i];
++	if (mi->pa.memtype == TILER_MEM_GOT_PAGES) {
++		int i;
++		for (i = 0; i < mi->pa.num_pg; i++) {
++			struct page *page = phys_to_page(mi->pa.mem[i]);
+ 			if (page) {
+ 				if (!PageReserved(page))
+ 					SetPageDirty(page);
+ 				page_cache_release(page);
+ 			}
+ 		}
+-		kfree(mi->pg_ptr);
+-	} else if (mi->mem) {
+-		tmm_free(tmm[tiler_fmt(mi->blk.phys)], mi->mem);
++	} else if (mi->pa.memtype == TILER_MEM_ALLOCED && mi->pa.mem) {
++		tmm_free(tmm[tiler_fmt(mi->blk.phys)], mi->pa.mem);
++		/*
++		 * TRICKY: tmm module uses the same mi->pa.mem pointer which
++		 * it just freed.  We need to clear ours so we don't double free
++		 */
++		mi->pa.mem = NULL;
+ 	}
+-	clear_pat(tmm[tiler_fmt(mi->blk.phys)], &mi->area);
++	kfree(mi->pa.mem);
++	mi->pa.mem = NULL;
++	mi->pa.num_pg = 0;
++	unpin_mem_from_area(tmm[tiler_fmt(mi->blk.phys)], &mi->area);
++}
++
++/* (must have mutex) free block and any freed areas */
++static s32 _m_free(struct mem_info *mi)
++{
++	struct area_info *ai = NULL;
++	s32 res = 0;
++
++	_m_unpin(mi);
+ 
+ 	/* safe deletion as list may not have been assigned */
+ 	if (mi->global.next)
+@@ -591,14 +788,31 @@ static s32 _m_free(struct mem_info *mi)
+ 
+ 		/* check to see if area needs removing also */
+ 		if (ai && !--ai->nblocks) {
++			if (tiler_alloc_debug & 1)
++				printk(KERN_ERR "(-2d (%d-%d,%d-%d) in (%d-%d,%d-%d) last)\n",
++						   mi->area.p0.x, mi->area.p1.x,
++						   mi->area.p0.y, mi->area.p1.y,
++						   ai->area.p0.x, ai->area.p1.x,
++						   ai->area.p0.y, ai->area.p1.y);
++
+ 			res = tcm_free(&ai->area);
+ 			list_del(&ai->by_gid);
+ 			/* try to remove parent if it became empty */
+ 			_m_try_free_group(ai->gi);
+ 			kfree(ai);
+ 			ai = NULL;
+-		}
++		} else if (tiler_alloc_debug & 1)
++					printk(KERN_ERR "(-2d (%d-%d,%d-%d) in (%d-%d,%d-%d) remaining)\n",
++						mi->area.p0.x, mi->area.p1.x,
++						mi->area.p0.y, mi->area.p1.y,
++						ai->area.p0.x, ai->area.p1.x,
++						ai->area.p0.y, ai->area.p1.y);
+ 	} else {
++		if (tiler_alloc_debug & 1)
++			printk(KERN_ERR "(-1d: %d,%d..%d,%d)\n",
++			mi->area.p0.x, mi->area.p0.y,
++			mi->area.p1.x, mi->area.p1.y);
++
+ 		/* remove 1D area */
+ 		res = tcm_free(&mi->area);
+ 		/* try to remove parent if it became empty */
+@@ -851,8 +1065,7 @@ static void fill_block_info(struct mem_info *i, struct tiler_block_info *blk)
+  *  Block operations
+  *  ==========================================================================
+  */
+-
+-static struct mem_info *__get_area(enum tiler_fmt fmt, u32 width, u32 height,
++static struct mem_info *alloc_area(enum tiler_fmt fmt, u32 width, u32 height,
+ 				   u16 align, u16 offs, struct gid_info *gi)
+ {
+ 	u16 x, y, band, in_offs = 0;
+@@ -876,6 +1089,11 @@ static struct mem_info *__get_area(enum tiler_fmt fmt, u32 width, u32 height,
+ 			return NULL;
+ 		}
+ 
++		if (tiler_alloc_debug & 1)
++			 printk(KERN_ERR "(+1d: %d,%d..%d,%d)\n",
++						mi->area.p0.x, mi->area.p0.y,
++						mi->area.p1.x, mi->area.p1.y);
++
+ 		mutex_lock(&mtx);
+ 		mi->parent = gi;
+ 		list_add(&mi->by_area, &gi->onedim);
+@@ -899,18 +1117,16 @@ static struct mem_info *__get_area(enum tiler_fmt fmt, u32 width, u32 height,
+ 	return mi;
+ }
+ 
+-static s32 alloc_block(enum tiler_fmt fmt, u32 width, u32 height,
+-		u32 align, u32 offs, u32 key, u32 gid, struct process_info *pi,
+-		struct mem_info **info)
++static struct mem_info *alloc_block_area(enum tiler_fmt fmt, u32 width,
++		u32 height, u32 align, u32 offs, u32 key, u32 gid,
++		struct process_info *pi)
+ {
+ 	struct mem_info *mi = NULL;
+ 	struct gid_info *gi = NULL;
+ 
+-	*info = NULL;
+-
+ 	/* only support up to page alignment */
+ 	if (align > PAGE_SIZE || offs >= (align ? : default_align) || !pi)
+-		return -EINVAL;
++		return ERR_PTR(-EINVAL);
+ 
+ 	/* get group context */
+ 	mutex_lock(&mtx);
+@@ -918,16 +1134,16 @@ static s32 alloc_block(enum tiler_fmt fmt, u32 width, u32 height,
+ 	mutex_unlock(&mtx);
+ 
+ 	if (!gi)
+-		return -ENOMEM;
++		return ERR_PTR(-ENOMEM);
+ 
+ 	/* reserve area in tiler container */
+-	mi = __get_area(fmt, width, height, align, offs, gi);
++	mi = alloc_area(fmt, width, height, align, offs, gi);
+ 	if (!mi) {
+ 		mutex_lock(&mtx);
+ 		gi->refs--;
+ 		_m_try_free_group(gi);
+ 		mutex_unlock(&mtx);
+-		return -ENOMEM;
++		return ERR_PTR(-ENOMEM);
+ 	}
+ 
+ 	mi->blk.width = width;
+@@ -941,21 +1157,94 @@ static s32 alloc_block(enum tiler_fmt fmt, u32 width, u32 height,
+ 		mutex_unlock(&mtx);
+ 	}
+ 
+-	/* allocate and map if mapping is supported */
+-	if (tmm_can_map(tmm[fmt])) {
+-		mi->num_pg = tcm_sizeof(mi->area);
++	return mi;
++}
+ 
+-		mi->mem = tmm_get(tmm[fmt], mi->num_pg);
+-		if (!mi->mem)
+-			goto cleanup;
++static s32 pin_memory(struct mem_info *mi, struct tiler_pa_info *pa)
++{
++	enum tiler_fmt fmt = tiler_fmt(mi->blk.phys);
++	struct tcm_area area = mi->area;
++
++	/* ensure we can pin */
++	if (!tmm_can_pin(tmm[fmt]))
++		return -EINVAL;
++
++	/* ensure pages fit into area */
++	if (pa->num_pg > tcm_sizeof(mi->area))
++		return -ENOMEM;
+ 
+-		/* Ensure the data reaches to main memory before PAT refill */
+-		wmb();
++	/* for 2D area, pages must fit exactly */
++	if (fmt != TILFMT_PAGE &&
++	    pa->num_pg != tcm_sizeof(mi->area))
++		return -EINVAL;
++
++	/* save pages used */
++	mi->pa = *pa;
++	pa->mem = NULL;	/* transfered array */
++
++	/* only refill available pages for 1D */
++	if (fmt == TILFMT_PAGE)
++		tcm_1d_limit(&area, pa->num_pg);
++	if (mi->pa.num_pg)
++		return pin_mem_to_area(tmm[fmt], &area, mi->pa.mem);
++	return 0;
++}
++
++static void free_pa(struct tiler_pa_info *pa)
++{
++	if (pa)
++		kfree(pa->mem);
++	kfree(pa);
++}
++
++/* allocate physical pages for a block */
++static struct tiler_pa_info *get_new_pa(struct tmm *tmm, u32 num_pg)
++{
++	struct tiler_pa_info *pa = NULL;
++	pa = kzalloc(sizeof(*pa), GFP_KERNEL);
++	if (!pa)
++		return NULL;
++
++	pa->mem = tmm_get(tmm, num_pg);
++	if (pa->mem) {
++		pa->num_pg = num_pg;
++		pa->memtype = TILER_MEM_ALLOCED;
++		return pa;
++	} else {
++		kfree(pa);
++		return NULL;
++	}
++}
++
++static s32 alloc_block(enum tiler_fmt fmt, u32 width, u32 height,
++		u32 align, u32 offs, u32 key, u32 gid, struct process_info *pi,
++		struct mem_info **info)
++{
++	struct mem_info *mi;
++	struct tiler_pa_info *pa = NULL;
++	s32 res;
+ 
+-		/* program PAT */
+-		if (refill_pat(tmm[fmt], &mi->area, mi->mem))
++	*info = NULL;
++
++	/* allocate tiler container area */
++	mi = alloc_block_area(fmt, width, height, align, offs, key, gid, pi);
++	if (IS_ERR_OR_NULL(mi))
++		return mi ? -ENOMEM : PTR_ERR(mi);
++
++	/* allocate and map if mapping is supported */
++	if (tmm_can_pin(tmm[fmt])) {
++		/* allocate back memory */
++		pa = get_new_pa(tmm[fmt], tcm_sizeof(mi->area));
++		if (!pa)
++			goto cleanup;
++
++		/* pin memory */
++		res = pin_memory(mi, pa);
++		free_pa(pa);
++		if (res)
+ 			goto cleanup;
+ 	}
++
+ 	*info = mi;
+ 	return 0;
+ 
+@@ -964,77 +1253,29 @@ cleanup:
+ 	_m_free(mi);
+ 	mutex_unlock(&mtx);
+ 	return -ENOMEM;
+-
+ }
+ 
+-static s32 map_block(enum tiler_fmt fmt, u32 width, u32 height,
+-		     u32 key, u32 gid, struct process_info *pi,
+-		     struct mem_info **info, u32 usr_addr)
++/* get physical pages of a user block */
++static struct tiler_pa_info *user_block_to_pa(u32 usr_addr, u32 num_pg)
+ {
+-	u32 i = 0, tmp = -1, *mem = NULL;
+-	u8 write = 0;
+-	s32 res = -ENOMEM;
+-	struct mem_info *mi = NULL;
+-	struct page *page = NULL;
+ 	struct task_struct *curr_task = current;
+ 	struct mm_struct *mm = current->mm;
+ 	struct vm_area_struct *vma = NULL;
+-	struct gid_info *gi = NULL;
+-
+-	*info = NULL;
+ 
+-	/* we only support mapping a user buffer in page mode */
+-	if (fmt != TILFMT_PAGE)
+-		return -EPERM;
+-
+-	/* check if mapping is supported by tmm */
+-	if (!tmm_can_map(tmm[fmt]))
+-		return -EPERM;
+-
+-	/* get group context */
+-	mutex_lock(&mtx);
+-	gi = _m_get_gi(pi, gid);
+-	mutex_unlock(&mtx);
+-
+-	if (!gi)
+-		return -ENOMEM;
++	struct tiler_pa_info *pa = NULL;
++	struct page *page = NULL;
++	u32 *mem = NULL, got_pg = 1, i = 0, write;
+ 
+-	/* reserve area in tiler container */
+-	mi = __get_area(fmt, width, height, 0, 0, gi);
+-	if (!mi) {
+-		mutex_lock(&mtx);
+-		gi->refs--;
+-		_m_try_free_group(gi);
+-		mutex_unlock(&mtx);
+-		return -ENOMEM;
+-	}
++	pa = kzalloc(sizeof(*pa), GFP_KERNEL);
++	if (!pa)
++		return NULL;
+ 
+-	mi->blk.width = width;
+-	mi->blk.height = height;
+-	mi->blk.key = key;
+-	if (ssptr_id) {
+-		mi->blk.id = mi->blk.phys;
+-	} else {
+-		mutex_lock(&mtx);
+-		mi->blk.id = _m_get_id();
+-		mutex_unlock(&mtx);
++	mem = kzalloc(num_pg * sizeof(*mem), GFP_KERNEL);
++	if (!mem) {
++		kfree(pa);
++		return NULL;
+ 	}
+ 
+-	mi->usr = usr_addr;
+-
+-	/* allocate pages */
+-	mi->num_pg = tcm_sizeof(mi->area);
+-
+-	mem = kmalloc(mi->num_pg * sizeof(*mem), GFP_KERNEL);
+-	if (!mem)
+-		goto done;
+-	memset(mem, 0x0, sizeof(*mem) * mi->num_pg);
+-
+-	mi->pg_ptr = kmalloc(mi->num_pg * sizeof(*mi->pg_ptr), GFP_KERNEL);
+-	if (!mi->pg_ptr)
+-		goto done;
+-	memset(mi->pg_ptr, 0x0, sizeof(*mi->pg_ptr) * mi->num_pg);
+-
+ 	/*
+ 	 * Important Note: usr_addr is mapped from user
+ 	 * application process to current process - it must lie
+@@ -1042,66 +1283,128 @@ static s32 map_block(enum tiler_fmt fmt, u32 width, u32 height,
+ 	 * space in order to be of use to us here.
+ 	 */
+ 	down_read(&mm->mmap_sem);
+-	vma = find_vma(mm, mi->usr);
+-	res = -EFAULT;
++	vma = find_vma(mm, usr_addr);
+ 
+ 	/*
+ 	 * It is observed that under some circumstances, the user
+ 	 * buffer is spread across several vmas, so loop through
+ 	 * and check if the entire user buffer is covered.
+ 	 */
+-	while ((vma) && (mi->usr + width > vma->vm_end)) {
++	while ((vma) && (usr_addr + (num_pg << PAGE_SHIFT) > vma->vm_end)) {
+ 		/* jump to the next VMA region */
+ 		vma = find_vma(mm, vma->vm_end + 1);
+ 	}
+ 	if (!vma) {
+ 		printk(KERN_ERR "Failed to get the vma region for "
+ 			"user buffer.\n");
+-		goto fault;
++		kfree(mem);
++		up_read(&mm->mmap_sem);
++		return ERR_PTR(-EFAULT);
+ 	}
+ 
+ 	if (vma->vm_flags & (VM_WRITE | VM_MAYWRITE))
+ 		write = 1;
+ 
+-	tmp = mi->usr;
+-	for (i = 0; i < mi->num_pg; i++) {
+-		if (get_user_pages(curr_task, mm, tmp, 1, write, 1, &page,
+-									NULL)) {
++	for (i = 0; i < num_pg; i++) {
++		/*
++		 * At first use get_user_pages which works best for
++		 * userspace buffers.  If it fails (e.g. for kernel
++		 * allocated buffers), fall back to using the page
++		 * table directly.
++		 */
++		if (got_pg && get_user_pages(curr_task, mm, usr_addr, 1,
++					write, 1, &page, NULL) && page) {
+ 			if (page_count(page) < 1) {
+ 				printk(KERN_ERR "Bad page count from"
+ 							"get_user_pages()\n");
+ 			}
+-			mi->pg_ptr[i] = (u32)page;
+ 			mem[i] = page_to_phys(page);
+-			tmp += PAGE_SIZE;
++			BUG_ON(page != phys_to_page(mem[i]));
++		} else if (!got_pg || i == 0) {
++			got_pg = 0;
++			mem[i] = tiler_virt2phys(usr_addr);
++			if (!mem[i]) {
++				printk(KERN_ERR "get_user_pages() failed and virtual address is not in page table\n");
++				break;
++			}
+ 		} else {
+-			printk(KERN_ERR "get_user_pages() failed\n");
+-			goto fault;
++			/* we must get all or none of the pages */
++			/* release pages */
++			while (i--)
++				page_cache_release(phys_to_page(mem[i]));
++			break;
+ 		}
++		usr_addr += PAGE_SIZE;
+ 	}
+ 	up_read(&mm->mmap_sem);
+ 
+-	/* Ensure the data reaches to main memory before PAT refill */
+-	wmb();
++	/* if failed to map all pages */
++	if (i < num_pg) {
++		kfree(mem);
++		kfree(pa);
++		return ERR_PTR(-EFAULT);
++	}
+ 
+-	if (refill_pat(tmm[fmt], &mi->area, mem))
+-		goto fault;
++	pa->mem = mem;
++	pa->memtype = got_pg ? TILER_MEM_GOT_PAGES : TILER_MEM_USING;
++	pa->num_pg = num_pg;
++	return pa;
++}
+ 
+-	res = 0;
+-	*info = mi;
+-	goto done;
+-fault:
+-	up_read(&mm->mmap_sem);
+-done:
+-	if (res) {
++static s32 pin_any_block(enum tiler_fmt fmt, u32 width, u32 height,
++		     u32 key, u32 gid, struct process_info *pi,
++		     struct mem_info **info, struct tiler_pa_info *pa)
++{
++	s32 res = -EPERM;
++	struct mem_info *mi = NULL;
++
++	*info = NULL;
++
++	/* we only support mapping a user buffer in page mode */
++	if (fmt != TILFMT_PAGE)
++		goto done;
++
++	/* check if mapping is supported by tmm */
++	if (!tmm_can_pin(tmm[fmt]))
++		goto done;
++
++	/* get allocation area */
++	mi = alloc_block_area(fmt, width, height, 0, 0, key, gid, pi);
++	if (IS_ERR_OR_NULL(mi)) {
++		res = mi ? PTR_ERR(mi) : -ENOMEM;
++		goto done;
++	}
++
++	/* pin pages to tiler container */
++	res = pin_memory(mi, pa);
++
++	/* success */
++	if (!res) {
++		*info = mi;
++	} else {
+ 		mutex_lock(&mtx);
+ 		_m_free(mi);
+ 		mutex_unlock(&mtx);
+ 	}
+-	kfree(mem);
++done:
++	free_pa(pa);
+ 	return res;
+ }
+ 
++static s32 pin_block(enum tiler_fmt fmt, u32 width, u32 height,
++		     u32 key, u32 gid, struct process_info *pi,
++		     struct mem_info **info, u32 usr_addr)
++{
++	struct tiler_pa_info *pa = NULL;
++
++	/* get user pages */
++	pa = user_block_to_pa(usr_addr, DIV_ROUND_UP(width, PAGE_SIZE));
++	if (IS_ERR_OR_NULL(pa))
++		return pa ? PTR_ERR(pa) : -ENOMEM;
++
++	return pin_any_block(fmt, width, height, key, gid, pi, info, pa);
++}
++
+ /*
+  *  Driver code
+  *  ==========================================================================
+@@ -1115,13 +1418,16 @@ static s32 __init tiler_init(void)
+ 	struct tcm_pt div_pt;
+ 	struct tcm *sita = NULL;
+ 	struct tmm *tmm_pat = NULL;
++	struct pat_area area = {0};
+ 
+ 	tiler.alloc = alloc_block;
+-	tiler.map = map_block;
++	tiler.pin = pin_block;
+ 	tiler.lock = find_n_lock;
+ 	tiler.unlock_free = unlock_n_free;
+ 	tiler.lay_2d = lay_2d;
++#ifdef CONFIG_TILER_ENABLE_NV12
+ 	tiler.lay_nv12 = lay_nv12;
++#endif
+ 	tiler.destroy_group = destroy_group;
+ 	tiler.lock_by_ssptr = find_block_by_ssptr;
+ 	tiler.describe = fill_block_info;
+@@ -1132,7 +1438,15 @@ static s32 __init tiler_init(void)
+ 	tiler.analize = __analize_area;
+ 	tiler_geom_init(&tiler);
+ 	tiler_reserve_init(&tiler);
++
++	mutex_init(&tiler.mtx);
+ 	tiler_iface_init(&tiler);
++#ifdef CONFIG_TILER_ENABLE_USERSPACE
++	tiler_ioctl_init(&tiler);
++#endif
++#ifdef CONFIG_TILER_ENABLE_NV12
++	tiler_nv12_init(&tiler);
++#endif
+ 
+ 	/* check module parameters for correctness */
+ 	if (default_align > PAGE_SIZE ||
+@@ -1161,13 +1475,20 @@ static s32 __init tiler_init(void)
+ 	tcm[TILFMT_PAGE]  = sita;
+ 
+ 	/* Allocate tiler memory manager (must have 1 unique TMM per TCM ) */
+-	tmm_pat = tmm_pat_init(0);
++	tmm_pat = tmm_pat_init(0, dmac_va, dmac_pa);
+ 	tmm[TILFMT_8BIT]  = tmm_pat;
+ 	tmm[TILFMT_16BIT] = tmm_pat;
+ 	tmm[TILFMT_32BIT] = tmm_pat;
+ 	tmm[TILFMT_PAGE]  = tmm_pat;
+ 
++	/* Clear out all PAT entries */
++	area.x1 = tiler.width - 1;
++	area.y1 = tiler.height - 1;
++	tmm_unpin(tmm_pat, area);
++
++#ifdef CONFIG_TILER_ENABLE_NV12
+ 	tiler.nv12_packed = tcm[TILFMT_8BIT] == tcm[TILFMT_16BIT];
++#endif
+ 
+ 	tiler_device = kmalloc(sizeof(*tiler_device), GFP_KERNEL);
+ 	if (!tiler_device || !sita || !tmm_pat) {
+@@ -1210,6 +1531,18 @@ static s32 __init tiler_init(void)
+ 	INIT_LIST_HEAD(&orphan_areas);
+ 	INIT_LIST_HEAD(&orphan_onedim);
+ 
++	dbgfs = debugfs_create_dir("tiler", NULL);
++	if (IS_ERR_OR_NULL(dbgfs))
++		dev_warn(device, "failed to create debug files.\n");
++	else
++		dbg_map = debugfs_create_dir("map", dbgfs);
++	if (!IS_ERR_OR_NULL(dbg_map))
++		debugfs_create_file("2x1", S_IRUGO, dbg_map,
++				&debug_allocation_map, &tiler_debug_fops);
++	if (!IS_ERR_OR_NULL(dbgfs))
++		debugfs_create_bool("alloc_debug", S_IRUGO | S_IWUSR, dbgfs,
++					(u32*)&tiler_alloc_debug);
++
+ error:
+ 	/* TODO: error handling for device registration */
+ 	if (r) {
+@@ -1229,6 +1562,8 @@ static void __exit tiler_exit(void)
+ 
+ 	mutex_lock(&mtx);
+ 
++	debugfs_remove_recursive(dbgfs);
++
+ 	/* free all process data */
+ 	tiler.cleanup();
+ 
+@@ -1263,6 +1598,47 @@ static void __exit tiler_exit(void)
+ 	class_destroy(tilerdev_class);
+ }
+ 
++tiler_blk_handle tiler_map_1d_block(struct tiler_pa_info *pa)
++{
++	struct mem_info *mi = NULL;
++	struct tiler_pa_info *pa_tmp = kmemdup(pa, sizeof(*pa), GFP_KERNEL);
++	s32 res = pin_any_block(TILFMT_PAGE, pa->num_pg << PAGE_SHIFT, 1, 0, 0,
++						__get_pi(0, true), &mi, pa_tmp);
++	return res ? ERR_PTR(res) : mi;
++}
++EXPORT_SYMBOL(tiler_map_1d_block);
++
++void tiler_free_block(tiler_blk_handle block)
++{
++	mutex_lock(&mtx);
++	_m_try_free(block);
++	mutex_unlock(&mtx);
++}
++EXPORT_SYMBOL(tiler_free_block);
++
++tiler_blk_handle tiler_alloc_block_area(u32 size)
++{
++	return alloc_block_area(TILFMT_PAGE, size >> PAGE_SHIFT, 1, 0, 0, 0, 0,
++							__get_pi(0, true));
++}
++EXPORT_SYMBOL(tiler_alloc_block_area);
++
++void tiler_unpin_memory(tiler_blk_handle block)
++{
++	mutex_lock(&mtx);
++	_m_unpin(block);
++	mutex_unlock(&mtx);
++}
++EXPORT_SYMBOL(tiler_unpin_memory);
++
++s32 tiler_pin_memory(tiler_blk_handle block, struct tiler_pa_info *pa)
++{
++	struct tiler_pa_info *pa_tmp = kmemdup(pa, sizeof(*pa), GFP_KERNEL);
++	tiler_unpin_memory(block);
++	return pin_memory(block, pa_tmp);
++}
++EXPORT_SYMBOL(tiler_pin_memory);
++
+ MODULE_LICENSE("GPL v2");
+ MODULE_AUTHOR("Lajos Molnar <molnar@ti.com>");
+ MODULE_AUTHOR("David Sin <davidsin@ti.com>");
+diff --git a/drivers/media/video/tiler/tiler-nv12.c b/drivers/media/video/tiler/tiler-nv12.c
+new file mode 100644
+index 0000000..c16a140
+--- /dev/null
++++ b/drivers/media/video/tiler/tiler-nv12.c
+@@ -0,0 +1,423 @@
++/*
++ * tiler-nv12.c
++ *
++ * TILER driver NV12 area reservation functions for TI TILER hardware block.
++ *
++ * Author: Lajos Molnar <molnar@ti.com>
++ *
++ * Copyright (C) 2009-2010 Texas Instruments, Inc.
++ *
++ * This package is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ *
++ * THIS PACKAGE IS PROVIDED ``AS IS'' AND WITHOUT ANY EXPRESS OR
++ * IMPLIED WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED
++ * WARRANTIES OF MERCHANTIBILITY AND FITNESS FOR A PARTICULAR PURPOSE.
++ */
++
++#include "_tiler.h"
++
++static struct tiler_ops *ops;	/* shared methods and variables */
++static int band_8;
++static int band_16;
++
++/*
++ * NV12 Reservation Functions
++ *
++ * TILER is designed so that a (w * h) * 8bit area is twice as wide as a
++ * (w/2 * h/2) * 16bit area.  Since having pairs of such 8-bit and 16-bit
++ * blocks is a common usecase for TILER, we optimize packing these into a
++ * TILER area.
++ *
++ * During reservation we want to find the most effective packing (most used area
++ * in the smallest overall area)
++ *
++ * We have two algorithms for packing nv12 blocks: either pack 8- and 16-bit
++ * blocks into separate container areas, or pack them together into same area.
++ */
++
++/**
++ * Calculate effectiveness of packing. We weight total area much higher than
++ * packing efficiency to get the smallest overall container use.
++ *
++ * @param w		width of one (8-bit) block
++ * @param n		buffers in a packing
++ * @param area		width of packing area
++ * @param n_total	total number of buffers to be packed
++ * @return effectiveness, the higher the better
++ */
++static inline u32 nv12_eff(u16 w, u16 n, u16 area, u16 n_total)
++{
++	return 0x10000000 -
++		/* weigh against total area needed (for all buffers) */
++		/* 64-slots = -2048 */
++		DIV_ROUND_UP(n_total, n) * area * 32 +
++		/* packing efficiency (0 - 1024) */
++		1024 * n * ((w * 3 + 1) >> 1) / area;
++}
++
++/**
++ * Fallback nv12 packing algorithm: pack 8 and 16 bit block into separate
++ * areas.
++ *
++ * @author a0194118 (7/16/2010)
++ *
++ * @param o	desired offset (<a)
++ * @param a	desired alignment (>=2)
++ * @param w	block width (>0)
++ * @param n	number of blocks desired
++ * @param area	pointer to store total area needed
++ *
++ * @return number of blocks that can be allocated
++ */
++static u16 nv12_separate(u16 o, u16 a, u16 w, u16 n, u16 *area)
++{
++	tiler_best2pack(o, a, band_8, w, &n, area);
++	tiler_best2pack(o >> 1, a >> 1, band_16, (w + 1) >> 1, &n, area);
++	*area *= 3;
++	return n;
++}
++
++/*
++ * Specialized NV12 Reservation Algorithms
++ *
++ * We use 4 packing methods that pack nv12 blocks into the same area.  Together
++ * these 4 methods give the optimal result for most possible input parameters.
++ *
++ * For now we pack into a 64-slot area, so that we don't have to worry about
++ * stride issues (all blocks get 4K stride). For some of the algorithms this
++ * could be true even if the area was 128.
++ */
++
++/**
++ * Packing types are marked using a letter sequence, capital letters denoting
++ * 8-bit blocks, lower case letters denoting corresponding 16-bit blocks.
++ *
++ * All methods have the following parameters. They also define the maximum
++ * number of coordinates that could potentially be packed.
++ *
++ * @param o, a, w, n offset, alignment, width, # of blocks as usual
++ * @param area		pointer to store area needed for packing
++ * @param p		pointer to store packing coordinates
++ * @return		number of blocks that can be packed
++ */
++
++/* Method A: progressive packing: AAAAaaaaBBbbCc into 64-slot area */
++#define MAX_A 21
++static int nv12_A(u16 o, u16 a, u16 w, u16 n, u16 *area, u8 *p)
++{
++	u16 x = o, u, l, m = 0;
++	*area = band_8;
++
++	while (x + w < *area && m < n) {
++		/* current 8bit upper bound (a) is next 8bit lower bound (B) */
++		l = u = (*area + x) >> 1;
++
++		/* pack until upper bound */
++		while (x + w <= u && m < n) {
++			/* save packing */
++			BUG_ON(m + 1 >= MAX_A);
++			*p++ = x;
++			*p++ = l;
++			l = (*area + x + w + 1) >> 1;
++			x = ALIGN(x + w - o, a) + o;
++			m++;
++		}
++		x = ALIGN(l - o, a) + o;	/* set new lower bound */
++	}
++	return m;
++}
++
++/* Method -A: regressive packing: cCbbBBaaaaAAAA into 64-slot area */
++static int nv12_revA(u16 o, u16 a, u16 w, u16 n, u16 *area, u8 *p)
++{
++	u16 m;
++
++	/* this is a mirrored packing of method A */
++	n = nv12_A((a - (o + w) % a) % a, a, w, n, area, p);
++
++	/* reverse packing */
++	for (m = 0; m < n; m++) {
++		*p = *area - *p - w;
++		p++;
++		*p = *area - *p - ((w + 1) >> 1);
++		p++;
++	}
++	return n;
++}
++
++/* Method B: simple layout: aAbcBdeCfgDhEFGH */
++#define MAX_B 8
++static int nv12_B(u16 o, u16 a, u16 w, u16 n, u16 *area, u8 *p)
++{
++	u16 e  = (o + w) % a;	/* end offset */
++	u16 o1 = (o >> 1) % a;			/* half offset */
++	u16 e1 = ((o + w + 1) >> 1) % a;	/* half end offset */
++	u16 o2 = o1 + (a >> 2);			/* 2nd half offset */
++	u16 e2 = e1 + (a >> 2);			/* 2nd half end offset */
++	u16 m = 0;
++	*area = band_8;
++
++	/* ensure 16-bit blocks don't overlap 8-bit blocks */
++
++	/* width cannot wrap around alignment, half block must be before block,
++	   2nd half can be before or after */
++	if (w < a && o < e && e1 <= o && (e2 <= o || o2 >= e))
++		while (o + w <= *area && m < n) {
++			BUG_ON(m + 1 >= MAX_B);
++			*p++ = o;
++			*p++ = o >> 1;
++			m++;
++			o += a;
++		}
++	return m;
++}
++
++/* Method C: butterfly layout: AAbbaaBB */
++#define MAX_C 20
++static int nv12_C(u16 o, u16 a, u16 w, u16 n, u16 *area, u8 *p)
++{
++	int m = 0;
++	u16 o2, e = ALIGN(w, a), i = 0, j = 0;
++	*area = band_8;
++	o2 = *area - (a - (o + w) % a) % a;	/* end of last possible block */
++
++	m = (min(o2 - 2 * o, 2 * o2 - o - *area) / 3 - w) / e + 1;
++	for (i = j = 0; i < m && j < n; i++, j++) {
++		BUG_ON(j + 1 >= MAX_C);
++		*p++ = o + i * e;
++		*p++ = (o + i * e + *area) >> 1;
++		if (++j < n) {
++			*p++ = o2 - i * e - w;
++			*p++ = (o2 - i * e - w) >> 1;
++		}
++	}
++	return j;
++}
++
++/* Method D: for large allocation: aA or Aa */
++#define MAX_D 1
++static int nv12_D(u16 o, u16 a, u16 w, u16 n, u16 *area, u8 *p)
++{
++	u16 o1, w1 = (w + 1) >> 1, d;
++	*area = ALIGN(o + w, band_8);
++
++	for (d = 0; n > 0 && d + o + w <= *area; d += a) {
++		/* try to fit 16-bit before 8-bit */
++		o1 = ((o + d) % band_8) >> 1;
++		if (o1 + w1 <= o + d) {
++			*p++ = o + d;
++			*p++ = o1;
++			return 1;
++		}
++
++		/* try to fit 16-bit after 8-bit */
++		o1 += ALIGN(d + o + w - o1, band_16);
++		if (o1 + w1 <= *area) {
++			*p++ = o;
++			*p++ = o1;
++			return 1;
++		}
++	}
++	return 0;
++}
++
++/**
++ * Umbrella nv12 packing method. This selects the best packings from the above
++ * methods.  It also contains hardcoded packings for parameter combinations
++ * that have more efficient packings. This method provides is guaranteed to
++ * provide the optimal packing if 2 <= a <= 64 and w <= 64 and n is large.
++ */
++#define MAX_ANY 21	/* must be MAX(method-MAX-s, hardcoded n-s) */
++static u16 nv12_together(u16 o, u16 a, u16 w, u16 n, u16 *area, u8 *packing)
++{
++	u16 n_best, a_best, n2, a_, o_, w_;
++
++	/* algo results (packings) */
++	u8 pack_A[MAX_A * 2], pack_rA[MAX_A * 2];
++	u8 pack_B[MAX_B * 2], pack_C[MAX_C * 2];
++	u8 pack_D[MAX_D * 2];
++
++	/*
++	 * Hardcoded packings.  They are sorted by increasing area, and then by
++	 * decreasing n.  We may not get the best efficiency if less than n
++	 * blocks are needed as packings are not necessarily sorted in
++	 * increasing order.  However, for those n-s one of the other 4 methods
++	 * may return the optimal packing.
++	 */
++	u8 packings[] = {
++		/* n=9, o=2, w=4, a=4, area=64 */
++		9, 2, 4, 4, 64,
++			/* 8-bit, 16-bit block coordinate pairs */
++			2, 33,	6, 35,	10, 37,	14, 39,	18, 41,
++			46, 23,	50, 25, 54, 27,	58, 29,
++		/* o=0, w=12, a=4, n=3 */
++		3, 0, 12, 4, 64,
++			0, 32,	12, 38,	48, 24,
++		/* end */
++		0
++	}, *p = packings, *p_best = NULL, *p_end;
++	p_end = packings + sizeof(packings) - 1;
++
++	/* see which method gives the best packing */
++
++	/* start with smallest area algorithms A, B & C, stop if we can
++	   pack all buffers */
++	n_best = nv12_A(o, a, w, n, area, pack_A);
++	p_best = pack_A;
++	if (n_best < n) {
++		n2 = nv12_revA(o, a, w, n, &a_best, pack_rA);
++		if (n2 > n_best) {
++			n_best = n2;
++			p_best = pack_rA;
++			*area = a_best;
++		}
++	}
++	if (n_best < n) {
++		n2 = nv12_B(o, a, w, n, &a_best, pack_B);
++		if (n2 > n_best) {
++			n_best = n2;
++			p_best = pack_B;
++			*area = a_best;
++		}
++	}
++	if (n_best < n) {
++		n2 = nv12_C(o, a, w, n, &a_best, pack_C);
++		if (n2 > n_best) {
++			n_best = n2;
++			p_best = pack_C;
++			*area = a_best;
++		}
++	}
++
++	/* traverse any special packings */
++	while (*p) {
++		n2 = *p++;
++		o_ = *p++;
++		w_ = *p++;
++		a_ = *p++;
++		/* stop if we already have a better packing */
++		if (n2 < n_best)
++			break;
++
++		/* check if this packing is satisfactory */
++		if (a_ >= a && o + w + ALIGN(o_ - o, a) <= o_ + w_) {
++			*area = *p++;
++			n_best = min(n2, n);
++			p_best = p;
++			break;
++		}
++
++		/* skip to next packing */
++		p += 1 + n2 * 2;
++	}
++
++	/*
++	 * If so far unsuccessful, check whether 8 and 16 bit blocks can be
++	 * co-packed.  This will actually be done in the end by the normal
++	 * allocation, but we need to reserve a big-enough area.
++	 */
++	if (!n_best) {
++		n_best = nv12_D(o, a, w, n, area, pack_D);
++		p_best = NULL;
++	}
++
++	/* store best packing */
++	if (p_best && n_best) {
++		BUG_ON(n_best > MAX_ANY);
++		memcpy(packing, p_best, n_best * 2 * sizeof(*pack_A));
++	}
++
++	return n_best;
++}
++
++/* reserve nv12 blocks */
++static void reserve_nv12(u32 n, u32 width, u32 height, u32 align, u32 offs,
++					u32 gid, struct process_info *pi)
++{
++	u16 w, h, band, a = align, o = offs;
++	struct gid_info *gi;
++	int res = 0, res2, i;
++	u16 n_t, n_s, area_t, area_s;
++	u8 packing[2 * MAX_ANY];
++	struct list_head reserved = LIST_HEAD_INIT(reserved);
++
++	/* adjust alignment to the largest slot width (128 bytes) */
++	a = max_t(u16, PAGE_SIZE / min(band_8, band_16), a);
++
++	/* Check input parameters for correctness, and support */
++	if (!width || !height || !n ||
++	    offs >= align || offs & 1 ||
++	    align >= PAGE_SIZE ||
++	    n > ops->width * ops->height / 2)
++		return;
++
++	/* calculate dimensions, band, offs and alignment in slots */
++	if (ops->analize(TILFMT_8BIT, width, height, &w, &h, &band, &a, &o,
++									NULL))
++		return;
++
++	/* get group context */
++	gi = ops->get_gi(pi, gid);
++	if (!gi)
++		return;
++
++	/* reserve in groups until failed or all is reserved */
++	for (i = 0; i < n && res >= 0; i += res) {
++		/* check packing separately vs together */
++		n_s = nv12_separate(o, a, w, n - i, &area_s);
++		if (ops->nv12_packed)
++			n_t = nv12_together(o, a, w, n - i, &area_t, packing);
++		else
++			n_t = 0;
++
++		/* pack based on better efficiency */
++		res = -1;
++		if (!ops->nv12_packed ||
++			nv12_eff(w, n_s, area_s, n - i) >
++			nv12_eff(w, n_t, area_t, n - i)) {
++
++			/*
++			 * Reserve blocks separately into a temporary list, so
++			 * that we can free them if unsuccessful. We need to be
++			 * able to reserve both 8- and 16-bit blocks as the
++			 * offsets of them must match.
++			 */
++			res = ops->lay_2d(TILFMT_8BIT, n_s, w, h, band_8, a, o,
++						gi, &reserved);
++			res2 = ops->lay_2d(TILFMT_16BIT, n_s, (w + 1) >> 1, h,
++				band_16, a >> 1, o >> 1, gi, &reserved);
++
++			if (res2 < 0 || res < 0 || res != res2) {
++				/* clean up */
++				ops->release(&reserved);
++				res = -1;
++			} else {
++				/* add list to reserved */
++				ops->add_reserved(&reserved, gi);
++			}
++		}
++
++		/* if separate packing failed, still try to pack together */
++		if (res < 0 && ops->nv12_packed && n_t) {
++			/* pack together */
++			res = ops->lay_nv12(n_t, area_t, w, h, gi, packing);
++		}
++	}
++
++	ops->release_gi(gi);
++}
++
++/* initialize shared method pointers and global static variables */
++void tiler_nv12_init(struct tiler_ops *tiler)
++{
++	ops = tiler;
++
++	ops->reserve_nv12 = reserve_nv12;
++
++	band_8 = PAGE_SIZE / ops->geom(TILFMT_8BIT)->slot_w
++		/ ops->geom(TILFMT_8BIT)->bpp;
++	band_16 = PAGE_SIZE / ops->geom(TILFMT_16BIT)->slot_w
++		/ ops->geom(TILFMT_16BIT)->bpp;
++}
+diff --git a/drivers/media/video/tiler/tiler-reserve.c b/drivers/media/video/tiler/tiler-reserve.c
+index 6715d3d..770fb07 100644
+--- a/drivers/media/video/tiler/tiler-reserve.c
++++ b/drivers/media/video/tiler/tiler-reserve.c
+@@ -19,8 +19,6 @@
+ #include "_tiler.h"
+ 
+ static struct tiler_ops *ops;	/* shared methods and variables */
+-static int band_8;		/* size of 8-bit band in slots */
+-static int band_16;		/* size of 16-bit band in slots */
+ 
+ /**
+  * Calculate the maximum number buffers that can be packed next to each other,
+@@ -38,7 +36,7 @@ static int band_16;		/* size of 16-bit band in slots */
+  *
+  * @return packing efficiency (0-1024)
+  */
+-static u32 tiler_best2pack(u16 o, u16 a, u16 b, u16 w, u16 *n, u16 *_area)
++u32 tiler_best2pack(u16 o, u16 a, u16 b, u16 w, u16 *n, u16 *_area)
+ {
+ 	u16 m = 0, max_n = *n;		/* m is mostly n - 1 */
+ 	u16 e = ALIGN(w, a);		/* effective width of one block */
+@@ -71,393 +69,6 @@ static u32 tiler_best2pack(u16 o, u16 a, u16 b, u16 w, u16 *n, u16 *_area)
+ 	return best_eff;
+ }
+ 
+-/*
+- * NV12 Reservation Functions
+- *
+- * TILER is designed so that a (w * h) * 8bit area is twice as wide as a
+- * (w/2 * h/2) * 16bit area.  Since having pairs of such 8-bit and 16-bit
+- * blocks is a common usecase for TILER, we optimize packing these into a
+- * TILER area.
+- *
+- * During reservation we want to find the most effective packing (most used area
+- * in the smallest overall area)
+- *
+- * We have two algorithms for packing nv12 blocks: either pack 8- and 16-bit
+- * blocks into separate container areas, or pack them together into same area.
+- */
+-
+-/**
+- * Calculate effectiveness of packing. We weight total area much higher than
+- * packing efficiency to get the smallest overall container use.
+- *
+- * @param w		width of one (8-bit) block
+- * @param n		buffers in a packing
+- * @param area		width of packing area
+- * @param n_total	total number of buffers to be packed
+- * @return effectiveness, the higher the better
+- */
+-static inline u32 nv12_eff(u16 w, u16 n, u16 area, u16 n_total)
+-{
+-	return 0x10000000 -
+-		/* weigh against total area needed (for all buffers) */
+-		/* 64-slots = -2048 */
+-		DIV_ROUND_UP(n_total, n) * area * 32 +
+-		/* packing efficiency (0 - 1024) */
+-		1024 * n * ((w * 3 + 1) >> 1) / area;
+-}
+-
+-/**
+- * Fallback nv12 packing algorithm: pack 8 and 16 bit block into separate
+- * areas.
+- *
+- * @author a0194118 (7/16/2010)
+- *
+- * @param o	desired offset (<a)
+- * @param a	desired alignment (>=2)
+- * @param w	block width (>0)
+- * @param n	number of blocks desired
+- * @param area	pointer to store total area needed
+- *
+- * @return number of blocks that can be allocated
+- */
+-static u16 nv12_separate(u16 o, u16 a, u16 w, u16 n, u16 *area)
+-{
+-	tiler_best2pack(o, a, band_8, w, &n, area);
+-	tiler_best2pack(o >> 1, a >> 1, band_16, (w + 1) >> 1, &n, area);
+-	*area *= 3;
+-	return n;
+-}
+-
+-/*
+- * Specialized NV12 Reservation Algorithms
+- *
+- * We use 4 packing methods that pack nv12 blocks into the same area.  Together
+- * these 4 methods give the optimal result for most possible input parameters.
+- *
+- * For now we pack into a 64-slot area, so that we don't have to worry about
+- * stride issues (all blocks get 4K stride). For some of the algorithms this
+- * could be true even if the area was 128.
+- */
+-
+-/**
+- * Packing types are marked using a letter sequence, capital letters denoting
+- * 8-bit blocks, lower case letters denoting corresponding 16-bit blocks.
+- *
+- * All methods have the following parameters. They also define the maximum
+- * number of coordinates that could potentially be packed.
+- *
+- * @param o, a, w, n offset, alignment, width, # of blocks as usual
+- * @param area		pointer to store area needed for packing
+- * @param p		pointer to store packing coordinates
+- * @return		number of blocks that can be packed
+- */
+-
+-/* Method A: progressive packing: AAAAaaaaBBbbCc into 64-slot area */
+-#define MAX_A 21
+-static int nv12_A(u16 o, u16 a, u16 w, u16 n, u16 *area, u8 *p)
+-{
+-	u16 x = o, u, l, m = 0;
+-	*area = band_8;
+-
+-	while (x + w < *area && m < n) {
+-		/* current 8bit upper bound (a) is next 8bit lower bound (B) */
+-		l = u = (*area + x) >> 1;
+-
+-		/* pack until upper bound */
+-		while (x + w <= u && m < n) {
+-			/* save packing */
+-			BUG_ON(m + 1 >= MAX_A);
+-			*p++ = x;
+-			*p++ = l;
+-			l = (*area + x + w + 1) >> 1;
+-			x = ALIGN(x + w - o, a) + o;
+-			m++;
+-		}
+-		x = ALIGN(l - o, a) + o;	/* set new lower bound */
+-	}
+-	return m;
+-}
+-
+-/* Method -A: regressive packing: cCbbBBaaaaAAAA into 64-slot area */
+-static int nv12_revA(u16 o, u16 a, u16 w, u16 n, u16 *area, u8 *p)
+-{
+-	u16 m;
+-
+-	/* this is a mirrored packing of method A */
+-	n = nv12_A((a - (o + w) % a) % a, a, w, n, area, p);
+-
+-	/* reverse packing */
+-	for (m = 0; m < n; m++) {
+-		*p = *area - *p - w;
+-		p++;
+-		*p = *area - *p - ((w + 1) >> 1);
+-		p++;
+-	}
+-	return n;
+-}
+-
+-/* Method B: simple layout: aAbcBdeCfgDhEFGH */
+-#define MAX_B 8
+-static int nv12_B(u16 o, u16 a, u16 w, u16 n, u16 *area, u8 *p)
+-{
+-	u16 e  = (o + w) % a;	/* end offset */
+-	u16 o1 = (o >> 1) % a;			/* half offset */
+-	u16 e1 = ((o + w + 1) >> 1) % a;	/* half end offset */
+-	u16 o2 = o1 + (a >> 2);			/* 2nd half offset */
+-	u16 e2 = e1 + (a >> 2);			/* 2nd half end offset */
+-	u16 m = 0;
+-	*area = band_8;
+-
+-	/* ensure 16-bit blocks don't overlap 8-bit blocks */
+-
+-	/* width cannot wrap around alignment, half block must be before block,
+-	   2nd half can be before or after */
+-	if (w < a && o < e && e1 <= o && (e2 <= o || o2 >= e))
+-		while (o + w <= *area && m < n) {
+-			BUG_ON(m + 1 >= MAX_B);
+-			*p++ = o;
+-			*p++ = o >> 1;
+-			m++;
+-			o += a;
+-		}
+-	return m;
+-}
+-
+-/* Method C: butterfly layout: AAbbaaBB */
+-#define MAX_C 20
+-static int nv12_C(u16 o, u16 a, u16 w, u16 n, u16 *area, u8 *p)
+-{
+-	int m = 0;
+-	u16 o2, e = ALIGN(w, a), i = 0, j = 0;
+-	*area = band_8;
+-	o2 = *area - (a - (o + w) % a) % a;	/* end of last possible block */
+-
+-	m = (min(o2 - 2 * o, 2 * o2 - o - *area) / 3 - w) / e + 1;
+-	for (i = j = 0; i < m && j < n; i++, j++) {
+-		BUG_ON(j + 1 >= MAX_C);
+-		*p++ = o + i * e;
+-		*p++ = (o + i * e + *area) >> 1;
+-		if (++j < n) {
+-			*p++ = o2 - i * e - w;
+-			*p++ = (o2 - i * e - w) >> 1;
+-		}
+-	}
+-	return j;
+-}
+-
+-/* Method D: for large allocation: aA or Aa */
+-#define MAX_D 1
+-static int nv12_D(u16 o, u16 a, u16 w, u16 n, u16 *area, u8 *p)
+-{
+-	u16 o1, w1 = (w + 1) >> 1, d;
+-	*area = ALIGN(o + w, band_8);
+-
+-	for (d = 0; n > 0 && d + o + w <= *area; d += a) {
+-		/* try to fit 16-bit before 8-bit */
+-		o1 = ((o + d) % band_8) >> 1;
+-		if (o1 + w1 <= o + d) {
+-			*p++ = o + d;
+-			*p++ = o1;
+-			return 1;
+-		}
+-
+-		/* try to fit 16-bit after 8-bit */
+-		o1 += ALIGN(d + o + w - o1, band_16);
+-		if (o1 + w1 <= *area) {
+-			*p++ = o;
+-			*p++ = o1;
+-			return 1;
+-		}
+-	}
+-	return 0;
+-}
+-
+-/**
+- * Umbrella nv12 packing method. This selects the best packings from the above
+- * methods.  It also contains hardcoded packings for parameter combinations
+- * that have more efficient packings. This method provides is guaranteed to
+- * provide the optimal packing if 2 <= a <= 64 and w <= 64 and n is large.
+- */
+-#define MAX_ANY 21	/* must be MAX(method-MAX-s, hardcoded n-s) */
+-static u16 nv12_together(u16 o, u16 a, u16 w, u16 n, u16 *area, u8 *packing)
+-{
+-	u16 n_best, a_best, n2, a_, o_, w_;
+-
+-	/* algo results (packings) */
+-	u8 pack_A[MAX_A * 2], pack_rA[MAX_A * 2];
+-	u8 pack_B[MAX_B * 2], pack_C[MAX_C * 2];
+-	u8 pack_D[MAX_D * 2];
+-
+-	/*
+-	 * Hardcoded packings.  They are sorted by increasing area, and then by
+-	 * decreasing n.  We may not get the best efficiency if less than n
+-	 * blocks are needed as packings are not necessarily sorted in
+-	 * increasing order.  However, for those n-s one of the other 4 methods
+-	 * may return the optimal packing.
+-	 */
+-	u8 packings[] = {
+-		/* n=9, o=2, w=4, a=4, area=64 */
+-		9, 2, 4, 4, 64,
+-			/* 8-bit, 16-bit block coordinate pairs */
+-			2, 33,	6, 35,	10, 37,	14, 39,	18, 41,
+-			46, 23,	50, 25, 54, 27,	58, 29,
+-		/* o=0, w=12, a=4, n=3 */
+-		3, 0, 12, 4, 64,
+-			0, 32,	12, 38,	48, 24,
+-		/* end */
+-		0
+-	}, *p = packings, *p_best = NULL, *p_end;
+-	p_end = packings + sizeof(packings) - 1;
+-
+-	/* see which method gives the best packing */
+-
+-	/* start with smallest area algorithms A, B & C, stop if we can
+-	   pack all buffers */
+-	n_best = nv12_A(o, a, w, n, area, pack_A);
+-	p_best = pack_A;
+-	if (n_best < n) {
+-		n2 = nv12_revA(o, a, w, n, &a_best, pack_rA);
+-		if (n2 > n_best) {
+-			n_best = n2;
+-			p_best = pack_rA;
+-			*area = a_best;
+-		}
+-	}
+-	if (n_best < n) {
+-		n2 = nv12_B(o, a, w, n, &a_best, pack_B);
+-		if (n2 > n_best) {
+-			n_best = n2;
+-			p_best = pack_B;
+-			*area = a_best;
+-		}
+-	}
+-	if (n_best < n) {
+-		n2 = nv12_C(o, a, w, n, &a_best, pack_C);
+-		if (n2 > n_best) {
+-			n_best = n2;
+-			p_best = pack_C;
+-			*area = a_best;
+-		}
+-	}
+-
+-	/* traverse any special packings */
+-	while (*p) {
+-		n2 = *p++;
+-		o_ = *p++;
+-		w_ = *p++;
+-		a_ = *p++;
+-		/* stop if we already have a better packing */
+-		if (n2 < n_best)
+-			break;
+-
+-		/* check if this packing is satisfactory */
+-		if (a_ >= a && o + w + ALIGN(o_ - o, a) <= o_ + w_) {
+-			*area = *p++;
+-			n_best = min(n2, n);
+-			p_best = p;
+-			break;
+-		}
+-
+-		/* skip to next packing */
+-		p += 1 + n2 * 2;
+-	}
+-
+-	/*
+-	 * If so far unsuccessful, check whether 8 and 16 bit blocks can be
+-	 * co-packed.  This will actually be done in the end by the normal
+-	 * allocation, but we need to reserve a big-enough area.
+-	 */
+-	if (!n_best) {
+-		n_best = nv12_D(o, a, w, n, area, pack_D);
+-		p_best = NULL;
+-	}
+-
+-	/* store best packing */
+-	if (p_best && n_best) {
+-		BUG_ON(n_best > MAX_ANY);
+-		memcpy(packing, p_best, n_best * 2 * sizeof(*pack_A));
+-	}
+-
+-	return n_best;
+-}
+-
+-/* reserve nv12 blocks */
+-static void reserve_nv12(u32 n, u32 width, u32 height, u32 align, u32 offs,
+-					u32 gid, struct process_info *pi)
+-{
+-	u16 w, h, band, a = align, o = offs;
+-	struct gid_info *gi;
+-	int res = 0, res2, i;
+-	u16 n_t, n_s, area_t, area_s;
+-	u8 packing[2 * MAX_ANY];
+-	struct list_head reserved = LIST_HEAD_INIT(reserved);
+-
+-	/* adjust alignment to the largest slot width (128 bytes) */
+-	a = max_t(u16, PAGE_SIZE / min(band_8, band_16), a);
+-
+-	/* Check input parameters for correctness, and support */
+-	if (!width || !height || !n ||
+-	    offs >= align || offs & 1 ||
+-	    align >= PAGE_SIZE ||
+-	    n > ops->width * ops->height / 2)
+-		return;
+-
+-	/* calculate dimensions, band, offs and alignment in slots */
+-	if (ops->analize(TILFMT_8BIT, width, height, &w, &h, &band, &a, &o,
+-									NULL))
+-		return;
+-
+-	/* get group context */
+-	gi = ops->get_gi(pi, gid);
+-	if (!gi)
+-		return;
+-
+-	/* reserve in groups until failed or all is reserved */
+-	for (i = 0; i < n && res >= 0; i += res) {
+-		/* check packing separately vs together */
+-		n_s = nv12_separate(o, a, w, n - i, &area_s);
+-		if (ops->nv12_packed)
+-			n_t = nv12_together(o, a, w, n - i, &area_t, packing);
+-		else
+-			n_t = 0;
+-
+-		/* pack based on better efficiency */
+-		res = -1;
+-		if (!ops->nv12_packed ||
+-			nv12_eff(w, n_s, area_s, n - i) >
+-			nv12_eff(w, n_t, area_t, n - i)) {
+-
+-			/*
+-			 * Reserve blocks separately into a temporary list, so
+-			 * that we can free them if unsuccessful. We need to be
+-			 * able to reserve both 8- and 16-bit blocks as the
+-			 * offsets of them must match.
+-			 */
+-			res = ops->lay_2d(TILFMT_8BIT, n_s, w, h, band_8, a, o,
+-						gi, &reserved);
+-			res2 = ops->lay_2d(TILFMT_16BIT, n_s, (w + 1) >> 1, h,
+-				band_16, a >> 1, o >> 1, gi, &reserved);
+-
+-			if (res2 < 0 || res < 0 || res != res2) {
+-				/* clean up */
+-				ops->release(&reserved);
+-				res = -1;
+-			} else {
+-				/* add list to reserved */
+-				ops->add_reserved(&reserved, gi);
+-			}
+-		}
+-
+-		/* if separate packing failed, still try to pack together */
+-		if (res < 0 && ops->nv12_packed && n_t) {
+-			/* pack together */
+-			res = ops->lay_nv12(n_t, area_t, w, h, gi, packing);
+-		}
+-	}
+-
+-	ops->release_gi(gi);
+-}
+-
+ /**
+  * We also optimize packing regular 2D areas as the auto-packing may result in
+  * sub-optimal efficiency. This is most pronounced if the area is wider than
+@@ -539,12 +150,6 @@ void tiler_reserve_init(struct tiler_ops *tiler)
+ {
+ 	ops = tiler;
+ 
+-	ops->reserve_nv12 = reserve_nv12;
+ 	ops->reserve = reserve_blocks;
+ 	ops->unreserve = unreserve_blocks;
+-
+-	band_8 = PAGE_SIZE / ops->geom(TILFMT_8BIT)->slot_w
+-		/ ops->geom(TILFMT_8BIT)->bpp;
+-	band_16 = PAGE_SIZE / ops->geom(TILFMT_16BIT)->slot_w
+-		/ ops->geom(TILFMT_16BIT)->bpp;
+ }
+diff --git a/drivers/media/video/tiler/tmm-pat.c b/drivers/media/video/tiler/tmm-pat.c
+index bc28ae4..2d902f9 100644
+--- a/drivers/media/video/tiler/tmm-pat.c
++++ b/drivers/media/video/tiler/tmm-pat.c
+@@ -61,6 +61,10 @@ struct fast {
+ struct dmm_mem {
+ 	struct list_head fast_list;
+ 	struct dmm *dmm;
++	u32 *dmac_va;		/* coherent memory */
++	u32 dmac_pa;		/* phys.addr of coherent memory */
++	struct page *dummy_pg;	/* dummy page */
++	u32 dummy_pa;		/* phys.addr of dummy page */
+ };
+ 
+ /* read mem values for a param */
+@@ -100,6 +104,7 @@ static void free_fast(struct fast *f)
+ 			/* otherwise, free */
+ 			total_mem -= PAGE_SIZE;
+ 			__free_page(f->mem[i]->pg);
++			kfree(f->mem[i]);
+ 		}
+ 	}
+ 	kfree(f->pa);
+@@ -162,6 +167,8 @@ static void tmm_pat_deinit(struct tmm *tmm)
+ 	if (--refs == 0)
+ 		free_page_cache();
+ 
++	__free_page(pvt->dummy_pg);
++
+ 	mutex_unlock(&mtx);
+ }
+ 
+@@ -242,7 +249,7 @@ static void tmm_pat_free_pages(struct tmm *tmm, u32 *page_list)
+ 	mutex_unlock(&mtx);
+ }
+ 
+-static s32 tmm_pat_map(struct tmm *tmm, struct pat_area area, u32 page_pa)
++static s32 tmm_pat_pin(struct tmm *tmm, struct pat_area area, u32 page_pa)
+ {
+ 	struct dmm_mem *pvt = (struct dmm_mem *) tmm->pvt;
+ 	struct pat pat_desc = {0};
+@@ -261,7 +268,20 @@ static s32 tmm_pat_map(struct tmm *tmm, struct pat_area area, u32 page_pa)
+ 	return dmm_pat_refill(pvt->dmm, &pat_desc, MANUAL);
+ }
+ 
+-struct tmm *tmm_pat_init(u32 pat_id)
++static void tmm_pat_unpin(struct tmm *tmm, struct pat_area area)
++{
++	u16 w = (u8) area.x1 - (u8) area.x0;
++	u16 h = (u8) area.y1 - (u8) area.y0;
++	u16 i = (w + 1) * (h + 1);
++	struct dmm_mem *pvt = (struct dmm_mem *) tmm->pvt;
++
++	while (i--)
++		pvt->dmac_va[i] = pvt->dummy_pa;
++
++	tmm_pat_pin(tmm, area, pvt->dmac_pa);
++}
++
++struct tmm *tmm_pat_init(u32 pat_id, u32 *dmac_va, u32 dmac_pa)
+ {
+ 	struct tmm *tmm = NULL;
+ 	struct dmm_mem *pvt = NULL;
+@@ -271,9 +291,15 @@ struct tmm *tmm_pat_init(u32 pat_id)
+ 		tmm = kmalloc(sizeof(*tmm), GFP_KERNEL);
+ 	if (tmm)
+ 		pvt = kmalloc(sizeof(*pvt), GFP_KERNEL);
+-	if (pvt) {
++	if (pvt)
++		pvt->dummy_pg = alloc_page(GFP_KERNEL | GFP_DMA);
++	if (pvt->dummy_pg) {
+ 		/* private data */
+ 		pvt->dmm = dmm;
++		pvt->dmac_pa = dmac_pa;
++		pvt->dmac_va = dmac_va;
++		pvt->dummy_pa = page_to_phys(pvt->dummy_pg);
++
+ 		INIT_LIST_HEAD(&pvt->fast_list);
+ 
+ 		/* increate tmm_pat references */
+@@ -286,8 +312,8 @@ struct tmm *tmm_pat_init(u32 pat_id)
+ 		tmm->deinit = tmm_pat_deinit;
+ 		tmm->get = tmm_pat_get_pages;
+ 		tmm->free = tmm_pat_free_pages;
+-		tmm->map = tmm_pat_map;
+-		tmm->clear = NULL;   /* not yet supported */
++		tmm->pin = tmm_pat_pin;
++		tmm->unpin = tmm_pat_unpin;
+ 
+ 		return tmm;
+ 	}
+diff --git a/drivers/media/video/tiler/tmm.h b/drivers/media/video/tiler/tmm.h
+index fbdc1e2..33cf6f5 100644
+--- a/drivers/media/video/tiler/tmm.h
++++ b/drivers/media/video/tiler/tmm.h
+@@ -28,8 +28,8 @@ struct tmm {
+ 	/* function table */
+ 	u32 *(*get)	(struct tmm *tmm, u32 num_pages);
+ 	void (*free)	(struct tmm *tmm, u32 *pages);
+-	s32  (*map)	(struct tmm *tmm, struct pat_area area, u32 page_pa);
+-	void (*clear)	(struct tmm *tmm, struct pat_area area);
++	s32  (*pin)	(struct tmm *tmm, struct pat_area area, u32 page_pa);
++	void (*unpin)	(struct tmm *tmm, struct pat_area area);
+ 	void (*deinit)	(struct tmm *tmm);
+ };
+ 
+@@ -62,10 +62,10 @@ void tmm_free(struct tmm *tmm, u32 *pages)
+  * @param list of pages
+  */
+ static inline
+-s32 tmm_map(struct tmm *tmm, struct pat_area area, u32 page_pa)
++s32 tmm_pin(struct tmm *tmm, struct pat_area area, u32 page_pa)
+ {
+-	if (tmm && tmm->map && tmm->pvt)
+-		return tmm->map(tmm, area, page_pa);
++	if (tmm && tmm->pin && tmm->pvt)
++		return tmm->pin(tmm, area, page_pa);
+ 	return -ENODEV;
+ }
+ 
+@@ -74,19 +74,19 @@ s32 tmm_map(struct tmm *tmm, struct pat_area area, u32 page_pa)
+  * @param area PAT area
+  */
+ static inline
+-void tmm_clear(struct tmm *tmm, struct pat_area area)
++void tmm_unpin(struct tmm *tmm, struct pat_area area)
+ {
+-	if (tmm && tmm->clear && tmm->pvt)
+-		tmm->clear(tmm, area);
++	if (tmm && tmm->unpin && tmm->pvt)
++		tmm->unpin(tmm, area);
+ }
+ 
+ /**
+  * Checks whether tiler memory manager supports mapping
+  */
+ static inline
+-bool tmm_can_map(struct tmm *tmm)
++bool tmm_can_pin(struct tmm *tmm)
+ {
+-	return tmm && tmm->map;
++	return tmm && tmm->pin;
+ }
+ 
+ /**
+@@ -104,6 +104,6 @@ void tmm_deinit(struct tmm *tmm)
+  *
+  * Initialize TMM for PAT with given id.
+  */
+-struct tmm *tmm_pat_init(u32 pat_id);
++struct tmm *tmm_pat_init(u32 pat_id, u32 *dmac_va, u32 dmac_pa);
+ 
+ #endif
+-- 
+1.7.5.4
+

@@ -1,0 +1,35 @@
+From 7f67f67c4a6b27e0b25b6fd0e7c0550538c34421 Mon Sep 17 00:00:00 2001
+From: Pawel Kolodziejski <aquadran@users.sourceforge.net>
+Date: Wed, 7 Dec 2011 16:11:12 +0100
+Subject: [PATCH] enabel 5tap filtering for upscale
+
+---
+ drivers/video/omap2/dss/dispc.c |    5 ++++-
+ 1 files changed, 4 insertions(+), 1 deletions(-)
+
+diff --git a/drivers/video/omap2/dss/dispc.c b/drivers/video/omap2/dss/dispc.c
+index fbf3edf..6de139f 100644
+--- a/drivers/video/omap2/dss/dispc.c
++++ b/drivers/video/omap2/dss/dispc.c
+@@ -1698,6 +1698,9 @@ static unsigned long calc_fclk_five_taps(enum omap_channel channel, u16 width,
+ 			fclk <<= 1;
+ 	}
+ 
++	if (fclk == 0)
++		fclk = dispc_fclk_rate();
++
+ 	return fclk;
+ }
+ 
+@@ -1800,7 +1803,7 @@ static int _dispc_setup_plane(enum omap_plane plane,
+ 			cconv = 1;
+ 
+ 		/* Must use 5-tap filter? */
+-		five_taps = height > out_height * 2;
++		five_taps = (height > out_height * 2) || (out_height > height * 2);
+ 
+ 		if (!five_taps) {
+ 			fclk = calc_fclk(channel, width, height, out_width,
+-- 
+1.7.5.4
+

@@ -1,0 +1,27 @@
+From 1d129855f9a272d2f4580daf37d02a74c4047244 Mon Sep 17 00:00:00 2001
+From: Pawel Kolodziejski <aquadran@users.sourceforge.net>
+Date: Wed, 7 Dec 2011 16:10:28 +0100
+Subject: [PATCH] allow use lcd register for hdmi
+
+---
+ drivers/video/omap2/dss/dispc.h |    3 +--
+ 1 files changed, 1 insertions(+), 2 deletions(-)
+
+diff --git a/drivers/video/omap2/dss/dispc.h b/drivers/video/omap2/dss/dispc.h
+index 6c9ee0a..20f5a29 100644
+--- a/drivers/video/omap2/dss/dispc.h
++++ b/drivers/video/omap2/dss/dispc.h
+@@ -172,9 +172,8 @@ static inline u16 DISPC_DIVISORo(enum omap_channel channel)
+ {
+ 	switch (channel) {
+ 	case OMAP_DSS_CHANNEL_LCD:
+-		return 0x0070;
+ 	case OMAP_DSS_CHANNEL_DIGIT:
+-		BUG();
++		return 0x0070;
+ 	case OMAP_DSS_CHANNEL_LCD2:
+ 		return 0x040C;
+ 	default:
+-- 
+1.7.5.4
+
