@@ -1,0 +1,106 @@
+diff -ur old/drivers/media/video/omap/omap_vout.c new/drivers/media/video/omap/omap_vout.c
+--- old/drivers/media/video/omap/omap_vout.c	2011-12-09 09:22:06.000000000 +0100
++++ new/drivers/media/video/omap/omap_vout.c	2011-12-09 09:38:30.000000000 +0100
+@@ -571,6 +571,40 @@
+ 	return 0;
+ }
+ 
++static int _program_cur(struct omap_vout_device *vout)
++{
++	int ret;
++	u32 addr = (unsigned long)vout->queued_buf_addr[vout->cur_frm->i] + vout->cropped_offset;
++	u32 uv_addr = (unsigned long)vout->queued_buf_uv_addr[vout->cur_frm->i] + vout->cropped_uv_offset;
++
++	/* First save the configuration in overlay structure */
++	ret = omapvid_init(vout, addr, uv_addr);
++	if (ret) {
++		printk(KERN_ERR VOUT_NAME "failed to set overlay info\n");
++		return ret;
++	}
++	/* Enable the pipeline and set the Go bit */
++	ret = omapvid_apply_changes(vout);
++	if (ret)
++		printk(KERN_ERR VOUT_NAME "failed to change mode\n");
++
++	return ret;
++}
++
++static struct videobuf_buffer *_get_next_frm(struct omap_vout_device *vout)
++{
++	struct videobuf_buffer *frm;
++
++	if (list_empty(&vout->dma_queue))
++		return NULL;
++
++	frm = list_entry(vout->dma_queue.next, struct videobuf_buffer, queue);
++
++	list_del(&frm->queue);
++
++	return frm;
++}
++
+ void omap_vout_isr(void *arg, unsigned int irqstatus)
+ {
+ 	int ret;
+@@ -638,37 +672,19 @@
+ 		else
+ 			goto vout_isr_err;
+ 
+-		if (!vout->first_int && (vout->cur_frm != vout->next_frm)) {
+-			vout->cur_frm->ts = timevalue;
+-			vout->cur_frm->state = VIDEOBUF_DONE;
+-			wake_up_interruptible(&vout->cur_frm->done);
+-			vout->cur_frm = vout->next_frm;
++		vout->field_id ^= 1;
++		if (0 == fid) {
++			if (vout->cur_frm) {
++				vout->cur_frm->ts = timevalue;
++				vout->cur_frm->state = VIDEOBUF_DONE;
++				wake_up_interruptible(&vout->cur_frm->done);
++			}
+ 		}
+-		vout->first_int = 0;
+-		if (list_empty(&vout->dma_queue))
++		vout->cur_frm = _get_next_frm(vout);
++		if (!vout->cur_frm)
+ 			goto vout_isr_err;
+-
+-		vout->next_frm = list_entry(vout->dma_queue.next,
+-				struct videobuf_buffer, queue);
+-		list_del(&vout->next_frm->queue);
+-
+-		vout->next_frm->state = VIDEOBUF_ACTIVE;
+-
+-		addr = (unsigned long) vout->queued_buf_addr[vout->next_frm->i]
+-			+ vout->cropped_offset;
+-
+-		uv_addr = (unsigned long)vout->queued_buf_uv_addr[vout->next_frm->i]
+-			+ vout->cropped_uv_offset;
+-
+-		/* First save the configuration in ovelray structure */
+-		ret = omapvid_init(vout, addr, uv_addr);
+-		if (ret)
+-			printk(KERN_ERR VOUT_NAME
+-					"failed to set overlay info\n");
+-		/* Enable the pipeline and set the Go bit */
+-		ret = omapvid_apply_changes(vout);
+-		if (ret)
+-			printk(KERN_ERR VOUT_NAME "failed to change mode\n");
++		vout->cur_frm->state = VIDEOBUF_ACTIVE;
++		_program_cur(vout);
+ 	}
+ 
+ vout_isr_err:
+@@ -1306,8 +1322,10 @@
+ 				&vout->fbuf, &crop->c);
+ 
+ 	if (vout->streaming) {
+-		if (omap_vout_calculate_offset(vout))
+-			return -EINVAL;
++		if (omap_vout_calculate_offset(vout)) {
++			ret = -EINVAL;
++			goto s_crop_err;
++		}
+ 	}
+ 
+ s_crop_err:

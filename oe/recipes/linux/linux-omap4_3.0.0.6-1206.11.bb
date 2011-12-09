@@ -25,6 +25,8 @@ SRC_URI = "git://kernel.ubuntu.com/ubuntu/ubuntu-oneiric.git;protocol=git;branch
            file://fix_nonlinux_compile.patch \
            file://fix-missing-include.patch \
            file://v4l2.patch;striplevel=2 \
+           file://better_fix_v4l2.patch \
+           file://fix_hdmi_audio.patch \
            file://defconfig"
 
 SRC_URI[md5sum] = "3f52da7b22960aec5f86a605df8c745a"
