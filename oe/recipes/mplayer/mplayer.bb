@@ -19,6 +19,7 @@ SRC_URI_append_armv7a = " \
 	file://yuv420_to_nv12.S \
 	file://omapfb.patch \
 	file://vo_omapfb.c \
+	file://vo_omap4_v4l2.c \
 	"
 
 ARM_INSTRUCTION_SET = "ARM"
@@ -179,6 +180,7 @@ do_configure_prepend_armv7a() {
 	cp ${WORKDIR}/yuv420_to_yuv422.S ${S}/libvo
 	cp ${WORKDIR}/yuv420_to_nv12.S ${S}/libvo
 	cp ${WORKDIR}/vo_omapfb.c ${S}/libvo
+	cp ${WORKDIR}/vo_omap4_v4l2.c ${S}/libvo
 	cp ${STAGING_INCDIR}/linux/omapfb.h ${S}/libvo/omapfb.h || true
 	sed -e 's/__user//g' -i ${S}/libvo/omapfb.h || true
 
