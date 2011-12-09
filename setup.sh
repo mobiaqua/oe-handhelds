@@ -12,16 +12,16 @@ setup() {
 	export OE_BASE=`pwd -P`
 
 	if [ "$1" = "tv" ]; then
-		DISTRO=mobiaqua-tv
-		MACHINE=pandaboard
+		export DISTRO=mobiaqua-tv
+		export MACHINE=pandaboard
 		image=rootfs-image-tv
 	elif [ "$1" = "car" ]; then
-		DISTRO=mobiaqua-car
-		MACHINE=igep0030
+		export DISTRO=mobiaqua-car
+		export MACHINE=igep0030
 		image=rootfs-image-car
 	else
-		DISTRO=mobiaqua
-		MACHINE=${MACHINE:=h2200}
+		export DISTRO=mobiaqua
+		export MACHINE=${MACHINE:=h2200}
 		image=rootfs-image
 	fi
 
@@ -61,7 +61,7 @@ setup() {
 	else
 		echo " -  target dropbear host key file NOT found"
 	fi
-	mkdir -p  ${OE_BASE}/build-${DISTRO}/conf
+	mkdir -p ${OE_BASE}/build-${DISTRO}/conf
 
 	BBF="\${OE_BASE}/oe/recipes/*/*.bb"
 

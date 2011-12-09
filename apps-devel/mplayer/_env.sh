@@ -1,0 +1,16 @@
+toolsroot="${OE_BASE}/build-${DISTRO}/tmp/sysroots/`uname -m`-`uname -s | awk '{print tolower($0)}'`/usr"
+sysroot="${OE_BASE}/build-${DISTRO}/tmp/sysroots/armv7a-linux-gnueabi"
+if [ ! `echo ${PATH} | grep arm7a/bin` ]; then
+	export PATH="${toolsroot}/bin:${toolsroot}/armv7a/bin:${PATH}"
+fi
+export CPP="arm-linux-gnueabi-gcc -E --sysroot=${sysroot}"
+export CC="arm-linux-gnueabi-gcc --sysroot=${sysroot} -march=armv7-a -mtune=cortex-a9 -mfpu=neon -mfloat-abi=softfp -mno-thumb-interwork -mno-thumb -mno-thumb-interwork -mno-thumb"
+export AS="arm-linux-gnueabi-as"
+export AR="arm-linux-gnueabi-ar"
+export NM="arm-linux-gnueabi-nm"
+export STRIP="arm-linux-gnueabi-strip"
+export OBJCOPY="arm-linux-gnueabi-objcopy"
+export RANLIB="arm-linux-gnueabi-ranlib"
+export LD="arm-linux-gnueabi-ld --sysroot=${sysroot}"
+export CFLAGS="-fno-tree-vectorize -fomit-frame-pointer -O4 -frename-registers -ffast-math"
+export CXXFLAGS="-fno-tree-vectorize -fomit-frame-pointer -O4 -frename-registers -ffast-math -fpermissive"
