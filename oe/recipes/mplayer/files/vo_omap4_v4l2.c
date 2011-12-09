@@ -1,7 +1,7 @@
 /*
  * video output for OMAP4 V4L2 NV12
  *
- * Copyright (C) 2011 Pawel Kolodziejski
+ * Copyright (C) 2011 Pawel Kolodziejski <aquadran at users.sourceforge.net>
  *
  * Inspired by omapfbplay created by Mans Rullgard
  *
