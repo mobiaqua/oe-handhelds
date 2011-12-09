@@ -125,7 +125,7 @@ yuv420_to_yuv422:
 
         .global yuv420_to_yuv422_open
         .func   yuv420_to_yuv422_open
-neon_open:
+yuv420_to_yuv422_open:
         push            {r4-r8,lr}
         ldrd            r4,  r5,  [r0, #16]
         ldrd            r6,  r7,  [r0, #24]
@@ -138,7 +138,7 @@ neon_open:
 
         .global yuv420_to_yuv422_convert
         .func   yuv420_to_yuv422_convert
-neon_convert:
+yuv420_to_yuv422_convert:
         push            {r4-r11,lr}
         ldr             r0,  [r0]
         mov32           r4,  conv_params

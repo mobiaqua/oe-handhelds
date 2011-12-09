@@ -6,26 +6,28 @@ diff --git a/Makefile b/Makefile
  SRCS_MPLAYER-$(DXR3)         += libvo/vo_dxr3.c
  SRCS_MPLAYER-$(ESD)          += libao2/ao_esd.c
 -SRCS_MPLAYER-$(FBDEV)        += libvo/vo_fbdev.c libvo/vo_fbdev2.c
-+SRCS_MPLAYER-$(FBDEV)        += libvo/vo_fbdev.c libvo/vo_fbdev2.c libvo/vo_omapfb.c libvo/yuv420_to_yuv422.S
++SRCS_MPLAYER-$(FBDEV)        += libvo/vo_fbdev.c libvo/vo_fbdev2.c libvo/vo_omapfb.c libvo/vo_omap4_v4l2.c libvo/yuv420_to_yuv422.S libvo/yuv420_to_nv12.S
  SRCS_MPLAYER-$(FFMPEG)       += libvo/vo_png.c
  SRCS_MPLAYER-$(GGI)          += libvo/vo_ggi.c
  SRCS_MPLAYER-$(GIF)          += libvo/vo_gif89a.c
 diff --git a/libvo/video_out.c b/libvo/video_out.c
 --- a/libvo/video_out.c
 +++ b/libvo/video_out.c
-@@ -111,6 +111,7 @@ extern const vo_functions_t video_out_zr;
+@@ -111,6 +111,8 @@ extern const vo_functions_t video_out_zr;
  extern const vo_functions_t video_out_zr2;
  extern const vo_functions_t video_out_bl;
  extern const vo_functions_t video_out_fbdev2;
 +extern const vo_functions_t video_out_omapfb;
++extern const vo_functions_t video_out_omap4_v4l2;
  extern const vo_functions_t video_out_png;
  extern const vo_functions_t video_out_ggi;
  extern const vo_functions_t video_out_aa;
-@@ -216,6 +217,7 @@ const vo_functions_t* const video_out_drivers[] =
+@@ -216,6 +217,8 @@ const vo_functions_t* const video_out_drivers[] =
  #ifdef CONFIG_FBDEV
          &video_out_fbdev,
          &video_out_fbdev2,
 +        &video_out_omapfb,
++        &video_out_omap4_v4l2,
  #endif
  #ifdef CONFIG_SVGALIB
          &video_out_svga,
