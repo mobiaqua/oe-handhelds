@@ -3,7 +3,7 @@
  *
  * Copyright (C) 2011 Pawel Kolodziejski <aquadran at users.sourceforge.net>
  *
- * Inspired by omapfbplay created by Mans Rullgard
+ * Some parts inspired by omapfbplay code written by Mans Rullgard
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -36,17 +36,8 @@
 #include "config.h"
 #include "video_out.h"
 #include "video_out_internal.h"
-#include "fastmemcpy.h"
-#include "sub/sub.h"
-#include "mp_msg.h"
 
-#include "libswscale/swscale.h"
-#include "libmpcodecs/vf_scale.h"
 #include "libavcodec/avcodec.h"
-
-#include "aspect.h"
-
-#include "subopt-helper.h"
 
 static vo_info_t info = {
 	"omap4_v4l2 video driver",
@@ -67,21 +58,21 @@ static int v4l2_num_buffers;
 static int v4l2_offset[3], v4l2_stride[3];
 static struct v4l2_buffer tmp_v4l2_buffer;
 
-static struct v4l2_buf {
+struct v4l2_buf {
 	struct v4l2_buffer buffer;
 	unsigned char *plane[3];
-} *v4l2_buffers = NULL;
+};
+static struct v4l2_buf *v4l2_buffers = NULL;
 
 static struct frame_info {
-	unsigned w;
-	unsigned h;
-	unsigned dx;
-	unsigned dy;
-	unsigned dw;
-	unsigned dh;
-	unsigned y_stride;
-	unsigned uv_stride;
-	enum PixelFormat format;
+	unsigned int w;
+	unsigned int h;
+	unsigned int dx;
+	unsigned int dy;
+	unsigned int dw;
+	unsigned int dh;
+	unsigned int y_stride;
+	unsigned int uv_stride;
 } yuv420_frame_info, v4l2_frame_info;
 
 extern int yuv420_to_nv12_convert(unsigned char *vdst[3], unsigned char *vsrc[3], unsigned char *, unsigned char *);
@@ -95,28 +86,28 @@ static int preinit(const char *arg)
 
 	fb_handle = open("/dev/fb0", O_RDONLY);
 	if (fb_handle == -1) {
-		mp_msg(MSGT_VO, MSGL_FATAL, "[omap4l2] Error open /dev/fb0\n");
+		mp_msg(MSGT_VO, MSGL_FATAL, "[omap4_v4l2] Error open /dev/fb0\n");
 		return -1;
 	}
 	if (ioctl(fb_handle, FBIOGET_VSCREENINFO, &display_info) == -1) {
-		mp_msg(MSGT_VO, MSGL_FATAL, "[omap4l2] Error get FB screen info (FBIOGET_VSCREENINFO)\n");
+		mp_msg(MSGT_VO, MSGL_FATAL, "[omap4_v4l2] Error get FB screen info (FBIOGET_VSCREENINFO)\n");
 		return -1;
 	}
 	close(fb_handle);
 
-	v4l2_handle = open("/dev/video1", O_RDONLY);
+	v4l2_handle = open("/dev/video1", O_RDWR);
 	if (v4l2_handle == -1) {
-		mp_msg(MSGT_VO, MSGL_FATAL, "[omap4l2] Error open /dev/video1\n");
+		mp_msg(MSGT_VO, MSGL_FATAL, "[omap4_v4l2] Error open /dev/video1\n");
 		return -1;
 	}
 
 	if (ioctl(v4l2_handle, VIDIOC_QUERYCAP, &v4l2_cap) == -1) {
-		mp_msg(MSGT_VO, MSGL_FATAL, "[omap4l2] Error query capabilities (VIDIOC_QUERYCAP)\n");
+		mp_msg(MSGT_VO, MSGL_FATAL, "[omap4_v4l2] Error query capabilities (VIDIOC_QUERYCAP)\n");
 		return -1;
 	}
 	v4l2_cap.capabilities &= (V4L2_CAP_STREAMING | V4L2_CAP_VIDEO_OUTPUT);
 	if (v4l2_cap.capabilities != (V4L2_CAP_STREAMING | V4L2_CAP_VIDEO_OUTPUT)) {
-		mp_msg(MSGT_VO, MSGL_FATAL, "[omap4l2] Error V4L2 missing support for video streaming\n");
+		mp_msg(MSGT_VO, MSGL_FATAL, "[omap4_v4l2] Error V4L2 missing support for video streaming\n");
 		return -1;
 	}
 
@@ -128,11 +119,11 @@ static int preinit(const char *arg)
 		v4l2_formatdesc.index++;
 	}
 	if (v4l2_formatdesc.pixelformat != V4L2_PIX_FMT_NV12) {
-		mp_msg(MSGT_VO, MSGL_FATAL, "[omap4l2] Error V4L2 missing NV12 format support\n");
+		mp_msg(MSGT_VO, MSGL_FATAL, "[omap4_v4l2] Error V4L2 missing NV12 format support\n");
 		return -1;
 	}
 
-	v4l2_num_buffers = 2;
+	v4l2_num_buffers = 20;
 
 	return 0;
 }
@@ -144,24 +135,46 @@ static int config(uint32_t width, uint32_t height, uint32_t d_width, uint32_t d_
 	unsigned char *ptr_mmap;
 	struct v4l2_format overlay_format = { 0 };
 
+//	printf("w,h: %d,%d  dw: %d,%d\n", width, height, d_width, d_height);
 	stream_on_off = V4L2_BUF_TYPE_VIDEO_OUTPUT;
 	ioctl(v4l2_handle, VIDIOC_STREAMOFF, &stream_on_off);
 
 	if (format != IMGFMT_YV12) {
-		mp_msg(MSGT_VO, MSGL_FATAL, "[omap4l2] Error wrong pixel format at config()\n");
+		mp_msg(MSGT_VO, MSGL_FATAL, "[omap4_v4l2] Error wrong pixel format at config()\n");
 		return -1;
 	}
 
 	yuv420_frame_info.w = ALIGN(width, 32);
 	yuv420_frame_info.h = ALIGN(height, 32);
+	yuv420_frame_info.dx = 0;
+	yuv420_frame_info.dy = 0;
+	yuv420_frame_info.dw = width;
+	yuv420_frame_info.dh = height;
+
+	v4l2_frame_info.w = display_info.xres;
+	v4l2_frame_info.h = display_info.yres;
+	v4l2_frame_info.dx = 0;
+	v4l2_frame_info.dy = 0;
+	v4l2_frame_info.dw = width;
+	v4l2_frame_info.dh = height;
+
+	if (v4l2_frame_info.dw * v4l2_frame_info.h > v4l2_frame_info.dh * v4l2_frame_info.w) {
+		v4l2_frame_info.dh = v4l2_frame_info.dh * v4l2_frame_info.w / v4l2_frame_info.dw;
+		v4l2_frame_info.dw = v4l2_frame_info.w;
+		v4l2_frame_info.dy = (v4l2_frame_info.h - v4l2_frame_info.dh) / 2;
+	} else {
+		v4l2_frame_info.dw = v4l2_frame_info.dw * v4l2_frame_info.h / v4l2_frame_info.dh;
+		v4l2_frame_info.dh = v4l2_frame_info.h;
+		v4l2_frame_info.dx = (v4l2_frame_info.w - v4l2_frame_info.dw) / 2;
+	}
 
 	v4l2_vout_format.type = V4L2_BUF_TYPE_VIDEO_OUTPUT;
-	v4l2_vout_format.fmt.pix.width = yuv420_frame_info.w;
-	v4l2_vout_format.fmt.pix.height = yuv420_frame_info.h;
+	v4l2_vout_format.fmt.pix.width = ALIGN(width, 32);
+	v4l2_vout_format.fmt.pix.height = ALIGN(height, 32);
 	v4l2_vout_format.fmt.pix.pixelformat = V4L2_PIX_FMT_NV12;
 	v4l2_vout_format.fmt.pix.field = V4L2_FIELD_NONE;
 	if (ioctl(v4l2_handle, VIDIOC_S_FMT, &v4l2_vout_format) == -1) {
-		mp_msg(MSGT_VO, MSGL_FATAL, "[omap4l2] Error setup video format (VIDIOC_S_FMT)\n");
+		mp_msg(MSGT_VO, MSGL_FATAL, "[omap4_v4l2] Error setup video format (VIDIOC_S_FMT)\n");
 		return -1;
 	}
 
@@ -169,102 +182,95 @@ static int config(uint32_t width, uint32_t height, uint32_t d_width, uint32_t d_
 	v4l2_stride[0] = v4l2_vout_format.fmt.pix.bytesperline;
 	v4l2_offset[1] = v4l2_vout_format.fmt.pix.height * v4l2_vout_format.fmt.pix.bytesperline;
 	v4l2_stride[1] = v4l2_vout_format.fmt.pix.bytesperline;
-	v4l2_offset[2] = v4l2_stride[2] = 0;
+	v4l2_offset[2] = 0;
+	v4l2_stride[2] = 0;
 
-	yuv420_frame_info.dx = 0;
-	yuv420_frame_info.dy = 0;
-	yuv420_frame_info.dw = width;
-	yuv420_frame_info.dh = height;
-	yuv420_frame_info.y_stride = yuv420_frame_info.w;
-	yuv420_frame_info.uv_stride = yuv420_frame_info.w;
-	yuv420_frame_info.format = PIX_FMT_YUV420P;
-	v4l2_frame_info.w = ALIGN(width, 32);
-	v4l2_frame_info.h = ALIGN(height, 32);
-	v4l2_frame_info.dx = 0;
-	v4l2_frame_info.dy = 0;
-	v4l2_frame_info.dw = width;
-	v4l2_frame_info.dh = height;
 	v4l2_frame_info.y_stride = v4l2_stride[0];
 	v4l2_frame_info.uv_stride = v4l2_stride[1];
-	v4l2_frame_info.format = PIX_FMT_NV12;
-	yuv420_to_nv12_open(&yuv420_frame_info, &v4l2_frame_info);
 
+	// allocate v4l2 driver buffers
 	request_buf.count = v4l2_num_buffers;
 	request_buf.type = V4L2_BUF_TYPE_VIDEO_OUTPUT;
 	request_buf.memory = V4L2_MEMORY_MMAP;
 	if (ioctl(v4l2_handle, VIDIOC_REQBUFS, &request_buf) == -1) {
-		mp_msg(MSGT_VO, MSGL_FATAL, "[omap4l2] Error request buffers setup video format (VIDIOC_S_FMT)\n");
+		mp_msg(MSGT_VO, MSGL_FATAL, "[omap4_v4l2] Error request buffers(VIDIOC_REQBUFS)\n");
 		return -1;
 	}
+
+	// prepare info array of v4l2 buffers
 	v4l2_num_buffers = request_buf.count;
 	v4l2_buffers = malloc(v4l2_num_buffers * sizeof(struct v4l2_buf));
 	if (!v4l2_buffers) {
-		mp_msg(MSGT_VO, MSGL_FATAL, "[omap4l2] Error allocate v4l2 info buffers\n");
+		mp_msg(MSGT_VO, MSGL_FATAL, "[omap4_v4l2] Error allocate v4l2 info buffers\n");
 		return -1;
 	}
 
 	for (i = 0; i < v4l2_num_buffers; i++) {
+		// initialize v4l2 driver buffer
 		v4l2_buffers[i].buffer.index = i;
 		v4l2_buffers[i].buffer.type = V4L2_BUF_TYPE_VIDEO_OUTPUT;
 		v4l2_buffers[i].buffer.memory = V4L2_MEMORY_MMAP;
 		if (ioctl(v4l2_handle, VIDIOC_QUERYBUF, &v4l2_buffers[i].buffer) == -1) {
-			mp_msg(MSGT_VO, MSGL_FATAL, "[omap4l2] Error query buffers (VIDIOC_QUERYBUF)\n");
-			return -1;
+			mp_msg(MSGT_VO, MSGL_FATAL, "[omap4_v4l2] Error query buffers (VIDIOC_QUERYBUF)\n");
+			goto error;
 		}
+
+		// mmap v4l2 driver output buffer
 		ptr_mmap = mmap(NULL, v4l2_buffers[i].buffer.length, PROT_READ | PROT_WRITE, MAP_SHARED, v4l2_handle, v4l2_buffers[i].buffer.m.offset);
 		if (ptr_mmap == MAP_FAILED) {
-			mp_msg(MSGT_VO, MSGL_FATAL, "[omap4l2] Error mmap video buffer\n");
-			return -1;
+			mp_msg(MSGT_VO, MSGL_FATAL, "[omap4_v4l2] Error mmap video buffer\n");
+			goto error;
 		}
+		// clean planes buffer
 		memset(ptr_mmap, 0, v4l2_buffers[i].buffer.length);
+		// setup pointers to planes
 		for (k = 0; k < 3; k++) {
 			v4l2_buffers[i].plane[k] = ptr_mmap + v4l2_offset[k];
 		}
+
 		if (ioctl(v4l2_handle, VIDIOC_QBUF, &v4l2_buffers[i].buffer) == -1) {
-			mp_msg(MSGT_VO, MSGL_FATAL, "[omap4l2] Error queue buffer (VIDIOC_QBUF)\n");
-			return -1;
+			mp_msg(MSGT_VO, MSGL_FATAL, "[omap4_v4l2] Error queue buffer (VIDIOC_QBUF)\n");
+			goto error;
 		}
 	}
 
 	v4l2_vout_crop.type = V4L2_BUF_TYPE_VIDEO_OUTPUT;
 	v4l2_vout_crop.c.left = 0;
 	v4l2_vout_crop.c.top = 0;
-	v4l2_vout_crop.c.width = yuv420_frame_info.dw;
-	v4l2_vout_crop.c.height = yuv420_frame_info.dh;
+	v4l2_vout_crop.c.width = width;
+	v4l2_vout_crop.c.height = height;
 	if (ioctl(v4l2_handle, VIDIOC_S_CROP, &v4l2_vout_crop) == -1) {
-		mp_msg(MSGT_VO, MSGL_FATAL, "[omap4l2] Error crop video output (VIDIOC_S_CROP)\n");
-		return -1;
+		mp_msg(MSGT_VO, MSGL_FATAL, "[omap4_v4l2] Error crop video output (VIDIOC_S_CROP)\n");
+		goto error;
 	}
 
 	overlay_format.type = V4L2_BUF_TYPE_VIDEO_OVERLAY;
-	overlay_format.fmt.win.w.left = 0;
-	overlay_format.fmt.win.w.top = 0;
-	overlay_format.fmt.win.w.width = display_info.xres;
-	overlay_format.fmt.win.w.height = display_info.yres;
+	overlay_format.fmt.win.w.left = v4l2_frame_info.dx;
+	overlay_format.fmt.win.w.top = v4l2_frame_info.dy;
+	overlay_format.fmt.win.w.width = v4l2_frame_info.dw;
+	overlay_format.fmt.win.w.height = v4l2_frame_info.dh;
 	overlay_format.fmt.win.field = V4L2_FIELD_NONE;
 	overlay_format.fmt.win.global_alpha = 255;
 	if (ioctl(v4l2_handle, VIDIOC_S_FMT, &overlay_format) == -1) {
-		mp_msg(MSGT_VO, MSGL_FATAL, "[omap4l2] Error configure overlay (VIDIOC_S_FMT)\n");
-		return -1;
+		mp_msg(MSGT_VO, MSGL_FATAL, "[omap4_v4l2] Error configure overlay (VIDIOC_S_FMT)\n");
+		goto error;
 	}
 
 	stream_on_off = V4L2_BUF_TYPE_VIDEO_OUTPUT;
 	if (ioctl(v4l2_handle, VIDIOC_STREAMON, &stream_on_off) == -1) {
-		mp_msg(MSGT_VO, MSGL_FATAL, "[omap4l2] Error turn on streaming (VIDIOC_STREAMON)\n");
-		return -1;
+		mp_msg(MSGT_VO, MSGL_FATAL, "[omap4_v4l2] Error turn on streaming (VIDIOC_STREAMON)\n");
+		goto error;
 	}
 
 	return 0;
-}
-
-static void draw_alpha(int x0, int y0, int w, int h, unsigned char *src, unsigned char *srca, int stride)
-{
-//    vo_draw_alpha_yuy2(w, h, src, srca, stride, fb_pages[page].buf + y0 * finfo.line_length + x0 * 2, finfo.line_length);
+error:
+	free(v4l2_buffers);
+	v4l2_buffers = NULL;
+	return -1;
 }
 
 static void draw_osd(void)
 {
-//    vo_draw_text(sinfo.xres, sinfo.yres, draw_alpha);
 }
 
 static int draw_frame(uint8_t *src[])
@@ -275,9 +281,14 @@ static int draw_frame(uint8_t *src[])
 static int draw_slice(uint8_t *src[], int stride[], int w, int h, int x, int y)
 {
 	if ((x != 0) || (y != 0)) {
-		mp_msg(MSGT_VO, MSGL_FATAL, "[omap4l2] Error offsets are not 0x0\n");
+		mp_msg(MSGT_VO, MSGL_FATAL, "[omap4_v4l2] Error offsets x,y: %d,%d\n", x);
 		return 0;
 	}
+
+//	printf("draw_slice %d,%d,%d,%d,%d\n", x, y, w, h, stride);
+	yuv420_frame_info.y_stride = stride[0];
+	yuv420_frame_info.uv_stride = stride[1];
+	yuv420_to_nv12_open(&yuv420_frame_info, &v4l2_frame_info);
 
 	tmp_v4l2_buffer.type = V4L2_BUF_TYPE_VIDEO_OUTPUT;
 	tmp_v4l2_buffer.memory = V4L2_MEMORY_MMAP;
@@ -297,7 +308,7 @@ static int query_format(uint32_t format)
 	if (format != IMGFMT_YV12)
 		return 0;
 
-	return VFCAP_CSP_SUPPORTED | VFCAP_CSP_SUPPORTED_BY_HW | VFCAP_OSD | VFCAP_SWSCALE | VFCAP_ACCEPT_STRIDE;
+	return VFCAP_CSP_SUPPORTED | VFCAP_CSP_SUPPORTED_BY_HW | VFCAP_OSD | VFCAP_SWSCALE | VFCAP_ACCEPT_STRIDE | VOCAP_NOSLICES;
 }
 
 static void uninit()
@@ -336,6 +347,9 @@ static int control(uint32_t request, void *data)
 			return VO_TRUE;
 		}
 	case VOCTRL_UPDATE_SCREENINFO:
+		vo_screenwidth = display_info.xres;
+		vo_screenheight = display_info.yres;
+		aspect_save_screenres(vo_screenwidth, vo_screenheight);
 		return VO_TRUE;
 	}
 
