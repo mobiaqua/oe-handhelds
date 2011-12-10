@@ -17,6 +17,6 @@
 	--enable-protocol='file_protocol pipe_protocol http_protocol' --disable-decoder=vorbis_decoder --disable-encoder=vorbis_encoder \
 	--enable-armv6 --enable-neon --extra-libs-mplayer="-lstdc++" \
 	--extra-libs="-lliveMedia -lBasicUsageEnvironment -lgroupsock -lUsageEnvironment -lstdc++ -lmpg123" \
+	--extra-cflags="-march=armv7-a -mtune=cortex-a9 -mfpu=neon -mfloat-abi=softfp -mno-thumb-interwork -mno-thumb" \
 	--enable-debug=3 --disable-termcap \
-	--extra-cflags="-fno-tree-vectorize -fomit-frame-pointer -O4 -frename-registers -ffast-math -march=armv7-a -mtune=cortex-a9 -mfpu=neon -mfloat-abi=softfp -mno-thumb-interwork -mno-thumb" \
 	--ar=$AR
