@@ -14,6 +14,7 @@
 	--disable-directfb --disable-zr --disable-bl --disable-tdfxvid --disable-tga --disable-pnm --disable-md5sum --disable-xss \
 	--disable-dga1 --disable-dga2 --enable-alsa --disable-ossaudio --disable-arts --disable-esd --disable-pulse --disable-jack \
 	--disable-openal --disable-nas --disable-sgiaudio --disable-sunaudio --disable-win32waveout --enable-select \
+	--disable-fbdev --enable-omap4 --disable-v4l2 --disable-dvb --disable-yuv4mpeg --disable-vcd \
 	--enable-protocol='file_protocol pipe_protocol http_protocol' --disable-decoder=vorbis_decoder --disable-encoder=vorbis_encoder \
 	--enable-armv6 --enable-neon --extra-libs-mplayer="-lstdc++" \
 	--extra-libs="-lliveMedia -lBasicUsageEnvironment -lgroupsock -lUsageEnvironment -lstdc++ -lmpg123" \
