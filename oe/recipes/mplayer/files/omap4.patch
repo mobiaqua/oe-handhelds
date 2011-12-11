@@ -68,6 +68,27 @@ diff -ur old/configure new/configure
  $def_ggi
  $def_ggiwmh
  $def_gif
+diff -ur old/libvo/video_out.c new/libvo/video_out.c
+--- old/libvo/video_out.c	2011-12-11 09:46:31.000000000 +0100
++++ new/libvo/video_out.c	2011-12-11 23:31:05.000000000 +0100
+@@ -112,6 +112,7 @@
+ extern const vo_functions_t video_out_bl;
+ extern const vo_functions_t video_out_fbdev2;
+ extern const vo_functions_t video_out_omapfb;
++extern const vo_functions_t video_out_omap4_v4l2;
+ extern const vo_functions_t video_out_png;
+ extern const vo_functions_t video_out_ggi;
+ extern const vo_functions_t video_out_aa;
+@@ -222,6 +223,9 @@
+ #ifdef CONFIG_OMAPFB
+         &video_out_omapfb,
+ #endif
++#ifdef CONFIG_OMAP4
++        &video_out_omap4_v4l2,
++#endif
+ #ifdef CONFIG_SVGALIB
+         &video_out_svga,
+ #endif
 diff -ur old/libmpcodecs/vd.c new/libmpcodecs/vd.c
 --- old/libmpcodecs/vd.c	2011-10-14 23:54:33.000000000 +0200
 +++ new/libmpcodecs/vd.c	2011-12-11 09:25:12.000000000 +0100
