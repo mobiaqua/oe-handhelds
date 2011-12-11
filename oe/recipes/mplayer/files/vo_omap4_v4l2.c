@@ -48,6 +48,8 @@ static vo_info_t info = {
 
 LIBVO_EXTERN(omap4_v4l2)
 
+#define V4L2_NUM_BUFFERS 20
+
 #define ALIGN(value, align) (((value) + ((align) - 1)) & ~((align) - 1))
 
 static struct fb_var_screeninfo display_info;
@@ -123,7 +125,7 @@ static int preinit(const char *arg)
 		return -1;
 	}
 
-	v4l2_num_buffers = 20;
+	v4l2_num_buffers = V4L2_NUM_BUFFERS;
 
 	return 0;
 }
