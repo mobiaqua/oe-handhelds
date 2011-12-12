@@ -84,8 +84,8 @@ static struct frame_info {
 extern int yuv420_to_nv12_convert(unsigned char *vdst[3], unsigned char *vsrc[3], unsigned char *, unsigned char *);
 extern void yuv420_to_nv12_open(struct frame_info *dst, struct frame_info *src);
 
-int dce;
-int v4l2_cur_buffer_id;
+static int dce;
+static int v4l2_cur_buffer_id;
 
 static int preinit(const char *arg) {
 	int fb_handle;
@@ -150,7 +150,7 @@ static int config(uint32_t width, uint32_t height, uint32_t d_width, uint32_t d_
 
 	if (format == IMGFMT_NV12) {
 		dce = 1;
-	} else if (format != IMGFMT_YV12) {
+	} else if (format == IMGFMT_YV12) {
 		dce = 0;
 	} else {
 		mp_msg(MSGT_VO, MSGL_FATAL, "[omap4_v4l2] Error wrong pixel format at config()\n");
@@ -388,6 +388,10 @@ static int control(uint32_t request, void *data) {
 	switch (request) {
 	case VOCTRL_QUERY_FORMAT:
 		return query_format(*((uint32_t *)data));
+	case VOCTRL_FULLSCREEN:
+		if (WinID > 0)
+			return VO_FALSE;
+		return VO_TRUE;
 	case VOCTRL_UPDATE_SCREENINFO:
 		vo_screenwidth = display_info.xres;
 		vo_screenheight = display_info.yres;
