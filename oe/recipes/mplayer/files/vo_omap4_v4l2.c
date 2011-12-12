@@ -33,7 +33,10 @@
 #include <linux/videodev2.h>
 #include <linux/fb.h>
 
+#include <timemmgr/tilermem.h>
+
 #include "config.h"
+#include "aspect.h"
 #include "video_out.h"
 #include "video_out_internal.h"
 
@@ -63,6 +66,7 @@ static struct v4l2_buffer tmp_v4l2_buffer;
 struct v4l2_buf {
 	struct v4l2_buffer buffer;
 	unsigned char *plane[3];
+	unsigned char *plane_p[3];
 };
 static struct v4l2_buf *v4l2_buffers = NULL;
 
@@ -80,8 +84,10 @@ static struct frame_info {
 extern int yuv420_to_nv12_convert(unsigned char *vdst[3], unsigned char *vsrc[3], unsigned char *, unsigned char *);
 extern void yuv420_to_nv12_open(struct frame_info *dst, struct frame_info *src);
 
-static int preinit(const char *arg)
-{
+int dce;
+int v4l2_cur_buffer_id;
+
+static int preinit(const char *arg) {
 	int fb_handle;
 	struct v4l2_capability v4l2_cap;
 	struct v4l2_fmtdesc v4l2_formatdesc;
@@ -125,13 +131,14 @@ static int preinit(const char *arg)
 		return -1;
 	}
 
+	dce = 0;
+	v4l2_cur_buffer_id = 0;
 	v4l2_num_buffers = V4L2_NUM_BUFFERS;
 
 	return 0;
 }
 
-static int config(uint32_t width, uint32_t height, uint32_t d_width, uint32_t d_height, uint32_t flags, char *title, uint32_t format)
-{
+static int config(uint32_t width, uint32_t height, uint32_t d_width, uint32_t d_height, uint32_t flags, char *title, uint32_t format) {
 	int i, k, stream_on_off;
 	struct v4l2_requestbuffers request_buf;
 	unsigned char *ptr_mmap;
@@ -141,7 +148,11 @@ static int config(uint32_t width, uint32_t height, uint32_t d_width, uint32_t d_
 	stream_on_off = V4L2_BUF_TYPE_VIDEO_OUTPUT;
 	ioctl(v4l2_handle, VIDIOC_STREAMOFF, &stream_on_off);
 
-	if (format != IMGFMT_YV12) {
+	if (format == IMGFMT_NV12) {
+		dce = 1;
+	} else if (format != IMGFMT_YV12) {
+		dce = 0;
+	} else {
 		mp_msg(MSGT_VO, MSGL_FATAL, "[omap4_v4l2] Error wrong pixel format at config()\n");
 		return -1;
 	}
@@ -229,12 +240,22 @@ static int config(uint32_t width, uint32_t height, uint32_t d_width, uint32_t d_
 		for (k = 0; k < 3; k++) {
 			v4l2_buffers[i].plane[k] = ptr_mmap + v4l2_offset[k];
 		}
+		v4l2_buffers[i].plane_p[0] = (unsigned char *)TilerMem_VirtToPhys(v4l2_buffers[i].plane[0]);
+		v4l2_buffers[i].plane_p[1] = (unsigned char *)TilerMem_VirtToPhys(v4l2_buffers[i].plane[1]);
+		if (!dce) {
+			if (ioctl(v4l2_handle, VIDIOC_QBUF, &v4l2_buffers[i].buffer) == -1) {
+				mp_msg(MSGT_VO, MSGL_FATAL, "[omap4_v4l2] Error queue buffer (VIDIOC_QBUF)\n");
+				goto error;
+			}
+		}
+	}
 
-		if (ioctl(v4l2_handle, VIDIOC_QBUF, &v4l2_buffers[i].buffer) == -1) {
+/*	if (dce) {
+		if (ioctl(v4l2_handle, VIDIOC_QBUF, &v4l2_buffers[v4l2_cur_buffer_id].buffer) == -1) {
 			mp_msg(MSGT_VO, MSGL_FATAL, "[omap4_v4l2] Error queue buffer (VIDIOC_QBUF)\n");
 			goto error;
 		}
-	}
+	}*/
 
 	v4l2_vout_crop.type = V4L2_BUF_TYPE_VIDEO_OUTPUT;
 	v4l2_vout_crop.c.left = 0;
@@ -264,6 +285,9 @@ static int config(uint32_t width, uint32_t height, uint32_t d_width, uint32_t d_
 		goto error;
 	}
 
+	tmp_v4l2_buffer.type = V4L2_BUF_TYPE_VIDEO_OUTPUT;
+	tmp_v4l2_buffer.memory = V4L2_MEMORY_MMAP;
+
 	return 0;
 error:
 	free(v4l2_buffers);
@@ -271,50 +295,73 @@ error:
 	return -1;
 }
 
-static void draw_osd(void)
-{
+static void draw_osd(void) {
 }
 
-static int draw_frame(uint8_t *src[])
-{
+static int draw_frame(uint8_t *src[]) {
 	return 1;
 }
 
-static int draw_slice(uint8_t *src[], int stride[], int w, int h, int x, int y)
-{
+static int draw_slice(uint8_t *src[], int stride[], int w, int h, int x, int y) {
 	if ((x != 0) || (y != 0)) {
-		mp_msg(MSGT_VO, MSGL_FATAL, "[omap4_v4l2] Error offsets x,y: %d,%d\n", x);
+		mp_msg(MSGT_VO, MSGL_FATAL, "[omap4_v4l2] Error offsets x,y: %d,%d\n", x, y);
 		return 0;
 	}
 
-//	printf("draw_slice %d,%d,%d,%d,%d\n", x, y, w, h, stride);
-	yuv420_frame_info.y_stride = stride[0];
-	yuv420_frame_info.uv_stride = stride[1];
-	yuv420_to_nv12_open(&yuv420_frame_info, &v4l2_frame_info);
+	if (dce) {
+//		if (v4l2_vout_crop.c.left != x || v4l2_vout_crop.c.top != y) {
+//			v4l2_vout_crop.c.left = f->x;
+//			v4l2_vout_crop.c.top = f->y;
+//			ioctl(v4l2_handle, VIDIOC_S_CROP, &v4l2_vout_crop);
+//		}
+	} else {
+//		printf("draw_slice %d,%d,%d,%d,%d\n", x, y, w, h, stride);
+		yuv420_frame_info.y_stride = stride[0];
+		yuv420_frame_info.uv_stride = stride[1];
+		yuv420_to_nv12_open(&yuv420_frame_info, &v4l2_frame_info);
 
-	tmp_v4l2_buffer.type = V4L2_BUF_TYPE_VIDEO_OUTPUT;
-	tmp_v4l2_buffer.memory = V4L2_MEMORY_MMAP;
-	ioctl(v4l2_handle, VIDIOC_DQBUF, &tmp_v4l2_buffer);
-	yuv420_to_nv12_convert(v4l2_buffers[tmp_v4l2_buffer.index].plane, src, NULL, NULL);
+		ioctl(v4l2_handle, VIDIOC_DQBUF, &tmp_v4l2_buffer);
+
+		yuv420_to_nv12_convert(v4l2_buffers[tmp_v4l2_buffer.index].plane, src, NULL, NULL);
+	}
 
 	return 0;
 }
 
-static void flip_page(void)
-{
-	ioctl(v4l2_handle, VIDIOC_QBUF, &v4l2_buffers[tmp_v4l2_buffer.index].buffer);
+static uint32_t get_image(mp_image_t *mpi) {
+	if ((mpi->type == MP_IMGTYPE_TEMP) && (mpi->flags & MP_IMGFLAG_ACCEPT_STRIDE)) {
+		mpi->flags |= MP_IMGFLAG_DIRECT;
+		if (++v4l2_cur_buffer_id >= v4l2_num_buffers)
+			v4l2_cur_buffer_id = 0;
+		mpi->x = v4l2_vout_crop.c.left;
+		mpi->y = v4l2_vout_crop.c.top;
+		mpi->priv = &v4l2_buffers[v4l2_cur_buffer_id];
+		return VO_TRUE;
+	} else {
+		return VO_FALSE;
+	}
 }
 
-static int query_format(uint32_t format)
-{
-	if (format != IMGFMT_YV12)
-		return 0;
-
-	return VFCAP_CSP_SUPPORTED | VFCAP_CSP_SUPPORTED_BY_HW | VFCAP_OSD | VFCAP_SWSCALE | VFCAP_ACCEPT_STRIDE | VOCAP_NOSLICES;
+static void flip_page(void) {
+	if (dce) {
+		ioctl(v4l2_handle, VIDIOC_QBUF, &v4l2_buffers[v4l2_cur_buffer_id].buffer);
+		ioctl(v4l2_handle, VIDIOC_DQBUF, &tmp_v4l2_buffer);
+	} else {
+		ioctl(v4l2_handle, VIDIOC_QBUF, &v4l2_buffers[tmp_v4l2_buffer.index].buffer);
+	}
 }
 
-static void uninit()
-{
+static int query_format(uint32_t format) {
+	if (format == IMGFMT_YV12)
+		return VFCAP_CSP_SUPPORTED | VFCAP_CSP_SUPPORTED_BY_HW | VFCAP_OSD | VFCAP_SWSCALE | VFCAP_ACCEPT_STRIDE | VOCAP_NOSLICES;
+
+	if (format == IMGFMT_NV12)
+		return VFCAP_CSP_SUPPORTED | VFCAP_CSP_SUPPORTED_BY_HW | VFCAP_OSD | VFCAP_SWSCALE | VFCAP_ACCEPT_STRIDE | VOCAP_NOSLICES;
+
+	return 0;
+}
+
+static void uninit() {
 	int i, stream_off;
 
 	if (vo_config_count > 0) {
@@ -337,27 +384,20 @@ static void uninit()
 	}
 }
 
-static int control(uint32_t request, void *data)
-{
+static int control(uint32_t request, void *data) {
 	switch (request) {
 	case VOCTRL_QUERY_FORMAT:
-		return query_format(*((uint32_t*)data));
-	case VOCTRL_FULLSCREEN:
-		{
-			if (WinID > 0)
-				return VO_FALSE;
-			return VO_TRUE;
-		}
+		return query_format(*((uint32_t *)data));
 	case VOCTRL_UPDATE_SCREENINFO:
 		vo_screenwidth = display_info.xres;
 		vo_screenheight = display_info.yres;
 		aspect_save_screenres(vo_screenwidth, vo_screenheight);
 		return VO_TRUE;
+	case VOCTRL_GET_IMAGE:
+		return get_image(data);
 	}
 
 	return VO_NOTIMPL;
 }
 
-static void check_events(void)
-{
-}
+static void check_events(void) {}
