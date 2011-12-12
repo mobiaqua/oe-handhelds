@@ -6,7 +6,7 @@ DESCRIPTION = "Preconfigured mplayer preferences"
 PV = "0.0.1"
 PR = "r6"
 
-SRC_URI = "file://mplayer.conf"
+SRC_URI = "file://mplayer.conf file://codecs.conf"
 
 # Yes, really /usr/etc!!!
 #MobiAqua: added codecs.conf
