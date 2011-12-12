@@ -86,6 +86,7 @@ extern void yuv420_to_nv12_open(struct frame_info *dst, struct frame_info *src);
 
 static int dce;
 static int v4l2_cur_buffer_id;
+static int v4l2_draw_buffer_id;
 
 static int preinit(const char *arg) {
 	int fb_handle;
@@ -133,6 +134,7 @@ static int preinit(const char *arg) {
 
 	dce = 0;
 	v4l2_cur_buffer_id = 0;
+	v4l2_draw_buffer_id = 0;
 	v4l2_num_buffers = V4L2_NUM_BUFFERS;
 
 	return 0;
@@ -182,8 +184,13 @@ static int config(uint32_t width, uint32_t height, uint32_t d_width, uint32_t d_
 	}
 
 	v4l2_vout_format.type = V4L2_BUF_TYPE_VIDEO_OUTPUT;
-	v4l2_vout_format.fmt.pix.width = ALIGN(width, 32);
-	v4l2_vout_format.fmt.pix.height = ALIGN(height, 32);
+	if (dce) {
+		v4l2_vout_format.fmt.pix.width = ALIGN(width + 64, 128);
+		v4l2_vout_format.fmt.pix.height = ALIGN(height + 96, 16);
+	} else {
+		v4l2_vout_format.fmt.pix.width = ALIGN(width, 32);
+		v4l2_vout_format.fmt.pix.height = ALIGN(height, 32);
+	}
 	v4l2_vout_format.fmt.pix.pixelformat = V4L2_PIX_FMT_NV12;
 	v4l2_vout_format.fmt.pix.field = V4L2_FIELD_NONE;
 	if (ioctl(v4l2_handle, VIDIOC_S_FMT, &v4l2_vout_format) == -1) {
@@ -329,8 +336,7 @@ static int draw_slice(uint8_t *src[], int stride[], int w, int h, int x, int y) 
 }
 
 static uint32_t get_image(mp_image_t *mpi) {
-	if ((mpi->type == MP_IMGTYPE_TEMP) && (mpi->flags & MP_IMGFLAG_ACCEPT_STRIDE)) {
-		mpi->flags |= MP_IMGFLAG_DIRECT;
+	if ((mpi->type == MP_IMGTYPE_TEMP) && (mpi->flags & MP_IMGFLAG_ACCEPT_STRIDE) && (mpi->flags && MP_IMGFLAG_DIRECT)) {
 		if (++v4l2_cur_buffer_id >= v4l2_num_buffers)
 			v4l2_cur_buffer_id = 0;
 		mpi->x = v4l2_vout_crop.c.left;
@@ -344,7 +350,7 @@ static uint32_t get_image(mp_image_t *mpi) {
 
 static void flip_page(void) {
 	if (dce) {
-		ioctl(v4l2_handle, VIDIOC_QBUF, &v4l2_buffers[v4l2_cur_buffer_id].buffer);
+		ioctl(v4l2_handle, VIDIOC_QBUF, &v4l2_buffers[v4l2_draw_buffer_id].buffer);
 		ioctl(v4l2_handle, VIDIOC_DQBUF, &tmp_v4l2_buffer);
 	} else {
 		ioctl(v4l2_handle, VIDIOC_QBUF, &v4l2_buffers[tmp_v4l2_buffer.index].buffer);

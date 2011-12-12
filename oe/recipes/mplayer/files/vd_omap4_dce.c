@@ -283,7 +283,7 @@ static int init(sh_video_t *sh) {
 		goto fail;
 	}
 
-	return mpcodecs_config_vo(sh, frame_width, frame_height, sh->format);
+	return mpcodecs_config_vo(sh, sh->disp_w, sh->disp_h, sh->format);
 fail:
 	codec_engine_close();
 	return 0;
@@ -339,20 +339,16 @@ static void uninit(sh_video_t *sh) {
 static mp_image_t *decode(sh_video_t *sh, void *data, int len, int flags) {
 	MemAllocBlock mablk = { 0 };
 	mp_image_t *mpi;
+	struct v4l2_buf *buf = NULL;
 	XDM_Rect *r;
 
 	if (len <= 0)
 		return NULL; // skipped frame
 
-//	if (sh->format != IMGFMT_NV12) {
-//		mp_msg(MSGT_DECVIDEO, MSGL_ERR, "[vd_omap4_dce] expected NV12 format, %08x\n", sh->format);
-//		return 0;
-//	}
-
 	if (!input_buf) {
 		int size = VIDEOBUFFER_SIZE + MP_INPUT_BUFFER_PADDING_SIZE;
 		if (len > size) {
-			mp_msg(MSGT_DECVIDEO, MSGL_ERR, "[vd_omap4_dce] Error: alloction buffer  bigger than expected\n");
+			mp_msg(MSGT_DECVIDEO, MSGL_ERR, "[vd_omap4_dce] Error: alloction buffer bigger than expected\n");
 			return NULL;
 		}
 
@@ -372,7 +368,7 @@ static mp_image_t *decode(sh_video_t *sh, void *data, int len, int flags) {
 
 	memcpy(input_buf, data, len);
 
-	mpi = mpcodecs_get_image(sh, MP_IMGTYPE_TEMP, MP_IMGFLAG_ACCEPT_STRIDE, frame_width, frame_height);
+	mpi = mpcodecs_get_image(sh, MP_IMGTYPE_TEMP, MP_IMGFLAG_ACCEPT_STRIDE | MP_IMGFLAG_DIRECT, frame_width, frame_height);
 	if (!mpi) {
 		mp_msg(MSGT_DECVIDEO, MSGL_ERR, "[vd_omap4_dce] Error: mpcodecs_get_image() failed\n");
 		return NULL;
@@ -381,7 +377,7 @@ static mp_image_t *decode(sh_video_t *sh, void *data, int len, int flags) {
 	memset(codec_output_args->outputID, 0, sizeof(codec_output_args->outputID));
 	memset(codec_output_args->freeBufID, 0, sizeof(codec_output_args->freeBufID));
 
-	codec_input_args->inputID = (XDAS_Int32)mpi;
+	codec_input_args->inputID = (XDAS_Int32)mpi->priv;
 	codec_input_args->numBytes = len;
 
 	codec_input_buffers->numBufs = 1;
@@ -408,7 +404,7 @@ static mp_image_t *decode(sh_video_t *sh, void *data, int len, int flags) {
 	}
 
 	if (codec_output_args->outputID[0]) {
-		mpi = (mp_image_t *)codec_output_args->outputID[0];
+		buf = (struct v4l2_buf *)codec_output_args->outputID[0];
 		r = &codec_output_args->displayBufs.bufDesc[0].activeFrameRegion;
 		// = r->topLeft.x;
 		// = r->topLeft.y;
