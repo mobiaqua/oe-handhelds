@@ -48,9 +48,10 @@
 #include "vd_internal.h"
 #include "dec_video.h"
 #include "../libmpdemux/parse_es.h"
+#include "../ffmpeg/libavcodec/avcodec.h"
 
 static const vd_info_t info = {
-	"OMAP4 ducati video codecs",
+	"OMAP4 ducati video codecs decoder",
 	"omap4_dce",
 	"",
 	"",
@@ -118,15 +119,17 @@ static int control(sh_video_t *sh, int cmd, void *arg, ...) {
 		}
 		case VDCTRL_QUERY_MAX_PP_LEVEL:
 		{
-			return 9; // FIXME
+			return CONTROL_UNKNOWN;
+//			return 9; // FIXME
 		}
 		case VDCTRL_SET_PP_LEVEL:
 		{
-//			int level = (*((int*)arg));
+			return CONTROL_UNKNOWN;
+/*			int level = (*((int*)arg));
 			if (!sh->context)
 				return CONTROL_ERROR;
 			// FIXME
-			return CONTROL_OK;
+			return CONTROL_OK;*/
 		}
 	}
 
@@ -136,40 +139,40 @@ static int control(sh_video_t *sh, int cmd, void *arg, ...) {
 void codec_engine_close(void);
 
 static int init(sh_video_t *sh) {
-	Engine_Error engine_error;
-	unsigned int codec_id = sh->format;
+	unsigned int codec_id = CODEC_ID_NONE;
 
-//	if (sh->format != IMGFMT_NV12) {
-//		mp_msg(MSGT_DECVIDEO, MSGL_ERR, "[vd_omap4_dce] expected NV12 format, %08x\n", sh->format);
-//		return 0;
-//	}
+	switch (sh->format) {
+	case mmioFOURCC('X','V','I','D'):
+	case mmioFOURCC('D','I','V','X'):
+		codec_id = CODEC_ID_MPEG4;
+		break;
+	default:
+		mp_msg(MSGT_DECVIDEO, MSGL_ERR, "[vd_omap4_dce] Unsupported codec %08x\n", codec_id);
+		return 0;
+	}
 
 	frame_width = ALIGN(sh->disp_w + 64, 128);
 	frame_height = ALIGN(sh->disp_h + 96, 16);
 
-	codec_engine = Engine_open("ivahd_vidsvr", NULL, &engine_error);
-	if (codec_engine != Engine_EOK) {
+	codec_engine = Engine_open("ivahd_vidsvr", NULL, NULL);
+	if (!codec_engine) {
 		mp_msg(MSGT_DECVIDEO, MSGL_ERR, "[vd_omap4_dce] Error: Engine_open() failed\n");
 		return 0;
 	}
 
 	switch (codec_id) {
-	case mmioFOURCC('H','2','6','4'):
-//	case CODEC_ID_H264:
+	case CODEC_ID_H264:
 		codec_params = dce_alloc(sizeof(IH264VDEC_Params));
 		break;
-	case mmioFOURCC('M','P','G','4'):
-//	case CODEC_ID_MSMPEG4V1:
+	case CODEC_ID_MPEG4:
 		codec_params = dce_alloc(sizeof(IMPEG4VDEC_Params));
 		break;
-	case mmioFOURCC('M','P','G','1'):
-//	case CODEC_ID_MPEG1VIDEO:
-//	case CODEC_ID_MPEG2VIDEO:
+	case CODEC_ID_MPEG1VIDEO:
+	case CODEC_ID_MPEG2VIDEO:
 		codec_params = dce_alloc(sizeof(IMPEG2VDEC_Params));
 		break;
-	case mmioFOURCC('W','M','V','3'):
-//	case CODEC_ID_WMV3:
-//	case CODEC_ID_VC1:
+	case CODEC_ID_WMV3:
+	case CODEC_ID_VC1:
 		codec_params = dce_alloc(sizeof(IVC1VDEC_Params));
 		break;
 	default:
@@ -201,8 +204,7 @@ static int init(sh_video_t *sh) {
 	codec_params->errorInfoMode = IVIDEO_ERRORINFO_OFF;
 
 	switch (codec_id) {
-	case mmioFOURCC('H','2','6','4'):
-//	case CODEC_ID_H264:
+	case CODEC_ID_H264:
 		codec_params->size = sizeof(IH264VDEC_Params);
 		((IH264VDEC_Params *)codec_params)->maxNumRefFrames = IH264VDEC_DPB_NUMFRAMES_AUTO;
 		((IH264VDEC_Params *)codec_params)->pConstantMemory = 0;
@@ -212,9 +214,7 @@ static int init(sh_video_t *sh) {
 		codec_handle = VIDDEC3_create(codec_engine, "ivahd_h264dec", codec_params);
 		mp_msg(MSGT_DECVIDEO, MSGL_INFO, "[vd_omap4_dce] using ivahd_h264dec\n");
 		break;
-	case mmioFOURCC('M','P','G','4'):
-//	case CODEC_ID_MPEG4:
-//	case CODEC_ID_MSMPEG4V1:
+	case CODEC_ID_MPEG4:
 		codec_params->size = sizeof(IMPEG4VDEC_Params);
 		((IMPEG4VDEC_Params *)codec_params)->outloopDeBlocking = TRUE;
 		((IMPEG4VDEC_Params *)codec_params)->sorensonSparkStream = FALSE;
@@ -222,16 +222,14 @@ static int init(sh_video_t *sh) {
 		codec_handle = VIDDEC3_create(codec_engine, "ivahd_mpeg4dec", codec_params);
 		mp_msg(MSGT_DECVIDEO, MSGL_INFO, "[vd_omap4_dce] using ivahd_mpeg4dec\n");
 		break;
-	case mmioFOURCC('M','P','G','1'):
-//	case CODEC_ID_MPEG1VIDEO:
-//	case CODEC_ID_MPEG2VIDEO:
+	case CODEC_ID_MPEG1VIDEO:
+	case CODEC_ID_MPEG2VIDEO:
 		codec_params->size = sizeof(IMPEG2VDEC_Params);
 		codec_handle = VIDDEC3_create(codec_engine, "ivahd_mpeg2vdec", codec_params);
 		mp_msg(MSGT_DECVIDEO, MSGL_INFO, "[vd_omap4_dce] using ivahd_mpeg2vdec\n");
 		break;
-	case mmioFOURCC('W','M','V','3'):
-//	case CODEC_ID_WMV3:
-//	case CODEC_ID_VC1:
+	case CODEC_ID_WMV3:
+	case CODEC_ID_VC1:
 		codec_params->size = sizeof(IVC1VDEC_Params);
 		codec_params->maxBitRate = 45000000;
 		((IVC1VDEC_Params *)codec_params)->FrameLayerDataPresentFlag = FALSE;
@@ -266,8 +264,7 @@ static int init(sh_video_t *sh) {
 	codec_dynamic_params->displayWidth = 0;
 	codec_dynamic_params->frameSkipMode = IVIDEO_NO_SKIP;
 	codec_dynamic_params->newFrameFlag = XDAS_TRUE;
-//	if (codec_id == CODEC_ID_MPEG4 || codec_id == CODEC_ID_VC1 || codec_id == CODEC_ID_WMV3) {
-	if (codec_id == mmioFOURCC('M','P','G','4') || codec_id == mmioFOURCC('V','C','-','1') || codec_id == mmioFOURCC('W','M','V','3')) {
+	if (codec_id == CODEC_ID_MPEG4 || codec_id == CODEC_ID_VC1 || codec_id == CODEC_ID_WMV3) {
 		codec_dynamic_params->lateAcquireArg = -1;
 	}
 
