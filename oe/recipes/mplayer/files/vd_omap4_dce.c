@@ -48,6 +48,7 @@
 #include "vd_internal.h"
 #include "dec_video.h"
 #include "../libmpdemux/parse_es.h"
+#include "../libvo/video_out.h"
 #include "../ffmpeg/libavcodec/avcodec.h"
 
 static const vd_info_t info = {
@@ -283,6 +284,8 @@ static int init(sh_video_t *sh) {
 		goto fail;
 	}
 
+	vo_directrendering = 1;
+
 	return mpcodecs_config_vo(sh, sh->disp_w, sh->disp_h, sh->format);
 fail:
 	codec_engine_close();
@@ -339,7 +342,6 @@ static void uninit(sh_video_t *sh) {
 static mp_image_t *decode(sh_video_t *sh, void *data, int len, int flags) {
 	MemAllocBlock mablk = { 0 };
 	mp_image_t *mpi;
-	struct v4l2_buf *buf = NULL;
 	XDM_Rect *r;
 
 	if (len <= 0)
@@ -369,6 +371,7 @@ static mp_image_t *decode(sh_video_t *sh, void *data, int len, int flags) {
 	memcpy(input_buf, data, len);
 
 	mpi = mpcodecs_get_image(sh, MP_IMGTYPE_TEMP, MP_IMGFLAG_ACCEPT_STRIDE | MP_IMGFLAG_DIRECT, frame_width, frame_height);
+
 	if (!mpi) {
 		mp_msg(MSGT_DECVIDEO, MSGL_ERR, "[vd_omap4_dce] Error: mpcodecs_get_image() failed\n");
 		return NULL;
@@ -404,16 +407,15 @@ static mp_image_t *decode(sh_video_t *sh, void *data, int len, int flags) {
 	}
 
 	if (codec_output_args->outputID[0]) {
-		buf = (struct v4l2_buf *)codec_output_args->outputID[0];
-		r = &codec_output_args->displayBufs.bufDesc[0].activeFrameRegion;
+		mpi->priv = codec_output_args->outputID[0];
+		// r = &codec_output_args->displayBufs.bufDesc[0].activeFrameRegion;
 		// = r->topLeft.x;
 		// = r->topLeft.y;
 		// FIXME: call vo for crop
 		return mpi;
-	} else {
-		printf("[vd_omap4_dce] no output frame!\n");
-		// FIXME: clear empty frame ?
 	}
 
+	mpi->priv = NULL;
+	// FIXME: clear empty frame ?
 	return NULL;
 }

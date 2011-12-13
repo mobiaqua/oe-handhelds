@@ -310,19 +310,12 @@ static int draw_frame(uint8_t *src[]) {
 }
 
 static int draw_slice(uint8_t *src[], int stride[], int w, int h, int x, int y) {
-	if ((x != 0) || (y != 0)) {
-		mp_msg(MSGT_VO, MSGL_FATAL, "[omap4_v4l2] Error offsets x,y: %d,%d\n", x, y);
-		return 0;
-	}
-
-	if (dce) {
-//		if (v4l2_vout_crop.c.left != x || v4l2_vout_crop.c.top != y) {
-//			v4l2_vout_crop.c.left = f->x;
-//			v4l2_vout_crop.c.top = f->y;
-//			ioctl(v4l2_handle, VIDIOC_S_CROP, &v4l2_vout_crop);
-//		}
-	} else {
+	if (!dce) {
 //		printf("draw_slice %d,%d,%d,%d,%d\n", x, y, w, h, stride);
+		if ((x != 0) || (y != 0)) {
+			mp_msg(MSGT_VO, MSGL_FATAL, "[omap4_v4l2] Error offsets x,y: %d,%d\n", x, y);
+			return 0;
+		}
 		yuv420_frame_info.y_stride = stride[0];
 		yuv420_frame_info.uv_stride = stride[1];
 		yuv420_to_nv12_open(&yuv420_frame_info, &v4l2_frame_info);
@@ -336,20 +329,35 @@ static int draw_slice(uint8_t *src[], int stride[], int w, int h, int x, int y) 
 }
 
 static uint32_t get_image(mp_image_t *mpi) {
-	if ((mpi->type == MP_IMGTYPE_TEMP) && (mpi->flags & MP_IMGFLAG_ACCEPT_STRIDE) && (mpi->flags && MP_IMGFLAG_DIRECT)) {
-		if (++v4l2_cur_buffer_id >= v4l2_num_buffers)
-			v4l2_cur_buffer_id = 0;
+	if ((mpi->type == MP_IMGTYPE_TEMP) && (mpi->flags & MP_IMGFLAG_ACCEPT_STRIDE)) {
 		mpi->x = v4l2_vout_crop.c.left;
 		mpi->y = v4l2_vout_crop.c.top;
 		mpi->priv = &v4l2_buffers[v4l2_cur_buffer_id];
+		mpi->flags |= MP_IMGFLAG_DIRECT;
+		mpi->flags |= MP_IMGFLAG_DRAW_CALLBACK;
+		if (++v4l2_cur_buffer_id >= v4l2_num_buffers)
+			v4l2_cur_buffer_id = 0;
 		return VO_TRUE;
 	} else {
 		return VO_FALSE;
 	}
 }
 
+static uint32_t put_image(mp_image_t *mpi) {
+	if ((mpi->type == MP_IMGTYPE_TEMP) && (mpi->flags & MP_IMGFLAG_ACCEPT_STRIDE) && (mpi->flags && MP_IMGFLAG_DIRECT)) {
+		v4l2_draw_buffer_id = ((struct v4l2_buf *)mpi->priv)->buffer.index;
+		return VO_TRUE;
+	}
+	return VO_FALSE;
+}
+
 static void flip_page(void) {
 	if (dce) {
+//		if (v4l2_vout_crop.c.left != x || v4l2_vout_crop.c.top != y) {
+//			v4l2_vout_crop.c.left = f->x;
+//			v4l2_vout_crop.c.top = f->y;
+//			ioctl(v4l2_handle, VIDIOC_S_CROP, &v4l2_vout_crop);
+//		}
 		ioctl(v4l2_handle, VIDIOC_QBUF, &v4l2_buffers[v4l2_draw_buffer_id].buffer);
 		ioctl(v4l2_handle, VIDIOC_DQBUF, &tmp_v4l2_buffer);
 	} else {
@@ -405,6 +413,8 @@ static int control(uint32_t request, void *data) {
 		return VO_TRUE;
 	case VOCTRL_GET_IMAGE:
 		return get_image(data);
+	case VOCTRL_DRAW_IMAGE:
+		return put_image(data);
 	}
 
 	return VO_NOTIMPL;
