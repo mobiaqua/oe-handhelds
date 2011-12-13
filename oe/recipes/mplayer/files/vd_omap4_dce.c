@@ -150,6 +150,12 @@ static int init(sh_video_t *sh) {
 	case mmioFOURCC('D','I','V','X'):
 		codec_id = CODEC_ID_MPEG4;
 		break;
+	case 0x10000001:
+		codec_id = CODEC_ID_MPEG1VIDEO;
+		break;
+	case 0x10000002:
+		codec_id = CODEC_ID_MPEG2VIDEO;
+		break;
 	default:
 		mp_msg(MSGT_DECVIDEO, MSGL_ERR, "[vd_omap4_dce] Unsupported codec %08x\n", sh->format);
 		return 0;
