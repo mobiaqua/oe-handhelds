@@ -143,12 +143,15 @@ static int init(sh_video_t *sh) {
 	unsigned int codec_id = CODEC_ID_NONE;
 
 	switch (sh->format) {
+	case mmioFOURCC('H','2','6','4'):
+		codec_id = CODEC_ID_H264;
+		break;
 	case mmioFOURCC('X','V','I','D'):
 	case mmioFOURCC('D','I','V','X'):
 		codec_id = CODEC_ID_MPEG4;
 		break;
 	default:
-		mp_msg(MSGT_DECVIDEO, MSGL_ERR, "[vd_omap4_dce] Unsupported codec %08x\n", codec_id);
+		mp_msg(MSGT_DECVIDEO, MSGL_ERR, "[vd_omap4_dce] Unsupported codec %08x\n", sh->format);
 		return 0;
 	}
 
