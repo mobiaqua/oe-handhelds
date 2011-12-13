@@ -257,12 +257,12 @@ static int config(uint32_t width, uint32_t height, uint32_t d_width, uint32_t d_
 		}
 	}
 
-/*	if (dce) {
-		if (ioctl(v4l2_handle, VIDIOC_QBUF, &v4l2_buffers[v4l2_cur_buffer_id].buffer) == -1) {
+	if (dce) {
+		if (ioctl(v4l2_handle, VIDIOC_QBUF, &v4l2_buffers[v4l2_cur_buffer_id++].buffer) == -1) {
 			mp_msg(MSGT_VO, MSGL_FATAL, "[omap4_v4l2] Error queue buffer (VIDIOC_QBUF)\n");
 			goto error;
 		}
-	}*/
+	}
 
 	v4l2_vout_crop.type = V4L2_BUF_TYPE_VIDEO_OUTPUT;
 	v4l2_vout_crop.c.left = 0;
