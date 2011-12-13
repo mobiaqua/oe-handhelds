@@ -349,6 +349,42 @@ static void uninit(sh_video_t *sh) {
 	codec_engine_close();
 }
 
+static char *decodeCodecStatusError(int error) {
+	switch (error) {
+	case XDM_EOK:
+		return "Success";
+	case XDM_EFAIL:
+		return "General failure";
+	case -2:
+		return "General runtime failure";
+	case XDM_EUNSUPPORTED:
+		return "Request is unsupported";
+	default:
+		return "Unknown status";
+	}
+}
+
+static char *decodeCodecExtendedError(int error) {
+	if (XDM_ISAPPLIEDCONCEALMENT(error))
+		return "Applied concealment";
+	else if (XDM_ISINSUFFICIENTDATA(error))
+		return "Insufficient input data";
+	else if (XDM_ISCORRUPTEDDATA(error))
+		return "Data problem/corruption";
+	else if (XDM_ISCORRUPTEDHEADER(error))
+		return "Header problem/corruption";
+	else if (XDM_ISUNSUPPORTEDINPUT(error))
+		return "Unsupported feature/parameter in input";
+	else if (XDM_ISUNSUPPORTEDPARAM(error))
+		return "Unsupported input parameter or configuration";
+	else if (XDM_ISFATALERROR(error))
+		return "Fatal error";
+	else if (error == 0)
+		return "None";
+	else
+		return "Unknown error status";
+}
+
 static mp_image_t *decode(sh_video_t *sh, void *data, int len, int flags) {
 	MemAllocBlock mablk = { 0 };
 	mp_image_t *mpi;
@@ -408,9 +444,11 @@ static mp_image_t *decode(sh_video_t *sh, void *data, int len, int flags) {
 
 	codec_error = VIDDEC3_process(codec_handle, codec_input_buffers, codec_output_buffers, codec_input_args, codec_output_args);
 	if (codec_error != VIDDEC3_EOK) {
-		mp_msg(MSGT_DECVIDEO, MSGL_ERR, "[vd_omap4_dce] Error: VIDDEC3_process() error %d %08x\n", codec_error, codec_output_args->extendedError);
+		mp_msg(MSGT_DECVIDEO, MSGL_ERR, "[vd_omap4_dce] Error: VIDDEC3_process() status: '%s', extendedError: '%s'\n",
+				decodeCodecStatusError(codec_error), decodeCodecExtendedError(codec_output_args->extendedError));
 		codec_error = VIDDEC3_control(codec_handle, XDM_GETSTATUS, codec_dynamic_params, codec_status);
-		mp_msg(MSGT_DECVIDEO, MSGL_ERR, "[vd_omap4_dce] Error: VIDDEC3_control() XDM_GETSTATUS error %d %08x\n", codec_error, codec_status->extendedError);
+		mp_msg(MSGT_DECVIDEO, MSGL_ERR, "[vd_omap4_dce] VIDDEC3_control(XDM_GETSTATUS) status: '%s', extendedError: '%s'\n",
+				decodeCodecStatusError(codec_error), decodeCodecExtendedError(codec_status->extendedError));
 		if (XDM_ISFATALERROR(codec_output_args->extendedError)) {
 			return NULL;
 		}
