@@ -86,6 +86,42 @@ struct v4l2_buf {
 
 #define ALIGN(value, align) (((value) + ((align) - 1)) & ~((align) - 1))
 
+static char *decodeCodecStatusError(int error) {
+	switch (error) {
+	case XDM_EOK:
+		return "Success";
+	case XDM_EFAIL:
+		return "General failure";
+	case -2:
+		return "General runtime failure";
+	case XDM_EUNSUPPORTED:
+		return "Request is unsupported";
+	default:
+		return "Unknown status";
+	}
+}
+
+static char *decodeCodecExtendedError(int error) {
+	if (XDM_ISAPPLIEDCONCEALMENT(error))
+		return "Applied concealment";
+	else if (XDM_ISINSUFFICIENTDATA(error))
+		return "Insufficient input data";
+	else if (XDM_ISCORRUPTEDDATA(error))
+		return "Data problem/corruption";
+	else if (XDM_ISCORRUPTEDHEADER(error))
+		return "Header problem/corruption";
+	else if (XDM_ISUNSUPPORTEDINPUT(error))
+		return "Unsupported feature/parameter in input";
+	else if (XDM_ISUNSUPPORTEDPARAM(error))
+		return "Unsupported input parameter or configuration";
+	else if (XDM_ISFATALERROR(error))
+		return "Fatal error";
+	else if (error == 0)
+		return "None";
+	else
+		return "Unknown error status";
+}
+
 static int control(sh_video_t *sh, int cmd, void *arg, ...) {
 	switch (cmd) {
 	case VDCTRL_QUERY_FORMAT:
@@ -117,20 +153,6 @@ static int control(sh_video_t *sh, int cmd, void *arg, ...) {
 		case VDCTRL_QUERY_UNSEEN_FRAMES:
 		{
 			return 0; // FIXME
-		}
-		case VDCTRL_QUERY_MAX_PP_LEVEL:
-		{
-			return CONTROL_UNKNOWN;
-//			return 9; // FIXME
-		}
-		case VDCTRL_SET_PP_LEVEL:
-		{
-			return CONTROL_UNKNOWN;
-/*			int level = (*((int*)arg));
-			if (!sh->context)
-				return CONTROL_ERROR;
-			// FIXME
-			return CONTROL_OK;*/
 		}
 	}
 
@@ -349,42 +371,6 @@ static void uninit(sh_video_t *sh) {
 	codec_engine_close();
 }
 
-static char *decodeCodecStatusError(int error) {
-	switch (error) {
-	case XDM_EOK:
-		return "Success";
-	case XDM_EFAIL:
-		return "General failure";
-	case -2:
-		return "General runtime failure";
-	case XDM_EUNSUPPORTED:
-		return "Request is unsupported";
-	default:
-		return "Unknown status";
-	}
-}
-
-static char *decodeCodecExtendedError(int error) {
-	if (XDM_ISAPPLIEDCONCEALMENT(error))
-		return "Applied concealment";
-	else if (XDM_ISINSUFFICIENTDATA(error))
-		return "Insufficient input data";
-	else if (XDM_ISCORRUPTEDDATA(error))
-		return "Data problem/corruption";
-	else if (XDM_ISCORRUPTEDHEADER(error))
-		return "Header problem/corruption";
-	else if (XDM_ISUNSUPPORTEDINPUT(error))
-		return "Unsupported feature/parameter in input";
-	else if (XDM_ISUNSUPPORTEDPARAM(error))
-		return "Unsupported input parameter or configuration";
-	else if (XDM_ISFATALERROR(error))
-		return "Fatal error";
-	else if (error == 0)
-		return "None";
-	else
-		return "Unknown error status";
-}
-
 static mp_image_t *decode(sh_video_t *sh, void *data, int len, int flags) {
 	MemAllocBlock mablk = { 0 };
 	mp_image_t *mpi;
@@ -396,7 +382,7 @@ static mp_image_t *decode(sh_video_t *sh, void *data, int len, int flags) {
 	if (!input_buf) {
 		int size = VIDEOBUFFER_SIZE + MP_INPUT_BUFFER_PADDING_SIZE;
 		if (len > size) {
-			mp_msg(MSGT_DECVIDEO, MSGL_ERR, "[vd_omap4_dce] Error: alloction buffer bigger than expected\n");
+			mp_msg(MSGT_DECVIDEO, MSGL_ERR, "[vd_omap4_dce] Error: allocation buffer bigger than allowed\n");
 			return NULL;
 		}
 
