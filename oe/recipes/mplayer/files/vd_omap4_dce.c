@@ -409,13 +409,11 @@ static mp_image_t *decode(sh_video_t *sh, void *data, int len, int flags) {
 	if (codec_output_args->outputID[0]) {
 		mpi->priv = codec_output_args->outputID[0];
 		r = &codec_output_args->displayBufs.bufDesc[0].activeFrameRegion;
-		if (r->topLeft.x != mpi->x || r->topLeft.y != mpi->y) {
-			// FIXME: call vo for crop
-		}
+		mpi->x = r->topLeft.x;
+		mpi->y = r->topLeft.y;
 		return mpi;
 	}
 
 	mpi->priv = NULL;
-	// FIXME: clear empty frame ?
 	return NULL;
 }

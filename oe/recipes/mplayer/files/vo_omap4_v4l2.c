@@ -353,11 +353,15 @@ static uint32_t get_image(mp_image_t *mpi) {
 
 static uint32_t put_image(mp_image_t *mpi) {
 	if (!dce) {
-		//mp_msg(MSGT_VO, MSGL_FATAL, "[omap4_v4l2] Error: put_image() only for hardware decoding\n");
 		return VO_NOTIMPL;
 	}
 	if ((mpi->type == MP_IMGTYPE_TEMP) && (mpi->flags & MP_IMGFLAG_ACCEPT_STRIDE) && (mpi->flags && MP_IMGFLAG_DIRECT)) {
 		v4l2_draw_buffer_id = ((struct v4l2_buf *)mpi->priv)->buffer.index;
+		if (v4l2_vout_crop.c.left != mpi->x || v4l2_vout_crop.c.top != mpi->y) {
+			v4l2_vout_crop.c.left = mpi->x;
+			v4l2_vout_crop.c.top = mpi->y;
+			ioctl(v4l2_handle, VIDIOC_S_CROP, &v4l2_vout_crop);
+		}
 		return VO_TRUE;
 	} else {
 		mp_msg(MSGT_VO, MSGL_FATAL, "[omap4_v4l2] Error: put_image() only for MP_IMGTYPE_TEMP and MP_IMGFLAG_ACCEPT_STRIDE | MP_IMGFLAG_DIRECT\n");
@@ -367,11 +371,6 @@ static uint32_t put_image(mp_image_t *mpi) {
 
 static void flip_page(void) {
 	if (dce) {
-//		if (v4l2_vout_crop.c.left != x || v4l2_vout_crop.c.top != y) {
-//			v4l2_vout_crop.c.left = f->x;
-//			v4l2_vout_crop.c.top = f->y;
-//			ioctl(v4l2_handle, VIDIOC_S_CROP, &v4l2_vout_crop);
-//		}
 		ioctl(v4l2_handle, VIDIOC_QBUF, &v4l2_buffers[v4l2_draw_buffer_id].buffer);
 		ioctl(v4l2_handle, VIDIOC_DQBUF, &tmp_v4l2_buffer);
 	} else {
