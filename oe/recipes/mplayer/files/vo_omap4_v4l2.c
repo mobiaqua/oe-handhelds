@@ -146,7 +146,6 @@ static int config(uint32_t width, uint32_t height, uint32_t d_width, uint32_t d_
 	unsigned char *ptr_mmap;
 	struct v4l2_format overlay_format = { 0 };
 
-//	printf("w,h: %d,%d  dw: %d,%d\n", width, height, d_width, d_height);
 	stream_on_off = V4L2_BUF_TYPE_VIDEO_OUTPUT;
 	ioctl(v4l2_handle, VIDIOC_STREAMOFF, &stream_on_off);
 
