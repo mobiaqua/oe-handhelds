@@ -35,6 +35,7 @@ INITSCRIPT_PARAMS = "defaults"
 
 inherit autotools update-rc.d
 
+#MobiAqua: added --with-rpcgen=internal
 EXTRA_OECONF = "--with-statduser=nobody \
 		--enable-nfsv3 \
 		--disable-nfsv4 \
