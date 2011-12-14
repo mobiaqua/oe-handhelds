@@ -5,14 +5,14 @@ LICENSE = "GPLv2"
 DEFAULT_PREFERENCE = "2"
 COMPATIBLE_MACHINE = "pandaboard"
 
-SRC_URI = "https://launchpadlibrarian.net/83641501/pvr-omap4-dkms_1.7.9.2.1.1.orig.tar.gz \
+SRC_URI = "http://launchpadlibrarian.net/86859448/pvr-omap4-dkms_${PV}.orig.tar.gz \
 	   file://rc.pvr \
           "
 
-SRC_URI[md5sum] = "7beef86f873a6ed5e9c21d6a47b0e414"
-SRC_URI[sha256sum] = "91612c8a648194d88be849490fd667d882a11a26556165209d883b7a8588ca97"
+SRC_URI[md5sum] = "503e49a6f43fa9c4e491ca89c362a50e"
+SRC_URI[sha256sum] = "0fd0b62e5acf0eabaac4aab46f1f817a0737bc3927c5f5c5be0f8cdf8a0b8859"
 
-S = "${WORKDIR}/pvr-omap4-dkms-1.7.9.2.1.1/sgx"
+S = "${WORKDIR}/pvr-omap4-dkms-${PV}/sgx"
 
 inherit module
 

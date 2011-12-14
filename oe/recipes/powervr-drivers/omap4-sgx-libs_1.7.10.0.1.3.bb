@@ -3,9 +3,13 @@ LICENSE = "proprietary-binary"
 
 PR = "r1"
 
-SRC_URI = "http://launchpadlibrarian.net/83641534/pvr-omap4_1.7.9.2.1.4.orig.tar.gz \
+SRC_URI = "http://launchpadlibrarian.net/86859223/pvr-omap4_${PV}.orig.tar.gz \
 	   file://LICENSE.txt \
+	   file://includes \
 	   "
+
+SRC_URI[md5sum] = "892dfeeb2c2663c9ac92cc200bc2e56b"
+SRC_URI[sha256sum] = "51774b2f6503793115a60cd30860573fced695a16a1212ee8b7795f453318cbe"
 
 COMPATIBLE_MACHINE = "pandaboard"
 DEPENDS = "omap4-sgx-modules"
@@ -13,10 +17,8 @@ PROVIDES += "virtual/egl"
 
 DEFAULT_PREFERENCE = "2"
 
-SRC_URI[md5sum] = "7e4312f2af2340e21570f8ea02619f1c"
-SRC_URI[sha256sum] = "90cca3f647721b1cb753460271b84828b1d9f41cdead384fb854fa5f57bdf758"
 
-S = "${WORKDIR}/pvr-omap4-1.7.9.2.1.4"
+S = "${WORKDIR}/pvr-omap4-${PV}"
 
 do_configure() {
 	:
@@ -32,6 +34,7 @@ do_install() {
 
 	install -d ${D}${includedir}
 	cp -pR ${S}${includedir}/* ${D}${includedir}/
+	cp -pR ${WORKDIR}/includes/* ${D}${includedir}/
 
 	install -d ${D}${libdir}
 	cp -pR ${S}${libdir}/* ${D}${libdir}/
@@ -46,6 +49,7 @@ do_install() {
 
 INSANE_SKIP = True
 INHIBIT_PACKAGE_STRIP = "1"
+PACKAGE_STRIP = "no"
 
 PACKAGES = "${PN}"
 
