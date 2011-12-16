@@ -3,7 +3,7 @@ SECTION = "multimedia"
 PRIORITY = "optional"
 HOMEPAGE = "http://www.mplayerhq.hu/"
 DEPENDS = "live555 zlib libpng jpeg freetype fontconfig alsa-lib lzo libmpg123 ncurses virtual/kernel"
-DEPENDS_append_pandaboard = "libdce"
+DEPENDS_append_pandaboard = " libdce"
 RDEPENDS_${PN} = "mplayer-common glibc-gconv-cp1250 ttf-dejavu-sans"
 
 LICENSE = "GPL"
