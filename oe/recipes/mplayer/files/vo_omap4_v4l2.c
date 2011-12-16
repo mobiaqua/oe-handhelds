@@ -51,7 +51,7 @@ static vo_info_t info = {
 
 LIBVO_EXTERN(omap4_v4l2)
 
-#define V4L2_NUM_BUFFERS 20
+#define V4L2_NUM_BUFFERS 30
 
 #define ALIGN(value, align) (((value) + ((align) - 1)) & ~((align) - 1))
 
