@@ -194,6 +194,8 @@ do_configure_prepend_armv7a() {
 	cp ${WORKDIR}/vd_omap4_dce.c ${S}/libmpcodecs
 	cp ${STAGING_INCDIR}/linux/omapfb.h ${S}/libvo/omapfb.h || true
 	sed -e 's/__user//g' -i ${S}/libvo/omapfb.h || true
+	export DCE_CFLAGS=`pkg-config --cflags libdce`
+	export DCE_LIBS=`pkg-config --libs libdce`
 
 	# Don't use hardfp args when using softfp
 	sed -i -e 's:if HAVE_VFP_ARGS:ifdef __ARM_PCS_VFP:' ${S}/ffmpeg/libavcodec/arm/asm.S
@@ -209,7 +211,8 @@ do_configure() {
 	sed -i 's|HOST_CC|BUILD_CC|' ${S}/Makefile
 
 	./configure ${EXTRA_OECONF} --extra-libs-mplayer="-lstdc++" \
-		--extra-libs="-lliveMedia -lBasicUsageEnvironment -lgroupsock -lUsageEnvironment -lstdc++ -lmpg123"
+		--extra-libs="-lliveMedia -lBasicUsageEnvironment -lgroupsock -lUsageEnvironment -lstdc++ -lmpg123 ${DCE_LIBS}" \
+		--extra-cflags="${DCE_CFLAGS}"
 }
 
 do_compile () {
