@@ -215,6 +215,7 @@ static int config(uint32_t width, uint32_t height, uint32_t d_width, uint32_t d_
 		mp_msg(MSGT_VO, MSGL_FATAL, "[omap4_v4l2] Error request buffers(VIDIOC_REQBUFS)\n");
 		return -1;
 	}
+	mp_msg(MSGT_VO, MSGL_INFO, "[omap4_v4l2] Allocated V4L2 bufffers: %d\n", request_buf.count);
 
 	// prepare info array of v4l2 buffers
 	v4l2_num_buffers = request_buf.count;

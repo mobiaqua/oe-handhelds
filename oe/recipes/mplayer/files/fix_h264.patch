@@ -18,7 +18,7 @@ diff -ur old/libmpdemux/demux_lavf.c new/libmpdemux/demux_lavf.c
 +                    if (!bsf_handle)
 +                        bsf_handle = av_bitstream_filter_init("h264_mp4toannexb");
 +                    if (!bsf_handle)
-+                        mp_msg(MSGT_DEMUX, MSGL_ERR, "Error enable h264_mp4toannexb filter\n");
++                        mp_msg(MSGT_DEMUX, MSGL_FATAL, "Error enable h264_mp4toannexb filter\n");
 +                }
 +            }
              break;
