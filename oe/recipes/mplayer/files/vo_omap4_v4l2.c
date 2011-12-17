@@ -51,8 +51,6 @@ static vo_info_t info = {
 
 LIBVO_EXTERN(omap4_v4l2)
 
-#define V4L2_NUM_BUFFERS 30
-
 #define ALIGN(value, align) (((value) + ((align) - 1)) & ~((align) - 1))
 
 static struct fb_var_screeninfo display_info;
@@ -135,7 +133,7 @@ static int preinit(const char *arg) {
 	dce = 0;
 	v4l2_cur_buffer_id = 0;
 	v4l2_draw_buffer_id = 0;
-	v4l2_num_buffers = V4L2_NUM_BUFFERS;
+	v4l2_num_buffers = 0;
 
 	return 0;
 }
@@ -184,9 +182,11 @@ static int config(uint32_t width, uint32_t height, uint32_t d_width, uint32_t d_
 
 	v4l2_vout_format.type = V4L2_BUF_TYPE_VIDEO_OUTPUT;
 	if (dce) {
+		v4l2_num_buffers = 30;
 		v4l2_vout_format.fmt.pix.width = ALIGN(width + 64, 128);
 		v4l2_vout_format.fmt.pix.height = ALIGN(height + 96, 16);
 	} else {
+		v4l2_num_buffers = 2;
 		v4l2_vout_format.fmt.pix.width = ALIGN(width, 32);
 		v4l2_vout_format.fmt.pix.height = ALIGN(height, 32);
 	}
@@ -258,9 +258,11 @@ static int config(uint32_t width, uint32_t height, uint32_t d_width, uint32_t d_
 	}
 
 	if (dce) {
-		if (ioctl(v4l2_handle, VIDIOC_QBUF, &v4l2_buffers[v4l2_cur_buffer_id++].buffer) == -1) {
-			mp_msg(MSGT_VO, MSGL_FATAL, "[omap4_v4l2] Error queue buffer (VIDIOC_QBUF)\n");
-			goto error;
+		for (i = 0; i < 2; i++) {
+			if (ioctl(v4l2_handle, VIDIOC_QBUF, &v4l2_buffers[v4l2_cur_buffer_id++].buffer) == -1) {
+				mp_msg(MSGT_VO, MSGL_FATAL, "[omap4_v4l2] Error queue buffer (VIDIOC_QBUF)\n");
+				goto error;
+			}
 		}
 	}
 
