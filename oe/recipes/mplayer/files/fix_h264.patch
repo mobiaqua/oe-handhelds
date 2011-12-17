@@ -51,7 +51,7 @@ diff -ur old/libmpdemux/demux_lavf.c new/libmpdemux/demux_lavf.c
      if(id==demux->audio->id){
          // audio
          ds=demux->audio;
-@@ -637,9 +652,16 @@
+@@ -637,9 +652,17 @@
  
      if(pkt.destruct == av_destruct_packet && !CONFIG_MEMALIGN_HACK){
          dp=new_demux_packet(0);
@@ -63,6 +63,7 @@ diff -ur old/libmpdemux/demux_lavf.c new/libmpdemux/demux_lavf.c
 +                av_free_packet(&pkt);
 +                return 0;
 +            }
++            av_free_packet(&pkt);
 +        } else {
 +            dp->len=pkt.size;
 +            dp->buffer=pkt.data;
