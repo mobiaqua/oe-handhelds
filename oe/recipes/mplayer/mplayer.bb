@@ -12,7 +12,6 @@ SRC_URI = "svn://svn.mplayerhq.hu/mplayer;module=trunk \
 	   git://git.videolan.org/ffmpeg.git;protocol=git;tag=1d0afec8fcfaca9736c927715ddd56a5902855ab;name=ffmpeg \
 	   file://makefile-nostrip-svn.patch \
 	   file://mplayer-arm-pld.patch \
-	   file://more_fourcc.patch \
 "
 SRCREV_FORMAT = "ffmpeg"
 SRCREV = "34199"
