@@ -170,19 +170,28 @@ static int init(sh_video_t *sh) {
 		break;
 	case mmioFOURCC('X','V','I','D'):
 	case mmioFOURCC('D','I','V','X'):
-	case mmioFOURCC('M','P','4','3'):
+	case mmioFOURCC('D','X','5','0'):
 		codec_id = CODEC_ID_MPEG4;
 		break;
 	case 0x10000001:
+	case mmioFOURCC('m','p','g','1'): // not working - fatal error
 		codec_id = CODEC_ID_MPEG1VIDEO;
 		break;
 	case 0x10000002:
+	case mmioFOURCC('M','P','G','2'): // not working - fatal error
 		codec_id = CODEC_ID_MPEG2VIDEO;
+		break;
+	case mmioFOURCC('W','M','V','3'): // not working - fatal error
+		codec_id = CODEC_ID_WMV3;
+		break;
+	case mmioFOURCC('W','V','C','1'): // not working - fatal error
+		codec_id = CODEC_ID_VC1;
 		break;
 	default:
 		mp_msg(MSGT_DECVIDEO, MSGL_ERR, "[vd_omap4_dce] ------ Unsupported codec id: %08x, tag: '%04s' ------\n", sh->format, &sh->format);
 		return 0;
 	}
+//	mp_msg(MSGT_DECVIDEO, MSGL_INFO, "[vd_omap4_dce] codec id: %08x, tag: '%04s' ------\n", sh->format, &sh->format);
 
 	frame_width = ALIGN(sh->disp_w + 64, 128);
 	frame_height = ALIGN(sh->disp_h + 96, 16);
@@ -267,7 +276,7 @@ static int init(sh_video_t *sh) {
 		codec_params->maxBitRate = 45000000;
 		((IVC1VDEC_Params *)codec_params)->FrameLayerDataPresentFlag = FALSE;
 		((IVC1VDEC_Params *)codec_params)->ErrorConcealmentON = 1;
-		codec_handle = VIDDEC3_create(codec_engine, "ivahd_vc1dec", codec_params);
+		codec_handle = VIDDEC3_create(codec_engine, "ivahd_vc1vdec", codec_params);
 		mp_msg(MSGT_DECVIDEO, MSGL_INFO, "[vd_omap4_dce] using ivahd_vc1dec\n");
 		break;
 	default:
@@ -430,11 +439,13 @@ static mp_image_t *decode(sh_video_t *sh, void *data, int len, int flags) {
 
 	codec_error = VIDDEC3_process(codec_handle, codec_input_buffers, codec_output_buffers, codec_input_args, codec_output_args);
 	if (codec_error != VIDDEC3_EOK) {
-		mp_msg(MSGT_DECVIDEO, MSGL_ERR, "[vd_omap4_dce] Error: VIDDEC3_process() status: '%s', extendedError: '%s'\n",
-				decodeCodecStatusError(codec_error), decodeCodecExtendedError(codec_output_args->extendedError));
+		mp_msg(MSGT_DECVIDEO, MSGL_ERR, "[vd_omap4_dce] Error: VIDDEC3_process() status: '%s' %d, extendedError: %08x\n",
+				decodeCodecStatusError(codec_error), codec_error, 
+				codec_output_args->extendedError);
 		codec_error = VIDDEC3_control(codec_handle, XDM_GETSTATUS, codec_dynamic_params, codec_status);
-		mp_msg(MSGT_DECVIDEO, MSGL_ERR, "[vd_omap4_dce] VIDDEC3_control(XDM_GETSTATUS) status: '%s', extendedError: '%s'\n",
-				decodeCodecStatusError(codec_error), decodeCodecExtendedError(codec_status->extendedError));
+		mp_msg(MSGT_DECVIDEO, MSGL_ERR, "[vd_omap4_dce] VIDDEC3_control(XDM_GETSTATUS) status: '%s' %d, extendedError: %08x\n",
+				decodeCodecStatusError(codec_error), codec_error,
+				codec_status->extendedError);
 		if (XDM_ISFATALERROR(codec_output_args->extendedError)) {
 			return NULL;
 		}
