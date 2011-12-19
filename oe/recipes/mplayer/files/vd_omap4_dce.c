@@ -76,6 +76,8 @@ static uint8_t *input_buf;
 static uint32_t input_phys;
 static int input_size;
 
+static int frame;
+
 static int frame_width, frame_height;
 
 struct v4l2_buf {
@@ -86,41 +88,7 @@ struct v4l2_buf {
 
 #define ALIGN(value, align) (((value) + ((align) - 1)) & ~((align) - 1))
 
-static char *decodeCodecStatusError(int error) {
-	switch (error) {
-	case XDM_EOK:
-		return "Success";
-	case XDM_EFAIL:
-		return "General failure";
-	case -2:
-		return "General runtime failure";
-	case XDM_EUNSUPPORTED:
-		return "Request is unsupported";
-	default:
-		return "Unknown status";
-	}
-}
-
-static char *decodeCodecExtendedError(int error) {
-	if (XDM_ISAPPLIEDCONCEALMENT(error))
-		return "Applied concealment";
-	else if (XDM_ISINSUFFICIENTDATA(error))
-		return "Insufficient input data";
-	else if (XDM_ISCORRUPTEDDATA(error))
-		return "Data problem/corruption";
-	else if (XDM_ISCORRUPTEDHEADER(error))
-		return "Header problem/corruption";
-	else if (XDM_ISUNSUPPORTEDINPUT(error))
-		return "Unsupported feature/parameter in input";
-	else if (XDM_ISUNSUPPORTEDPARAM(error))
-		return "Unsupported input parameter or configuration";
-	else if (XDM_ISFATALERROR(error))
-		return "Fatal error";
-	else if (error == 0)
-		return "None";
-	else
-		return "Unknown error status";
-}
+void codec_engine_close(void);
 
 static int control(sh_video_t *sh, int cmd, void *arg, ...) {
 	switch (cmd) {
@@ -159,33 +127,37 @@ static int control(sh_video_t *sh, int cmd, void *arg, ...) {
 	return CONTROL_UNKNOWN;
 }
 
-void codec_engine_close(void);
-
 static int init(sh_video_t *sh) {
 	unsigned int codec_id = CODEC_ID_NONE;
 
 	switch (sh->format) {
+	case 0x10000005:
 	case mmioFOURCC('H','2','6','4'):
 		codec_id = CODEC_ID_H264;
 		break;
+	case 0x10000004:
+	case mmioFOURCC('F','M','P','4'):
 	case mmioFOURCC('X','V','I','D'):
-	case mmioFOURCC('D','I','V','X'):
 	case mmioFOURCC('D','X','5','0'):
+	case mmioFOURCC('D','X','G','M'):
 		codec_id = CODEC_ID_MPEG4;
 		break;
-	case 0x10000001:
-	case mmioFOURCC('m','p','g','1'): // not working - fatal error
-		codec_id = CODEC_ID_MPEG1VIDEO;
-		break;
 	case 0x10000002:
-	case mmioFOURCC('M','P','G','2'): // not working - fatal error
-		codec_id = CODEC_ID_MPEG2VIDEO;
+	case mmioFOURCC('m','p','g','2'):
+	case mmioFOURCC('M','P','G','2'):
+	case mmioFOURCC('M','7','0','1'):
+		codec_id = CODEC_ID_MPEG2VIDEO; // not working - fatal error
 		break;
-	case mmioFOURCC('W','M','V','3'): // not working - fatal error
-		codec_id = CODEC_ID_WMV3;
+	case 0x10000001:
+	case mmioFOURCC('m','p','g','1'):
+	case mmioFOURCC('M','P','G','1'):
+		codec_id = CODEC_ID_MPEG1VIDEO; // not working - fatal error
 		break;
-	case mmioFOURCC('W','V','C','1'): // not working - fatal error
-		codec_id = CODEC_ID_VC1;
+	case mmioFOURCC('W','V','C','1'):
+		codec_id = CODEC_ID_VC1; // not working - fatal error
+		break;
+	case mmioFOURCC('W','M','V','3'):
+		codec_id = CODEC_ID_WMV3; // not working - fatal error
 		break;
 	default:
 		mp_msg(MSGT_DECVIDEO, MSGL_ERR, "[vd_omap4_dce] ------ Unsupported codec id: %08x, tag: '%04s' ------\n", sh->format, &sh->format);
@@ -209,7 +181,6 @@ static int init(sh_video_t *sh) {
 	case CODEC_ID_MPEG4:
 		codec_params = dce_alloc(sizeof(IMPEG4VDEC_Params));
 		break;
-	case CODEC_ID_MPEG1VIDEO:
 	case CODEC_ID_MPEG2VIDEO:
 		codec_params = dce_alloc(sizeof(IMPEG2VDEC_Params));
 		break;
@@ -289,8 +260,16 @@ static int init(sh_video_t *sh) {
 		goto fail;
 	}
 
+	switch (codec_id) {
+	case CODEC_ID_MPEG1VIDEO:
+	case CODEC_ID_MPEG2VIDEO:
+		codec_status = dce_alloc(sizeof(IMPEG2VDEC_Status));
+		break;
+	default:
+		codec_status = dce_alloc(sizeof(VIDDEC3_Status));
+	}
+
 	codec_dynamic_params = dce_alloc(sizeof(VIDDEC3_DynamicParams));
-	codec_status = dce_alloc(sizeof(VIDDEC3_Status));
 	codec_input_buffers = dce_alloc(sizeof(XDM2_BufDesc));
 	codec_output_buffers = dce_alloc(sizeof(XDM2_BufDesc));
 	codec_input_args = dce_alloc(sizeof(VIDDEC3_InArgs));
@@ -326,6 +305,7 @@ static int init(sh_video_t *sh) {
 	}
 
 	vo_directrendering = 1;
+	frame = -1;
 
 	return mpcodecs_config_vo(sh, sh->disp_w, sh->disp_h, sh->format);
 fail:
@@ -430,22 +410,21 @@ static mp_image_t *decode(sh_video_t *sh, void *data, int len, int flags) {
 	codec_input_buffers->descs[0].bufSize.bytes = len;
 
 	codec_output_buffers->numBufs = 2;
-	codec_output_buffers->descs[0].memType = XDM_MEMTYPE_TILEDPAGE;
+	codec_output_buffers->descs[0].memType = XDM_MEMTYPE_RAW;
 	codec_output_buffers->descs[0].buf = (int8_t *)((struct v4l2_buf *)mpi->priv)->plane_p[0];
 	codec_output_buffers->descs[0].bufSize.bytes = frame_width * frame_height;
-	codec_output_buffers->descs[1].memType = XDM_MEMTYPE_TILEDPAGE;
+	codec_output_buffers->descs[1].memType = XDM_MEMTYPE_RAW;
 	codec_output_buffers->descs[1].buf = (int8_t *)((struct v4l2_buf *)mpi->priv)->plane_p[1];
 	codec_output_buffers->descs[1].bufSize.bytes = (frame_width * frame_height) / 2;
 
+	frame++;
 	codec_error = VIDDEC3_process(codec_handle, codec_input_buffers, codec_output_buffers, codec_input_args, codec_output_args);
 	if (codec_error != VIDDEC3_EOK) {
-		mp_msg(MSGT_DECVIDEO, MSGL_ERR, "[vd_omap4_dce] Error: VIDDEC3_process() status: '%s' %d, extendedError: %08x\n",
-				decodeCodecStatusError(codec_error), codec_error, 
-				codec_output_args->extendedError);
+		mp_msg(MSGT_DECVIDEO, MSGL_ERR, "[vd_omap4_dce] Error: VIDDEC3_process() status: %d, extendedError: %08x, frame: %d\n",
+				codec_error, codec_output_args->extendedError, frame);
 		codec_error = VIDDEC3_control(codec_handle, XDM_GETSTATUS, codec_dynamic_params, codec_status);
-		mp_msg(MSGT_DECVIDEO, MSGL_ERR, "[vd_omap4_dce] VIDDEC3_control(XDM_GETSTATUS) status: '%s' %d, extendedError: %08x\n",
-				decodeCodecStatusError(codec_error), codec_error,
-				codec_status->extendedError);
+		mp_msg(MSGT_DECVIDEO, MSGL_ERR, "[vd_omap4_dce] VIDDEC3_control(XDM_GETSTATUS) status: %d, extendedError: %08x\n",
+				codec_error, codec_status->extendedError);
 		if (XDM_ISFATALERROR(codec_output_args->extendedError)) {
 			return NULL;
 		}
