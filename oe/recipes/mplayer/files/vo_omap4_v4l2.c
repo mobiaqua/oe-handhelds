@@ -40,7 +40,7 @@
 #include "video_out.h"
 #include "video_out_internal.h"
 #include "../mp_core.h"
-
+#include "../libmpcodecs/vd_omap4_dce.h"
 #include "libavcodec/avcodec.h"
 
 static vo_info_t info = {
@@ -52,8 +52,6 @@ static vo_info_t info = {
 
 LIBVO_EXTERN(omap4_v4l2)
 
-#define ALIGN2(value, align) (((value) + ((1 << (align)) - 1)) & ~((1 << (align)) - 1))
-
 static struct fb_var_screeninfo display_info;
 static int v4l2_handle = -1;
 static struct v4l2_format v4l2_vout_format;
@@ -62,14 +60,6 @@ static int v4l2_num_buffers;
 static int v4l2_offset[3], v4l2_stride[3];
 static struct v4l2_buffer tmp_v4l2_buffer;
 
-struct v4l2_buf {
-	struct v4l2_buffer buffer;
-	unsigned char *plane[3];
-	unsigned char *plane_p[3];
-	int used;
-	int to_free;
-	int locked;
-};
 static struct v4l2_buf *v4l2_buffers = NULL;
 
 static struct frame_info {
@@ -85,6 +75,8 @@ static struct frame_info {
 
 extern int yuv420_to_nv12_convert(unsigned char *vdst[3], unsigned char *vsrc[3], unsigned char *, unsigned char *);
 extern void yuv420_to_nv12_open(struct frame_info *dst, struct frame_info *src);
+
+static int omap4_v4l2_reset_buffers(void);
 
 static int dce;
 static int v4l2_draw_buffer_id;
@@ -307,6 +299,9 @@ static int config(uint32_t width, uint32_t height, uint32_t d_width, uint32_t d_
 	tmp_v4l2_buffer.type = V4L2_BUF_TYPE_VIDEO_OUTPUT;
 	tmp_v4l2_buffer.memory = V4L2_MEMORY_MMAP;
 
+	// FIXME: no way for now how to access to sh handle
+	omap4_dce_priv_t.reset_buffers = omap4_v4l2_reset_buffers;
+
 	return 0;
 error:
 	free(v4l2_buffers);
@@ -415,7 +410,7 @@ static void flip_page(void) {
 	}
 }
 
-int omap4_v4l2_reset_buffers(void) {
+static int omap4_v4l2_reset_buffers(void) {
 	int i;
 
 	if (!dce) {

@@ -47,6 +47,7 @@
 
 #include "vd_internal.h"
 #include "dec_video.h"
+#include "vd_omap4_dce.h"
 #include "../mp_core.h"
 #include "../libmpdemux/parse_es.h"
 #include "../libvo/video_out.h"
@@ -80,19 +81,11 @@ static int input_size;
 static int frame_id;
 static int frame_width, frame_height;
 
-struct v4l2_buf {
-	struct v4l2_buffer buffer;
-	unsigned char *plane[3];
-	unsigned char *plane_p[3];
-	int used;
-	int to_free;
-	int locked;
-};
+struct omap4_dce_priv omap4_dce_priv_t;
 
 #define ALIGN2(value, align) (((value) + ((1 << (align)) - 1)) & ~((1 << (align)) - 1))
 
 void codec_engine_close(void);
-int omap4_v4l2_reset_buffers(void);
 
 static int control(sh_video_t *sh, int cmd, void *arg, ...) {
 	switch (cmd) {
@@ -120,9 +113,10 @@ static int control(sh_video_t *sh, int cmd, void *arg, ...) {
 				codec_error = VIDDEC3_process(codec_handle, codec_input_buffers, codec_output_buffers,
 							codec_input_args , codec_output_args);
 			} while (codec_error != XDM_EFAIL);
-			if (omap4_v4l2_reset_buffers() != VO_TRUE)
-				return CONTROL_ERROR;
-			return CONTROL_OK;
+			if (omap4_dce_priv_t.reset_buffers)
+				if (omap4_dce_priv_t.reset_buffers() == VO_TRUE)
+					return CONTROL_OK;
+			return CONTROL_ERROR;
 		}
 		case VDCTRL_QUERY_UNSEEN_FRAMES:
 		{
@@ -135,6 +129,8 @@ static int control(sh_video_t *sh, int cmd, void *arg, ...) {
 
 static int init(sh_video_t *sh) {
 	unsigned int codec_id = CODEC_ID_NONE;
+
+	sh->context = &omap4_dce_priv_t;
 
 	switch (sh->format) {
 	case 0x10000005:
@@ -170,6 +166,9 @@ static int init(sh_video_t *sh) {
 		return 0;
 	}
 //	mp_msg(MSGT_DECVIDEO, MSGL_INFO, "[vd_omap4_dce] codec id: %08x, tag: '%04s' ------\n", sh->format, &sh->format);
+
+	omap4_dce_priv_t.codec_id = codec_id;
+	omap4_dce_priv_t.reset_buffers = NULL;
 
 	frame_width = ALIGN2(sh->disp_w, 4);
 	frame_height = ALIGN2(sh->disp_h, 4);
