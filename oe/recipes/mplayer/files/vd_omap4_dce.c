@@ -160,13 +160,12 @@ static int init(sh_video_t *sh) {
 		codec_id = CODEC_ID_VC1;
 		break;
 	case mmioFOURCC('W','M','V','3'):
-		codec_id = CODEC_ID_WMV3; // not working - fatal error
+		codec_id = CODEC_ID_WMV3;
 		break;
 	default:
 		mp_msg(MSGT_DECVIDEO, MSGL_ERR, "[vd_omap4_dce] ------ Unsupported codec id: %08x, tag: '%04s' ------\n", sh->format, &sh->format);
 		return 0;
 	}
-//	mp_msg(MSGT_DECVIDEO, MSGL_INFO, "[vd_omap4_dce] codec id: %08x, tag: '%04s' ------\n", sh->format, &sh->format);
 
 	omap4_dce_priv_t.codec_id = codec_id;
 	omap4_dce_priv_t.reset_buffers = NULL;
