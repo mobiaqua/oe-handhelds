@@ -39,6 +39,7 @@
 #include "aspect.h"
 #include "video_out.h"
 #include "video_out_internal.h"
+#include "../mp_core.h"
 
 #include "libavcodec/avcodec.h"
 
@@ -51,7 +52,7 @@ static vo_info_t info = {
 
 LIBVO_EXTERN(omap4_v4l2)
 
-#define ALIGN(value, align) (((value) + ((align) - 1)) & ~((align) - 1))
+#define ALIGN2(value, align) (((value) + ((1 << (align)) - 1)) & ~((1 << (align)) - 1))
 
 static struct fb_var_screeninfo display_info;
 static int v4l2_handle = -1;
@@ -65,6 +66,9 @@ struct v4l2_buf {
 	struct v4l2_buffer buffer;
 	unsigned char *plane[3];
 	unsigned char *plane_p[3];
+	int used;
+	int to_free;
+	int locked;
 };
 static struct v4l2_buf *v4l2_buffers = NULL;
 
@@ -83,7 +87,6 @@ extern int yuv420_to_nv12_convert(unsigned char *vdst[3], unsigned char *vsrc[3]
 extern void yuv420_to_nv12_open(struct frame_info *dst, struct frame_info *src);
 
 static int dce;
-static int v4l2_cur_buffer_id;
 static int v4l2_draw_buffer_id;
 
 static int preinit(const char *arg) {
@@ -131,8 +134,7 @@ static int preinit(const char *arg) {
 	}
 
 	dce = 0;
-	v4l2_cur_buffer_id = 0;
-	v4l2_draw_buffer_id = 0;
+	v4l2_draw_buffer_id = -1;
 	v4l2_num_buffers = 0;
 
 	return 0;
@@ -147,17 +149,20 @@ static int config(uint32_t width, uint32_t height, uint32_t d_width, uint32_t d_
 	stream_on_off = V4L2_BUF_TYPE_VIDEO_OUTPUT;
 	ioctl(v4l2_handle, VIDIOC_STREAMOFF, &stream_on_off);
 
-	if (format == IMGFMT_NV12) {
+	switch (format) {
+	case IMGFMT_NV12:
 		dce = 1;
-	} else if (format == IMGFMT_YV12) {
+		break;
+	case IMGFMT_YV12:
 		dce = 0;
-	} else {
+		break;
+	default:
 		mp_msg(MSGT_VO, MSGL_FATAL, "[omap4_v4l2] Error wrong pixel format at config()\n");
 		return -1;
 	}
 
-	yuv420_frame_info.w = ALIGN(width, 32);
-	yuv420_frame_info.h = ALIGN(height, 32);
+	yuv420_frame_info.w = ALIGN2(width, 4);
+	yuv420_frame_info.h = ALIGN2(height, 4);
 	yuv420_frame_info.dx = 0;
 	yuv420_frame_info.dy = 0;
 	yuv420_frame_info.dw = width;
@@ -183,12 +188,12 @@ static int config(uint32_t width, uint32_t height, uint32_t d_width, uint32_t d_
 	v4l2_vout_format.type = V4L2_BUF_TYPE_VIDEO_OUTPUT;
 	if (dce) {
 		v4l2_num_buffers = 30;
-		v4l2_vout_format.fmt.pix.width = ALIGN(width + 64, 128);
-		v4l2_vout_format.fmt.pix.height = ALIGN(height + 96, 16);
+		v4l2_vout_format.fmt.pix.width = ALIGN2(yuv420_frame_info.w + (32 * 2), 7);
+		v4l2_vout_format.fmt.pix.height = yuv420_frame_info.h + 4 * 24;
 	} else {
-		v4l2_num_buffers = 2;
-		v4l2_vout_format.fmt.pix.width = ALIGN(width, 32);
-		v4l2_vout_format.fmt.pix.height = ALIGN(height, 32);
+		v4l2_num_buffers = 3;
+		v4l2_vout_format.fmt.pix.width = ALIGN2(width, 4);
+		v4l2_vout_format.fmt.pix.height = ALIGN2(height, 4);
 	}
 	v4l2_vout_format.fmt.pix.pixelformat = V4L2_PIX_FMT_NV12;
 	v4l2_vout_format.fmt.pix.field = V4L2_FIELD_NONE;
@@ -255,14 +260,19 @@ static int config(uint32_t width, uint32_t height, uint32_t d_width, uint32_t d_
 				goto error;
 			}
 		}
+		v4l2_buffers[i].used = false;
+		v4l2_buffers[i].to_free = 0;
+		v4l2_buffers[i].locked = false;
 	}
 
 	if (dce) {
 		for (i = 0; i < 2; i++) {
-			if (ioctl(v4l2_handle, VIDIOC_QBUF, &v4l2_buffers[v4l2_cur_buffer_id++].buffer) == -1) {
+			if (ioctl(v4l2_handle, VIDIOC_QBUF, &v4l2_buffers[i].buffer) == -1) {
 				mp_msg(MSGT_VO, MSGL_FATAL, "[omap4_v4l2] Error queue buffer (VIDIOC_QBUF)\n");
 				goto error;
 			}
+			v4l2_buffers[i].used = true;
+			v4l2_buffers[i].locked = true;
 		}
 	}
 
@@ -335,17 +345,40 @@ static int draw_slice(uint8_t *src[], int stride[], int w, int h, int x, int y) 
 }
 
 static uint32_t get_image(mp_image_t *mpi) {
+	int i, buffer_id;
+
 	if (!dce) {
 		mp_msg(MSGT_VO, MSGL_FATAL, "[omap4_v4l2] Error: get_image() only for hardware decoding\n");
 		return VO_NOTIMPL;
 	}
 	if ((mpi->type == MP_IMGTYPE_TEMP) && (mpi->flags & MP_IMGFLAG_ACCEPT_STRIDE)) {
+		buffer_id = -1;
+		for (i = 0; i < v4l2_num_buffers; i++) {
+			if (!v4l2_buffers[i].used) {
+				buffer_id = i;
+				break;
+			}
+		}
+		if (buffer_id == -1) {
+			mp_msg(MSGT_VO, MSGL_FATAL, "[omap4_v4l2] Error: no free buffer\n");
+			exit_player(EXIT_QUIT);
+		}
+		for (i = 0; i < v4l2_num_buffers; i++) {
+			if (v4l2_buffers[i].to_free && !v4l2_buffers[i].locked) {
+				if (v4l2_buffers[i].to_free++ < 3)
+					continue;
+				v4l2_buffers[i].used = false;
+				v4l2_buffers[i].to_free = 0;
+				v4l2_buffers[i].locked = false;
+			}
+		}
+		v4l2_buffers[buffer_id].used = true;
+		v4l2_buffers[buffer_id].to_free = 0;
+		v4l2_buffers[buffer_id].locked = false;
 		mpi->x = v4l2_vout_crop.c.left;
 		mpi->y = v4l2_vout_crop.c.top;
-		mpi->priv = &v4l2_buffers[v4l2_cur_buffer_id];
+		mpi->priv = &v4l2_buffers[buffer_id];
 		mpi->flags |= MP_IMGFLAG_DIRECT | MP_IMGFLAG_DRAW_CALLBACK;
-		if (++v4l2_cur_buffer_id >= v4l2_num_buffers)
-			v4l2_cur_buffer_id = 0;
 		return VO_TRUE;
 	} else {
 		mp_msg(MSGT_VO, MSGL_FATAL, "[omap4_v4l2] Error: get_image() only for MP_IMGTYPE_TEMP and MP_IMGFLAG_ACCEPT_STRIDE\n");
@@ -374,10 +407,30 @@ static uint32_t put_image(mp_image_t *mpi) {
 static void flip_page(void) {
 	if (dce) {
 		ioctl(v4l2_handle, VIDIOC_QBUF, &v4l2_buffers[v4l2_draw_buffer_id].buffer);
+		v4l2_buffers[v4l2_draw_buffer_id].locked = true;
 		ioctl(v4l2_handle, VIDIOC_DQBUF, &tmp_v4l2_buffer);
+		v4l2_buffers[tmp_v4l2_buffer.index].locked = false;
 	} else {
 		ioctl(v4l2_handle, VIDIOC_QBUF, &v4l2_buffers[tmp_v4l2_buffer.index].buffer);
 	}
+}
+
+int omap4_v4l2_reset_buffers(void) {
+	int i;
+
+	if (!dce) {
+		mp_msg(MSGT_VO, MSGL_FATAL, "[omap4_v4l2] Error: reset_buffers() only for hardware decoding\n");
+		return VO_FALSE;
+	}
+
+	for (i = 0; i < v4l2_num_buffers; i++) {
+		if (v4l2_buffers[i].used && !v4l2_buffers[i].locked) {
+			v4l2_buffers[i].used = false;
+			v4l2_buffers[i].to_free = 0;
+		}
+	}
+
+	return VO_TRUE;
 }
 
 static int query_format(uint32_t format) {

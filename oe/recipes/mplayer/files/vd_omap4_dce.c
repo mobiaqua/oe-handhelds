@@ -47,6 +47,7 @@
 
 #include "vd_internal.h"
 #include "dec_video.h"
+#include "../mp_core.h"
 #include "../libmpdemux/parse_es.h"
 #include "../libvo/video_out.h"
 #include "../ffmpeg/libavcodec/avcodec.h"
@@ -76,19 +77,22 @@ static uint8_t *input_buf;
 static uint32_t input_phys;
 static int input_size;
 
-static int frame;
-
+static int frame_id;
 static int frame_width, frame_height;
 
 struct v4l2_buf {
 	struct v4l2_buffer buffer;
 	unsigned char *plane[3];
 	unsigned char *plane_p[3];
+	int used;
+	int to_free;
+	int locked;
 };
 
-#define ALIGN(value, align) (((value) + ((align) - 1)) & ~((align) - 1))
+#define ALIGN2(value, align) (((value) + ((1 << (align)) - 1)) & ~((1 << (align)) - 1))
 
 void codec_engine_close(void);
+int omap4_v4l2_reset_buffers(void);
 
 static int control(sh_video_t *sh, int cmd, void *arg, ...) {
 	switch (cmd) {
@@ -116,6 +120,8 @@ static int control(sh_video_t *sh, int cmd, void *arg, ...) {
 				codec_error = VIDDEC3_process(codec_handle, codec_input_buffers, codec_output_buffers,
 							codec_input_args , codec_output_args);
 			} while (codec_error != XDM_EFAIL);
+			if (omap4_v4l2_reset_buffers() != VO_TRUE)
+				return CONTROL_ERROR;
 			return CONTROL_OK;
 		}
 		case VDCTRL_QUERY_UNSEEN_FRAMES:
@@ -165,8 +171,8 @@ static int init(sh_video_t *sh) {
 	}
 //	mp_msg(MSGT_DECVIDEO, MSGL_INFO, "[vd_omap4_dce] codec id: %08x, tag: '%04s' ------\n", sh->format, &sh->format);
 
-	frame_width = ALIGN(sh->disp_w + 64, 128);
-	frame_height = ALIGN(sh->disp_h + 96, 16);
+	frame_width = ALIGN2(sh->disp_w, 4);
+	frame_height = ALIGN2(sh->disp_h, 4);
 
 	codec_engine = Engine_open("ivahd_vidsvr", NULL, NULL);
 	if (!codec_engine) {
@@ -198,8 +204,8 @@ static int init(sh_video_t *sh) {
 		goto fail;
 	}
 
-	codec_params->maxWidth = ALIGN(sh->disp_w, 16);
-	codec_params->maxHeight = ALIGN(sh->disp_h, 16);
+	codec_params->maxWidth = frame_width;
+	codec_params->maxHeight = frame_height;
 	codec_params->maxFrameRate = 30000;
 	codec_params->maxBitRate = 10000000;
 	codec_params->dataEndianness = XDM_BYTE;
@@ -218,6 +224,8 @@ static int init(sh_video_t *sh) {
 
 	switch (codec_id) {
 	case CODEC_ID_H264:
+		frame_width = ALIGN2(frame_width + (32 * 2), 7);
+		frame_height = frame_height + 4 * 24;
 		codec_params->size = sizeof(IH264VDEC_Params);
 		((IH264VDEC_Params *)codec_params)->maxNumRefFrames = IH264VDEC_DPB_NUMFRAMES_AUTO;
 		((IH264VDEC_Params *)codec_params)->pConstantMemory = 0;
@@ -305,7 +313,7 @@ static int init(sh_video_t *sh) {
 	}
 
 	vo_directrendering = 1;
-	frame = -1;
+	frame_id = -1;
 
 	return mpcodecs_config_vo(sh, sh->disp_w, sh->disp_h, sh->format);
 fail:
@@ -364,6 +372,7 @@ static mp_image_t *decode(sh_video_t *sh, void *data, int len, int flags) {
 	MemAllocBlock mablk = { 0 };
 	mp_image_t *mpi;
 	XDM_Rect *r;
+	int i;
 
 	if (len <= 0)
 		return NULL; // skipped frame
@@ -375,7 +384,7 @@ static mp_image_t *decode(sh_video_t *sh, void *data, int len, int flags) {
 			return NULL;
 		}
 
-		size = ALIGN(size * 5 / 4, 8192);
+		size = ALIGN2(size * 5 / 4, 13);
 		mablk.pixelFormat = PIXEL_FMT_PAGE;
 		mablk.dim.len = size;
 
@@ -417,17 +426,18 @@ static mp_image_t *decode(sh_video_t *sh, void *data, int len, int flags) {
 	codec_output_buffers->descs[1].buf = (int8_t *)((struct v4l2_buf *)mpi->priv)->plane_p[1];
 	codec_output_buffers->descs[1].bufSize.bytes = (frame_width * frame_height) / 2;
 
-	frame++;
+	frame_id++;
 	codec_error = VIDDEC3_process(codec_handle, codec_input_buffers, codec_output_buffers, codec_input_args, codec_output_args);
 	if (codec_error != VIDDEC3_EOK) {
 		mp_msg(MSGT_DECVIDEO, MSGL_ERR, "[vd_omap4_dce] Error: VIDDEC3_process() status: %d, extendedError: %08x, frame: %d\n",
-				codec_error, codec_output_args->extendedError, frame);
-		codec_error = VIDDEC3_control(codec_handle, XDM_GETSTATUS, codec_dynamic_params, codec_status);
-		mp_msg(MSGT_DECVIDEO, MSGL_ERR, "[vd_omap4_dce] VIDDEC3_control(XDM_GETSTATUS) status: %d, extendedError: %08x\n",
-				codec_error, codec_status->extendedError);
+				codec_error, codec_output_args->extendedError, frame_id);
 		if (XDM_ISFATALERROR(codec_output_args->extendedError)) {
-			return NULL;
+			exit_player(EXIT_QUIT);
 		}
+	}
+
+	for (i = 0; codec_output_args->freeBufID[i]; i++) {
+		((struct v4l2_buf *)codec_output_args->freeBufID[i])->to_free = 1;
 	}
 
 	if (codec_output_args->outputID[0]) {
