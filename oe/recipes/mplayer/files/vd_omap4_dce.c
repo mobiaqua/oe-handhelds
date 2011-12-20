@@ -148,15 +148,16 @@ static int init(sh_video_t *sh) {
 	case mmioFOURCC('m','p','g','2'):
 	case mmioFOURCC('M','P','G','2'):
 	case mmioFOURCC('M','7','0','1'):
-		codec_id = CODEC_ID_MPEG2VIDEO; // not working - fatal error
+		codec_id = CODEC_ID_MPEG2VIDEO;
 		break;
 	case 0x10000001:
+	case 0x00000001:
 	case mmioFOURCC('m','p','g','1'):
 	case mmioFOURCC('M','P','G','1'):
-		codec_id = CODEC_ID_MPEG1VIDEO; // not working - fatal error
+		codec_id = CODEC_ID_MPEG1VIDEO;
 		break;
 	case mmioFOURCC('W','V','C','1'):
-		codec_id = CODEC_ID_VC1; // not working - fatal error
+		codec_id = CODEC_ID_VC1;
 		break;
 	case mmioFOURCC('W','M','V','3'):
 		codec_id = CODEC_ID_WMV3; // not working - fatal error
@@ -186,6 +187,7 @@ static int init(sh_video_t *sh) {
 	case CODEC_ID_MPEG4:
 		codec_params = dce_alloc(sizeof(IMPEG4VDEC_Params));
 		break;
+	case CODEC_ID_MPEG1VIDEO:
 	case CODEC_ID_MPEG2VIDEO:
 		codec_params = dce_alloc(sizeof(IMPEG2VDEC_Params));
 		break;
@@ -235,6 +237,8 @@ static int init(sh_video_t *sh) {
 		mp_msg(MSGT_DECVIDEO, MSGL_INFO, "[vd_omap4_dce] using ivahd_h264dec\n");
 		break;
 	case CODEC_ID_MPEG4:
+		frame_width = ALIGN2(frame_width + 32, 7);
+		frame_height = frame_height + 32;
 		codec_params->size = sizeof(IMPEG4VDEC_Params);
 		((IMPEG4VDEC_Params *)codec_params)->outloopDeBlocking = TRUE;
 		((IMPEG4VDEC_Params *)codec_params)->sorensonSparkStream = FALSE;
@@ -244,12 +248,17 @@ static int init(sh_video_t *sh) {
 		break;
 	case CODEC_ID_MPEG1VIDEO:
 	case CODEC_ID_MPEG2VIDEO:
+		frame_width = frame_width;
+		frame_height = frame_height;
 		codec_params->size = sizeof(IMPEG2VDEC_Params);
+		codec_params->displayDelay = IVIDDEC3_DISPLAY_DELAY_1;
 		codec_handle = VIDDEC3_create(codec_engine, "ivahd_mpeg2vdec", codec_params);
 		mp_msg(MSGT_DECVIDEO, MSGL_INFO, "[vd_omap4_dce] using ivahd_mpeg2vdec\n");
 		break;
 	case CODEC_ID_WMV3:
 	case CODEC_ID_VC1:
+		frame_width = ALIGN2(frame_width + (32 * 2), 7);
+		frame_height = (ALIGN2(frame_height / 2, 4) * 2) + 2 * 40;
 		codec_params->size = sizeof(IVC1VDEC_Params);
 		codec_params->maxBitRate = 45000000;
 		((IVC1VDEC_Params *)codec_params)->FrameLayerDataPresentFlag = FALSE;

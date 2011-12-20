@@ -137,6 +137,8 @@ static int config(uint32_t width, uint32_t height, uint32_t d_width, uint32_t d_
 	struct v4l2_requestbuffers request_buf;
 	unsigned char *ptr_mmap;
 	struct v4l2_format overlay_format = { 0 };
+	int codec_id = omap4_dce_priv_t.codec_id; // FIXME: hack
+	int frame_width, frame_height;
 
 	stream_on_off = V4L2_BUF_TYPE_VIDEO_OUTPUT;
 	ioctl(v4l2_handle, VIDIOC_STREAMOFF, &stream_on_off);
@@ -153,8 +155,11 @@ static int config(uint32_t width, uint32_t height, uint32_t d_width, uint32_t d_
 		return -1;
 	}
 
-	yuv420_frame_info.w = ALIGN2(width, 4);
-	yuv420_frame_info.h = ALIGN2(height, 4);
+	frame_width = ALIGN2(width, 4);
+	frame_height = ALIGN2(height, 4);
+
+	yuv420_frame_info.w = frame_width;
+	yuv420_frame_info.h = frame_height;
 	yuv420_frame_info.dx = 0;
 	yuv420_frame_info.dy = 0;
 	yuv420_frame_info.dw = width;
@@ -180,12 +185,33 @@ static int config(uint32_t width, uint32_t height, uint32_t d_width, uint32_t d_
 	v4l2_vout_format.type = V4L2_BUF_TYPE_VIDEO_OUTPUT;
 	if (dce) {
 		v4l2_num_buffers = 30;
-		v4l2_vout_format.fmt.pix.width = ALIGN2(yuv420_frame_info.w + (32 * 2), 7);
-		v4l2_vout_format.fmt.pix.height = yuv420_frame_info.h + 4 * 24;
+		switch (codec_id) {
+		case CODEC_ID_H264:
+			v4l2_vout_format.fmt.pix.width = ALIGN2(frame_width + (32 * 2), 7);
+			v4l2_vout_format.fmt.pix.height = frame_height + 4 * 24;
+			break;
+		case CODEC_ID_MPEG4:
+			v4l2_vout_format.fmt.pix.width = ALIGN2(frame_width + 32, 7);
+			v4l2_vout_format.fmt.pix.height = frame_height + 32;
+			break;
+		case CODEC_ID_MPEG1VIDEO:
+		case CODEC_ID_MPEG2VIDEO:
+			v4l2_vout_format.fmt.pix.width = frame_width;
+			v4l2_vout_format.fmt.pix.height = frame_height;
+			break;
+		case CODEC_ID_WMV3:
+		case CODEC_ID_VC1:
+			v4l2_vout_format.fmt.pix.width = ALIGN2(frame_width + (32 * 2), 7);
+			v4l2_vout_format.fmt.pix.height = (ALIGN2(frame_height / 2, 4) * 2) + 2 * 40;
+			break;
+		default:
+			mp_msg(MSGT_VO, MSGL_FATAL, "[omap4_v4l2] Unsupported codec %08x\n", codec_id);
+			return -1;
+		}
 	} else {
 		v4l2_num_buffers = 3;
-		v4l2_vout_format.fmt.pix.width = ALIGN2(width, 4);
-		v4l2_vout_format.fmt.pix.height = ALIGN2(height, 4);
+		v4l2_vout_format.fmt.pix.width = frame_width;
+		v4l2_vout_format.fmt.pix.height = frame_height;
 	}
 	v4l2_vout_format.fmt.pix.pixelformat = V4L2_PIX_FMT_NV12;
 	v4l2_vout_format.fmt.pix.field = V4L2_FIELD_NONE;
