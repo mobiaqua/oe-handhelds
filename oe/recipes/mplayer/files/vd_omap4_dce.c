@@ -248,8 +248,6 @@ static int init(sh_video_t *sh) {
 		break;
 	case CODEC_ID_MPEG1VIDEO:
 	case CODEC_ID_MPEG2VIDEO:
-		frame_width = frame_width;
-		frame_height = frame_height;
 		codec_params->size = sizeof(IMPEG2VDEC_Params);
 		codec_params->displayDelay = IVIDDEC3_DISPLAY_DELAY_1;
 		codec_handle = VIDDEC3_create(codec_engine, "ivahd_mpeg2vdec", codec_params);

@@ -21,6 +21,7 @@ SRC_URI_append_armv7a = " \
 	file://omapfb.patch \
 	file://omap4.patch \
 	file://fix_h264.patch \
+	file://fix_wmv3.patch \
 	file://vo_omapfb.c \
 	file://vo_omap4_v4l2.c \
 	file://vd_omap4_dce.c \
