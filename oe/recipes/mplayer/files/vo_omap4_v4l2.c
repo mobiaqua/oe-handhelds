@@ -308,8 +308,17 @@ static int config(uint32_t width, uint32_t height, uint32_t d_width, uint32_t d_
 
 	overlay_format.type = V4L2_BUF_TYPE_VIDEO_OVERLAY;
 	overlay_format.fmt.win.w.left = v4l2_frame_info.dx;
-	overlay_format.fmt.win.w.top = v4l2_frame_info.dy;
 	overlay_format.fmt.win.w.width = v4l2_frame_info.dw;
+
+	// hack for anistropic mpeg2 files: DVD 720x576
+	if (codec_id == CODEC_ID_MPEG2VIDEO && width == 720 && height == 576) {
+		overlay_format.fmt.win.w.left = 0;
+		overlay_format.fmt.win.w.width = v4l2_frame_info.w;
+	} else {
+		overlay_format.fmt.win.w.left = v4l2_frame_info.dx;
+		overlay_format.fmt.win.w.width = v4l2_frame_info.dw;
+	}
+	overlay_format.fmt.win.w.top = v4l2_frame_info.dy;
 	overlay_format.fmt.win.w.height = v4l2_frame_info.dh;
 	overlay_format.fmt.win.field = V4L2_FIELD_NONE;
 	overlay_format.fmt.win.global_alpha = 255;
