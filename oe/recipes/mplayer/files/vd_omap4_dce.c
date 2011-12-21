@@ -176,7 +176,8 @@ static int init(sh_video_t *sh) {
 		codec_id = CODEC_ID_WMV3;
 		break;
 	default:
-		mp_msg(MSGT_DECVIDEO, MSGL_ERR, "[vd_omap4_dce] ------ Unsupported codec id: %08x, tag: '%4s' ------\n", sh->format, &sh->format);
+		mp_msg(MSGT_DECVIDEO, MSGL_ERR, "[vd_omap4_dce] ------ Unsupported codec id: %08x, tag: '%4s' ------\n",
+				sh->format, (char *)&sh->format);
 		return 0;
 	}
 
