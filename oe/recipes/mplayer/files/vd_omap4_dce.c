@@ -1,6 +1,6 @@
 /*
  * OMAP 4 ducati hardware decoding for following video codecs:
- * h264, h263, MPEG4, DivX 4/5, XviD, 3ivx, MPEG1, MPEG2, WMV9, VC-1
+ * h264, MPEG4, DivX 5, XviD, MPEG1, MPEG2, WMV9, VC-1
  *
  * Copyright (C) 2011 Pawel Kolodziejski <aquadran at users.sourceforge.net>
  *
@@ -176,7 +176,7 @@ static int init(sh_video_t *sh) {
 		codec_id = CODEC_ID_WMV3;
 		break;
 	default:
-		mp_msg(MSGT_DECVIDEO, MSGL_ERR, "[vd_omap4_dce] ------ Unsupported codec id: %08x, tag: '%04s' ------\n", sh->format, &sh->format);
+		mp_msg(MSGT_DECVIDEO, MSGL_ERR, "[vd_omap4_dce] ------ Unsupported codec id: %08x, tag: '%4s' ------\n", sh->format, &sh->format);
 		return 0;
 	}
 
