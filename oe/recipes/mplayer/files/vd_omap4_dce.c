@@ -140,17 +140,11 @@ static int init(sh_video_t *sh) {
 	case mmioFOURCC('x','2','6','4'):
 	case mmioFOURCC('A','V','C','1'):
 	case mmioFOURCC('a','v','c','1'):
-	case mmioFOURCC('D','A','V','C'): // working ?
-	case mmioFOURCC('d','a','v','c'): // working ?
 		codec_id = CODEC_ID_H264;
 		break;
 	case 0x10000004:
 	case mmioFOURCC('F','M','P','4'):
 	case mmioFOURCC('f','m','p','4'):
-	case mmioFOURCC('M','P','3','S'): // working ?
-	case mmioFOURCC('m','p','3','s'): // working ?
-	case mmioFOURCC('M','4','S','2'): // working ?
-	case mmioFOURCC('m','4','s','2'): // working ?
 	case mmioFOURCC('X','V','I','D'):
 	case mmioFOURCC('D','X','5','0'):
 	case mmioFOURCC('D','X','G','M'):
@@ -176,7 +170,7 @@ static int init(sh_video_t *sh) {
 	case mmioFOURCC('w','v','c','1'):
 	case mmioFOURCC('V','C','-','1'):
 	case mmioFOURCC('v','c','-','1'):
-	case mmioFOURCC('W','M','V','A'):// WMVA working ???
+	case mmioFOURCC('W','M','V','A'):
 		codec_id = CODEC_ID_VC1;
 		break;
 	case mmioFOURCC('W','M','V','3'):
@@ -293,15 +287,7 @@ static int init(sh_video_t *sh) {
 		goto fail;
 	}
 
-	switch (codec_id) {
-	case CODEC_ID_MPEG1VIDEO:
-	case CODEC_ID_MPEG2VIDEO:
-		codec_status = dce_alloc(sizeof(IMPEG2VDEC_Status));
-		break;
-	default:
-		codec_status = dce_alloc(sizeof(VIDDEC3_Status));
-	}
-
+	codec_status = dce_alloc(sizeof(VIDDEC3_Status));
 	codec_dynamic_params = dce_alloc(sizeof(VIDDEC3_DynamicParams));
 	codec_input_buffers = dce_alloc(sizeof(XDM2_BufDesc));
 	codec_output_buffers = dce_alloc(sizeof(XDM2_BufDesc));
