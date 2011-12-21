@@ -170,7 +170,6 @@ static int init(sh_video_t *sh) {
 	case mmioFOURCC('w','v','c','1'):
 	case mmioFOURCC('V','C','-','1'):
 	case mmioFOURCC('v','c','-','1'):
-	case mmioFOURCC('W','M','V','A'):
 		codec_id = CODEC_ID_VC1;
 		break;
 	case mmioFOURCC('W','M','V','3'):
