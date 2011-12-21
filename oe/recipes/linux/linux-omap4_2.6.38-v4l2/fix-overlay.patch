@@ -1,0 +1,16 @@
+diff -ur old/drivers/media/video/omap/omap_vout.c new/drivers/media/video/omap/omap_vout.c
+--- old/drivers/media/video/omap/omap_vout.c	2011-12-21 14:54:24.000000000 +0100
++++ new/drivers/media/video/omap/omap_vout.c	2011-12-21 14:46:16.000000000 +0100
+@@ -1188,6 +1188,12 @@
+ 			win->global_alpha = f->fmt.win.global_alpha;
+ 	}
+ 
++	/* Save the changes in the overlay strcuture */
++	ret = omapvid_init(vout, 0, 0);
++	if (ret) {
++		v4l2_err(&vout->vid_dev->v4l2_dev, "failed to change mode\n");
++	}
++
+ 	return ret;
+ }
+ 

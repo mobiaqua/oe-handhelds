@@ -455,6 +455,15 @@ static mp_image_t *decode(sh_video_t *sh, void *data, int len, int flags) {
 		r = &codec_output_args->displayBufs.bufDesc[0].activeFrameRegion;
 		mpi->x = r->topLeft.x;
 		mpi->y = r->topLeft.y;
+		mpi->width = r->bottomRight.x - r->topLeft.x;
+		mpi->height = r->bottomRight.y - r->topLeft.y;
+		if (codec_output_args->displayBufs.bufDesc[0].contentType == IVIDEO_INTERLACED) {
+			mpi->height = (r->bottomRight.y - r->topLeft.y) / 2;
+			((struct v4l2_buf *)mpi->priv)->interlaced = true;
+		} else {
+			mpi->height = r->bottomRight.y - r->topLeft.y;
+			((struct v4l2_buf *)mpi->priv)->interlaced = false;
+		}
 		return mpi;
 	}
 

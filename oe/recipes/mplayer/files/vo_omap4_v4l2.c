@@ -62,6 +62,8 @@ static struct v4l2_buffer tmp_v4l2_buffer;
 
 static struct v4l2_buf *v4l2_buffers = NULL;
 
+static struct v4l2_format overlay_format = { 0 };
+
 static struct frame_info {
 	unsigned int w;
 	unsigned int h;
@@ -80,6 +82,7 @@ static int omap4_v4l2_reset_buffers(void);
 
 static int dce;
 static int v4l2_draw_buffer_id;
+static int interlaced_applied;
 
 static int preinit(const char *arg) {
 	int fb_handle;
@@ -136,7 +139,6 @@ static int config(uint32_t width, uint32_t height, uint32_t d_width, uint32_t d_
 	int i, k, stream_on_off;
 	struct v4l2_requestbuffers request_buf;
 	unsigned char *ptr_mmap;
-	struct v4l2_format overlay_format = { 0 };
 	int codec_id = omap4_dce_priv_t.codec_id; // FIXME: hack
 	int frame_width, frame_height;
 
@@ -328,6 +330,8 @@ static int config(uint32_t width, uint32_t height, uint32_t d_width, uint32_t d_
 	// FIXME: no way for now how to access to sh handle
 	omap4_dce_priv_t.reset_buffers = omap4_v4l2_reset_buffers;
 
+	interlaced_applied = false;
+
 	return 0;
 error:
 	free(v4l2_buffers);
@@ -396,8 +400,6 @@ static uint32_t get_image(mp_image_t *mpi) {
 		v4l2_buffers[buffer_id].used = true;
 		v4l2_buffers[buffer_id].to_free = 0;
 		v4l2_buffers[buffer_id].locked = false;
-		mpi->x = v4l2_vout_crop.c.left;
-		mpi->y = v4l2_vout_crop.c.top;
 		mpi->priv = &v4l2_buffers[buffer_id];
 		mpi->flags |= MP_IMGFLAG_DIRECT | MP_IMGFLAG_DRAW_CALLBACK;
 		return VO_TRUE;
@@ -412,11 +414,22 @@ static uint32_t put_image(mp_image_t *mpi) {
 		return VO_NOTIMPL;
 	}
 	if ((mpi->type == MP_IMGTYPE_TEMP) && (mpi->flags & MP_IMGFLAG_ACCEPT_STRIDE) && (mpi->flags && MP_IMGFLAG_DIRECT)) {
+		int force = false;
 		v4l2_draw_buffer_id = ((struct v4l2_buf *)mpi->priv)->buffer.index;
-		if (v4l2_vout_crop.c.left != mpi->x || v4l2_vout_crop.c.top != mpi->y) {
+		if (((struct v4l2_buf *)mpi->priv)->interlaced && !interlaced_applied)
+			force = true;
+		if (force || v4l2_vout_crop.c.left != mpi->x || v4l2_vout_crop.c.top != mpi->y ||
+				v4l2_vout_crop.c.width != mpi->width || v4l2_vout_crop.c.height != mpi->height) {
 			v4l2_vout_crop.c.left = mpi->x;
 			v4l2_vout_crop.c.top = mpi->y;
+			v4l2_vout_crop.c.width = mpi->width;
+			v4l2_vout_crop.c.height = mpi->height;
 			ioctl(v4l2_handle, VIDIOC_S_CROP, &v4l2_vout_crop);
+		}
+		if (((struct v4l2_buf *)mpi->priv)->interlaced && !interlaced_applied) {
+			overlay_format.fmt.win.w.height = v4l2_frame_info.dh;
+			ioctl(v4l2_handle, VIDIOC_S_FMT, &overlay_format);
+			interlaced_applied = true;
 		}
 		return VO_TRUE;
 	} else {

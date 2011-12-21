@@ -31,6 +31,7 @@ struct v4l2_buf {
 	int used;
 	int to_free;
 	int locked;
+	int interlaced;
 };
 
 struct omap4_dce_priv {

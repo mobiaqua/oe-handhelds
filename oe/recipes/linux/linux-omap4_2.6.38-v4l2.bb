@@ -32,6 +32,7 @@ SRC_URI = "git://github.com/robclark/kernel-omap4.git;protocol=git;branch=ti-oma
            file://fix-missing-include.patch \
            file://syslink-tiler.patch \
            file://hdmi-audio-8ch.patch \
+           file://fix-overlay.patch \
            file://defconfig"
 
 S = "${WORKDIR}/git"
