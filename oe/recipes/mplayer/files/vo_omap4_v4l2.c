@@ -432,7 +432,7 @@ static uint32_t put_image(mp_image_t *mpi) {
 			v4l2_vout_crop.c.left = mpi->x;
 			v4l2_vout_crop.c.top = mpi->y;
 			v4l2_vout_crop.c.width = mpi->width;
-			v4l2_vout_crop.c.height = mpi->height;
+			v4l2_vout_crop.c.height = mpi->height - 1; // FIXME/HACK: sacrifice one line to prevent green flickering
 			ioctl(v4l2_handle, VIDIOC_S_CROP, &v4l2_vout_crop);
 		}
 		if (((struct v4l2_buf *)mpi->priv)->interlaced && !interlaced_applied) {
