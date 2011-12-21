@@ -135,10 +135,22 @@ static int init(sh_video_t *sh) {
 	switch (sh->format) {
 	case 0x10000005:
 	case mmioFOURCC('H','2','6','4'):
+	case mmioFOURCC('h','2','6','4'):
+	case mmioFOURCC('X','2','6','4'):
+	case mmioFOURCC('x','2','6','4'):
+	case mmioFOURCC('A','V','C','1'):
+	case mmioFOURCC('a','v','c','1'):
+	case mmioFOURCC('D','A','V','C'): // working ?
+	case mmioFOURCC('d','a','v','c'): // working ?
 		codec_id = CODEC_ID_H264;
 		break;
 	case 0x10000004:
 	case mmioFOURCC('F','M','P','4'):
+	case mmioFOURCC('f','m','p','4'):
+	case mmioFOURCC('M','P','3','S'): // working ?
+	case mmioFOURCC('m','p','3','s'): // working ?
+	case mmioFOURCC('M','4','S','2'): // working ?
+	case mmioFOURCC('m','4','s','2'): // working ?
 	case mmioFOURCC('X','V','I','D'):
 	case mmioFOURCC('D','X','5','0'):
 	case mmioFOURCC('D','X','G','M'):
@@ -148,15 +160,23 @@ static int init(sh_video_t *sh) {
 	case mmioFOURCC('m','p','g','2'):
 	case mmioFOURCC('M','P','G','2'):
 	case mmioFOURCC('M','7','0','1'):
+	case mmioFOURCC('m','2','v','1'):
+	case mmioFOURCC('m','2','2','v'):
+	case mmioFOURCC('m','p','g','v'):
 		codec_id = CODEC_ID_MPEG2VIDEO;
 		break;
 	case 0x10000001:
 	case 0x00000001:
 	case mmioFOURCC('m','p','g','1'):
 	case mmioFOURCC('M','P','G','1'):
+	case mmioFOURCC('m','1','v','1'):
 		codec_id = CODEC_ID_MPEG1VIDEO;
 		break;
 	case mmioFOURCC('W','V','C','1'):
+	case mmioFOURCC('w','v','c','1'):
+	case mmioFOURCC('V','C','-','1'):
+	case mmioFOURCC('v','c','-','1'):
+	case mmioFOURCC('W','M','V','A'):// WMVA working ???
 		codec_id = CODEC_ID_VC1;
 		break;
 	case mmioFOURCC('W','M','V','3'):
