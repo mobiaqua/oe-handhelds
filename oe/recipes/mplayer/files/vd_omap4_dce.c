@@ -243,6 +243,8 @@ static int init(sh_video_t *sh) {
 		((IH264VDEC_Params *)codec_params)->maxNumRefFrames = IH264VDEC_DPB_NUMFRAMES_AUTO;
 		((IH264VDEC_Params *)codec_params)->pConstantMemory = 0;
 		((IH264VDEC_Params *)codec_params)->presetLevelIdc = IH264VDEC_LEVEL41;
+		if (sh->level > 41)
+			((IH264VDEC_Params *)codec_params)->presetLevelIdc = IH264VDEC_LEVEL51;
 		((IH264VDEC_Params *)codec_params)->errConcealmentMode = IH264VDEC_APPLY_CONCEALMENT;
 		((IH264VDEC_Params *)codec_params)->temporalDirModePred = TRUE;
 		codec_handle = VIDDEC3_create(codec_engine, "ivahd_h264dec", codec_params);
