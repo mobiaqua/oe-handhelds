@@ -472,7 +472,7 @@ static void decode_vol_header(void *data) {
 
 	time_increment_bits = (int)log2((double)(vop_tir - 1)) + 1;
 
-	mp_msg(MSGT_DECVIDEO, MSGL_INFO, "vop_tir=%d, time_increment_bits=%d\n", vop_tir, time_increment_bits);
+	mp_msg(MSGT_DECVIDEO, MSGL_DBG2, "vop_tir=%d, time_increment_bits=%d\n", vop_tir, time_increment_bits);
 
 	if (time_increment_bits < 1)
 		time_increment_bits = 1;
@@ -486,16 +486,16 @@ static void decode_user_data(void *data) {
 	if (n < 2)
 		n = sscanf(data, "DivX%db%d%c", &ver, &build, &c);
 	if (n >= 2) {
-		mp_msg(MSGT_DECVIDEO, MSGL_INFO, "DivX: version %d, build %d\n", ver, build);
+		mp_msg(MSGT_DECVIDEO, MSGL_DBG2, "DivX: version %d, build %d\n", ver, build);
 		if ((n == 3) && (c == 'p')) {
-			mp_msg(MSGT_DECVIDEO, MSGL_INFO, "detected packed B frames\n");
+			mp_msg(MSGT_DECVIDEO, MSGL_DBG2, "detected packed B frames\n");
 			ts_is_pts = true;
 		}
 	}
 
 	n = sscanf(data, "XviD%d", &build);
 	if (n == 1) {
-		mp_msg(MSGT_DECVIDEO, MSGL_INFO, "XviD: build %d\n", build);
+		mp_msg(MSGT_DECVIDEO, MSGL_DBG2, "XviD: build %d\n", build);
 		ts_is_pts = true;
 	}
 }
@@ -562,14 +562,14 @@ next_loop:
 			unsigned char start_code = in[SC_SZ];
 			int skip = false;
 
-			mp_msg(MSGT_DECVIDEO, MSGL_INFO, "start_code: %02x\n", start_code);
+			mp_msg(MSGT_DECVIDEO, MSGL_DBG2, "start_code: %02x\n", start_code);
 
 			if (size > 0) {
 				if ((start_code == VOS_START_CODE) || (start_code == GVOP_START_CODE) ||
 						(start_code == VOP_START_CODE) || (start_code <= 0x1f)) {
 					if (((last_start_code == 0xff) && (start_code == VOP_START_CODE)) ||
 							(last_start_code == VOP_START_CODE)) {
-						mp_msg(MSGT_DECVIDEO, MSGL_INFO, "found end\n");
+						mp_msg(MSGT_DECVIDEO, MSGL_DBG2, "found end\n");
 						break;
 					}
 				} else if ((0x20 <= start_code) && (start_code <= 0x2f)) {
@@ -584,7 +584,7 @@ next_loop:
 			if ((start_code == VOP_START_CODE) && (nal_size < 20)) {
 				skip = !is_vop_coded(in + SC_SZ + 1);
 				if (skip)
-					mp_msg(MSGT_DECVIDEO, MSGL_INFO, "skipping non-coded VOP\n");
+					mp_msg(MSGT_DECVIDEO, MSGL_DBG2, "skipping non-coded VOP\n");
 			} else if (start_code == UD_START_CODE) {
 				decode_user_data(in + SC_SZ + 1);
 			}
@@ -600,6 +600,7 @@ next_loop:
 		}
 		if (inbuf_size == 0)
 			return NULL;
+
 		offset += size;
 		len = inbuf_size;
 	} else {
