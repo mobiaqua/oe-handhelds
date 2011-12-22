@@ -598,6 +598,8 @@ next_loop:
 			insize -= nal_size;
 			size += nal_size;
 		}
+		if (inbuf_size == 0)
+			return NULL;
 		offset += size;
 		len = inbuf_size;
 	} else {
