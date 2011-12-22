@@ -443,23 +443,23 @@ static void decode_vol_header(void *data) {
 	offs += 1;
 	offs += 8;
 
-	is_oli = getbits(data, offs, 1);
+	is_oli = getbits(data, offs, 1); offs++;
 	if (is_oli) {
 		offs += 4;
 		offs += 3;
 	}
 
-	ar_info = getbits(data, offs, 4);
+	ar_info = getbits(data, offs, 4); offs += 4;
 	if (ar_info == 0xf) {
 		offs += 8;
 		offs += 8;
 	}
 
-	vc_param = getbits(data, offs, 1);
+	vc_param = getbits(data, offs, 1); offs++;
 	if (vc_param) {
 		offs += 2;
 		offs += 1;
-		vbv_param = mp_getbits(data, offs, 1);
+		vbv_param = mp_getbits(data, offs, 1); offs++;
 		if (vbv_param) {
 			offs += 79;
 		}
@@ -467,7 +467,7 @@ static void decode_vol_header(void *data) {
 
 	offs += 2;
 	offs += 1;
-	vop_tir = mp_getbits16(data, offs, 16);
+	vop_tir = mp_getbits16(data, offs, 16); offs += 16;
 	offs += 1;
 
 	time_increment_bits = (int)log2((double)(vop_tir - 1)) + 1;
@@ -507,13 +507,13 @@ static int is_vop_coded(void *data) {
 	offs += 2;
 
 	do {
-		b = getbits(data, offs, 1);
+		b = getbits(data, offs, 1); offs++;
 	} while (b != 0);
 
 	offs += 1;
 	offs += time_increment_bits;
 	offs += 1;
-	offs += 1;
+	b = getbits(data, offs, 1); offs++;
 
 	return b;
 }
