@@ -524,22 +524,22 @@ static mp_image_t *decode(sh_video_t *sh, void *data, int len, int flags) {
 	XDM_Rect *r;
 	int codec_id = omap4_dce_priv_t.codec_id;
 	unsigned char *in = data;
-	int i, offset = 0, insize = len, inbuf_size;
+	int i, offset = 0, insize = len, inbuf_size, size;
 	unsigned char last_start_code;
 
 	if (len <= 0)
 		return NULL; // skipped frame
 
 	if (!input_buf) {
-		int size = VIDEOBUFFER_SIZE + MP_INPUT_BUFFER_PADDING_SIZE;
-		if (len > size) {
+		int bufsize = VIDEOBUFFER_SIZE + MP_INPUT_BUFFER_PADDING_SIZE;
+		if (len > bufsize) {
 			mp_msg(MSGT_DECVIDEO, MSGL_ERR, "[vd_omap4_dce] Error: allocation buffer bigger than allowed\n");
 			return NULL;
 		}
 
-		size = ALIGN2(size * 5 / 4, 13);
+		size = ALIGN2(bufsize * 5 / 4, 13);
 		mablk.pixelFormat = PIXEL_FMT_PAGE;
-		mablk.dim.len = size;
+		mablk.dim.len = bufsize;
 
 		input_buf = MemMgr_Alloc(&mablk, 1);
 		if (!input_buf) {
@@ -548,12 +548,14 @@ static mp_image_t *decode(sh_video_t *sh, void *data, int len, int flags) {
 		}
 
 		input_phys = TilerMem_VirtToPhys(input_buf);
-		input_size = size;
+		input_size = bufsize;
 	}
 
 next_loop:
 	inbuf_size = 0;
 	last_start_code = 0xff;
+	size = 0;
+	in = data + offset;
 	if (codec_id == CODEC_ID_MPEG4) {
 		while (insize > (SC_SZ + 1)) {
 			int nal_size;
@@ -562,7 +564,7 @@ next_loop:
 
 			mp_msg(MSGT_DECVIDEO, MSGL_INFO, "start_code: %02x\n", start_code);
 
-			if (offset > 0) {
+			if (size > 0) {
 				if ((start_code == VOS_START_CODE) || (start_code == GVOP_START_CODE) ||
 						(start_code == VOP_START_CODE) || (start_code <= 0x1f)) {
 					if (((last_start_code == 0xff) && (start_code == VOP_START_CODE)) ||
@@ -594,8 +596,9 @@ next_loop:
 
 			in += nal_size;
 			insize -= nal_size;
-			offset += nal_size;
+			size += nal_size;
 		}
+		offset += size;
 		len = inbuf_size;
 	} else {
 		memcpy(input_buf, data, len);
