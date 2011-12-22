@@ -6,6 +6,9 @@
  *
  * Some parts inspired by omapfbplay code written by Mans Rullgard
  *
+ * Parse code for XviD/DivX5 B-frames:
+ * Copyright (C) 2011 Rob Clark <rob@ti.com>
+ *
  * This file is part of MPlayer.
  *
  * MPlayer is free software; you can redistribute it and/or modify
@@ -50,6 +53,7 @@
 #include "vd_omap4_dce.h"
 #include "../mp_core.h"
 #include "../libmpdemux/parse_es.h"
+#include "../libmpdemux/mpeg_hdr.h"
 #include "../libvo/video_out.h"
 #include "../ffmpeg/libavcodec/avcodec.h"
 
@@ -381,11 +385,147 @@ static void uninit(sh_video_t *sh) {
 	codec_engine_close();
 }
 
+#define VOS_START_CODE    0xb0
+#define VOS_END_CODE      0xb1
+#define UD_START_CODE     0xb2
+#define GVOP_START_CODE   0xb3
+#define VS_ERROR_CODE     0xb4
+#define VO_START_CODE     0xb5
+#define VOP_START_CODE    0xb6
+
+static const unsigned char sc[] = { 0x00, 0x00, 0x01 };
+#define SC_SZ             3
+static int time_increment_bits;
+static int ts_is_pts;
+
+static inline unsigned int mp_getbits16(unsigned char *buffer, unsigned int from, unsigned char len) {
+	if (len > 8)
+		return (mp_getbits(buffer, from, len - 8) << 8) | mp_getbits(buffer, from + len - 8, 8);
+	else
+		return mp_getbits(buffer, from, len);
+}
+
+#define getbits mp_getbits
+
+static int check_start_code(const unsigned char *sc, int scsize, const unsigned char *inbuf, int insize) {
+	if (insize < scsize)
+		return false;
+
+	while (scsize) {
+		if (*sc != *inbuf)
+			return false;
+		scsize--;
+		sc++;
+		inbuf++;
+	}
+
+	return true;
+}
+
+static int find_start_code(const unsigned char *sc, int scsize, const unsigned char *inbuf, int insize) {
+	int size = 0;
+
+	while (insize) {
+		if (check_start_code(sc, scsize, inbuf, insize))
+			break;
+		insize--;
+		size++;
+		inbuf++;
+	}
+
+	return size;
+}
+
+static void decode_vol_header(void *data) {
+	unsigned int is_oli = 0, vc_param = 0, vbv_param = 0, ar_info = 0, vop_tir = 0;
+	int offs = 0;
+
+	offs += 1;
+	offs += 8;
+
+	is_oli = getbits(data, offs, 1);
+	if (is_oli) {
+		offs += 4;
+		offs += 3;
+	}
+
+	ar_info = getbits(data, offs, 4);
+	if (ar_info == 0xf) {
+		offs += 8;
+		offs += 8;
+	}
+
+	vc_param = getbits(data, offs, 1);
+	if (vc_param) {
+		offs += 2;
+		offs += 1;
+		vbv_param = mp_getbits(data, offs, 1);
+		if (vbv_param) {
+			offs += 79;
+		}
+	}
+
+	offs += 2;
+	offs += 1;
+	vop_tir = mp_getbits16(data, offs, 16);
+	offs += 1;
+
+	time_increment_bits = (int)log2((double)(vop_tir - 1)) + 1;
+
+	mp_msg(MSGT_DECVIDEO, MSGL_INFO, "vop_tir=%d, time_increment_bits=%d\n", vop_tir, time_increment_bits);
+
+	if (time_increment_bits < 1)
+		time_increment_bits = 1;
+}
+
+static void decode_user_data(void *data) {
+	int n, ver, build;
+	char c;
+
+	n = sscanf(data, "DivX%dBuild%d%c", &ver, &build, &c);
+	if (n < 2)
+		n = sscanf(data, "DivX%db%d%c", &ver, &build, &c);
+	if (n >= 2) {
+		mp_msg(MSGT_DECVIDEO, MSGL_INFO, "DivX: version %d, build %d\n", ver, build);
+		if ((n == 3) && (c == 'p')) {
+			mp_msg(MSGT_DECVIDEO, MSGL_INFO, "detected packed B frames\n");
+			ts_is_pts = true;
+		}
+	}
+
+	n = sscanf(data, "XviD%d", &build);
+	if (n == 1) {
+		mp_msg(MSGT_DECVIDEO, MSGL_INFO, "XviD: build %d\n", build);
+		ts_is_pts = true;
+	}
+}
+
+static int is_vop_coded(void *data) {
+	int offs = 0;
+	int b = 0;
+
+	offs += 2;
+
+	do {
+		b = getbits(data, offs, 1);
+	} while (b != 0);
+
+	offs += 1;
+	offs += time_increment_bits;
+	offs += 1;
+	offs += 1;
+
+	return b;
+}
+
 static mp_image_t *decode(sh_video_t *sh, void *data, int len, int flags) {
 	MemAllocBlock mablk = { 0 };
 	mp_image_t *mpi;
 	XDM_Rect *r;
-	int i;
+	int codec_id = omap4_dce_priv_t.codec_id;
+	unsigned char *in = data;
+	int i, offset = 0, insize = len, inbuf_size;
+	unsigned char last_start_code;
 
 	if (len <= 0)
 		return NULL; // skipped frame
@@ -411,7 +551,55 @@ static mp_image_t *decode(sh_video_t *sh, void *data, int len, int flags) {
 		input_size = size;
 	}
 
-	memcpy(input_buf, data, len);
+next_loop:
+	inbuf_size = 0;
+	last_start_code = 0xff;
+	if (codec_id == CODEC_ID_MPEG4) {
+		while (insize > (SC_SZ + 1)) {
+			int nal_size;
+			unsigned char start_code = in[SC_SZ];
+			int skip = false;
+
+			mp_msg(MSGT_DECVIDEO, MSGL_INFO, "start_code: %02x\n", start_code);
+
+			if (offset > 0) {
+				if ((start_code == VOS_START_CODE) || (start_code == GVOP_START_CODE) ||
+						(start_code == VOP_START_CODE) || (start_code <= 0x1f)) {
+					if (((last_start_code == 0xff) && (start_code == VOP_START_CODE)) ||
+							(last_start_code == VOP_START_CODE)) {
+						mp_msg(MSGT_DECVIDEO, MSGL_INFO, "found end\n");
+						break;
+					}
+				} else if ((0x20 <= start_code) && (start_code <= 0x2f)) {
+					decode_vol_header(in + SC_SZ + 1);
+				}
+			}
+
+			last_start_code = start_code;
+
+			nal_size = SC_SZ + find_start_code(sc, SC_SZ, in + SC_SZ, insize - SC_SZ);
+
+			if ((start_code == VOP_START_CODE) && (nal_size < 20)) {
+				skip = !is_vop_coded(in + SC_SZ + 1);
+				if (skip)
+					mp_msg(MSGT_DECVIDEO, MSGL_INFO, "skipping non-coded VOP\n");
+			} else if (start_code == UD_START_CODE) {
+				decode_user_data(in + SC_SZ + 1);
+			}
+
+			if (!skip) {
+				memcpy(input_buf + inbuf_size, in, nal_size);
+				inbuf_size += nal_size;
+			}
+
+			in += nal_size;
+			insize -= nal_size;
+			offset += nal_size;
+		}
+		len = inbuf_size;
+	} else {
+		memcpy(input_buf, data, len);
+	}
 
 	mpi = mpcodecs_get_image(sh, MP_IMGTYPE_TEMP, MP_IMGFLAG_ACCEPT_STRIDE | MP_IMGFLAG_DIRECT, frame_width, frame_height);
 
@@ -467,6 +655,8 @@ static mp_image_t *decode(sh_video_t *sh, void *data, int len, int flags) {
 			mpi->height = r->bottomRight.y - r->topLeft.y;
 			((struct v4l2_buf *)mpi->priv)->interlaced = false;
 		}
+		if (codec_id == CODEC_ID_MPEG4 && insize > 0)
+			goto next_loop;
 		return mpi;
 	}
 
