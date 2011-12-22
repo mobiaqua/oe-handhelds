@@ -440,6 +440,9 @@ static uint32_t put_image(mp_image_t *mpi) {
 			ioctl(v4l2_handle, VIDIOC_S_FMT, &overlay_format);
 			interlaced_applied = true;
 		}
+		if (mpi->flags & 0x800000) { // special case to force flip
+			flip_page();
+		}
 		return VO_TRUE;
 	} else {
 		mp_msg(MSGT_VO, MSGL_FATAL, "[omap4_v4l2] Error: put_image() only for MP_IMGTYPE_TEMP and MP_IMGFLAG_ACCEPT_STRIDE | MP_IMGFLAG_DIRECT\n");

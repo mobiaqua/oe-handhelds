@@ -524,7 +524,7 @@ static mp_image_t *decode(sh_video_t *sh, void *data, int len, int flags) {
 	XDM_Rect *r;
 	int codec_id = omap4_dce_priv_t.codec_id;
 	unsigned char *in = data;
-	int i, offset = 0, insize = len, inbuf_size, size;
+	int i, offset = 0, insize = len, inbuf_size, size, looped = false;
 	unsigned char last_start_code;
 
 	if (len <= 0)
@@ -660,8 +660,16 @@ next_loop:
 			mpi->height = r->bottomRight.y - r->topLeft.y;
 			((struct v4l2_buf *)mpi->priv)->interlaced = false;
 		}
-		if (codec_id == CODEC_ID_MPEG4 && insize > 0)
+		if (codec_id == CODEC_ID_MPEG4 && insize > 0) {
+			mpi->flags |= 0x800000; // special case to force flip
+			filter_video(sh, mpi, sh->pts);
+			looped = true;
 			goto next_loop;
+		} else {
+			looped = false;
+		}
+		if (looped)
+			mpi = NULL;
 		return mpi;
 	}
 
