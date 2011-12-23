@@ -6,7 +6,7 @@
  *
  * Some parts inspired by omapfbplay code written by Mans Rullgard
  *
- * Parse code for XviD/DivX5 B-frames:
+ * Parse code for XviD/DivX5 Packed B-frames:
  * Copyright (C) 2011 Rob Clark <rob@ti.com>
  *
  * This file is part of MPlayer.
