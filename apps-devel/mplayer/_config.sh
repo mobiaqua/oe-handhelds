@@ -19,5 +19,5 @@
 	--enable-armv6 --enable-neon --extra-libs-mplayer="-lstdc++" \
 	--extra-cflags="-march=armv7-a -mtune=cortex-a9 -mfpu=neon -mfloat-abi=softfp -mno-thumb-interwork -mno-thumb $DCE_CFLAGS" \
 	--extra-libs="-lliveMedia -lBasicUsageEnvironment -lgroupsock -lUsageEnvironment -lstdc++ -lmpg123 $DCE_LIBS" \
-	--enable-debug=3 --disable-termcap \
-	--ar=$AR
+	--ar=$AR --disable-termcap \
+	--enable-debug=3
