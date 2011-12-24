@@ -39,6 +39,8 @@
 #include "aspect.h"
 #include "video_out.h"
 #include "video_out_internal.h"
+#include "sub/sub.h"
+#include "sub/eosd.h"
 #include "../mp_core.h"
 #include "../libmpcodecs/vd_omap4_dce.h"
 #include "libavcodec/avcodec.h"
@@ -53,16 +55,20 @@ static vo_info_t info = {
 LIBVO_EXTERN(omap4_v4l2)
 
 static struct fb_var_screeninfo display_info;
-static int v4l2_handle = -1;
-static struct v4l2_format v4l2_vout_format;
-static struct v4l2_crop v4l2_vout_crop;
-static int v4l2_num_buffers;
+static int v4l2_handle = -1, v4l2_handle2 = -1;
+static struct v4l2_format v4l2_vout_format, v4l2_vout_format2;
+static struct v4l2_crop v4l2_vout_crop, v4l2_vout_crop2;
+static int v4l2_num_buffers, v4l2_num_buffers2;
 static int v4l2_offset[3], v4l2_stride[3];
-static struct v4l2_buffer tmp_v4l2_buffer;
+static int v4l2_offset2[3], v4l2_stride2[3];
+static struct v4l2_buffer tmp_v4l2_buffer, tmp_v4l2_buffer2;
 
-static struct v4l2_buf *v4l2_buffers = NULL;
+static struct v4l2_buf *v4l2_buffers = NULL, *v4l2_buffers2 = NULL;
 
 static struct v4l2_format overlay_format = { 0 };
+static struct v4l2_format overlay_format2 = { 0 };
+
+static int osd_buffer_width, osd_buffer_height;
 
 static struct frame_info {
 	unsigned int w;
@@ -82,6 +88,7 @@ static int omap4_v4l2_reset_buffers(void);
 
 static int dce;
 static int v4l2_draw_buffer_id;
+static int v4l2_draw_buffer_id2;
 static int interlaced_applied;
 
 static int preinit(const char *arg) {
@@ -89,7 +96,7 @@ static int preinit(const char *arg) {
 	struct v4l2_capability v4l2_cap;
 	struct v4l2_fmtdesc v4l2_formatdesc;
 
-	fb_handle = open("/dev/fb0", O_RDONLY);
+	fb_handle = open("/dev/fb0", O_RDWR);
 	if (fb_handle == -1) {
 		mp_msg(MSGT_VO, MSGL_FATAL, "[omap4_v4l2] Error open /dev/fb0\n");
 		return -1;
@@ -99,6 +106,8 @@ static int preinit(const char *arg) {
 		return -1;
 	}
 	close(fb_handle);
+	osd_buffer_width = display_info.xres / 4;
+	osd_buffer_height = display_info.yres / 4;
 
 	v4l2_handle = open("/dev/video1", O_RDWR);
 	if (v4l2_handle == -1) {
@@ -106,7 +115,23 @@ static int preinit(const char *arg) {
 		return -1;
 	}
 
+	v4l2_handle2 = open("/dev/video2", O_RDWR);
+	if (v4l2_handle2 == -1) {
+		mp_msg(MSGT_VO, MSGL_FATAL, "[omap4_v4l2] Error open /dev/video2\n");
+		return -1;
+	}
+
 	if (ioctl(v4l2_handle, VIDIOC_QUERYCAP, &v4l2_cap) == -1) {
+		mp_msg(MSGT_VO, MSGL_FATAL, "[omap4_v4l2] Error query capabilities (VIDIOC_QUERYCAP)\n");
+		return -1;
+	}
+	v4l2_cap.capabilities &= (V4L2_CAP_STREAMING | V4L2_CAP_VIDEO_OUTPUT);
+	if (v4l2_cap.capabilities != (V4L2_CAP_STREAMING | V4L2_CAP_VIDEO_OUTPUT)) {
+		mp_msg(MSGT_VO, MSGL_FATAL, "[omap4_v4l2] Error V4L2 missing support for video streaming\n");
+		return -1;
+	}
+
+	if (ioctl(v4l2_handle2, VIDIOC_QUERYCAP, &v4l2_cap) == -1) {
 		mp_msg(MSGT_VO, MSGL_FATAL, "[omap4_v4l2] Error query capabilities (VIDIOC_QUERYCAP)\n");
 		return -1;
 	}
@@ -128,22 +153,37 @@ static int preinit(const char *arg) {
 		return -1;
 	}
 
+	v4l2_formatdesc.index = 0;
+	v4l2_formatdesc.type = V4L2_BUF_TYPE_VIDEO_OUTPUT;
+	while (!ioctl(v4l2_handle2, VIDIOC_ENUM_FMT, &v4l2_formatdesc)) {
+		if (v4l2_formatdesc.pixelformat == V4L2_PIX_FMT_RGB32)
+			break;
+		v4l2_formatdesc.index++;
+	}
+	if (v4l2_formatdesc.pixelformat != V4L2_PIX_FMT_RGB32) {
+		mp_msg(MSGT_VO, MSGL_FATAL, "[omap4_v4l2] Error V4L2 missing RGB32 format support\n");
+		return -1;
+	}
+
 	dce = 0;
 	v4l2_draw_buffer_id = -1;
+	v4l2_draw_buffer_id2 = -1;
 	v4l2_num_buffers = 0;
+	v4l2_num_buffers2 = 0;
 
 	return 0;
 }
 
 static int config(uint32_t width, uint32_t height, uint32_t d_width, uint32_t d_height, uint32_t flags, char *title, uint32_t format) {
 	int i, k, stream_on_off;
-	struct v4l2_requestbuffers request_buf;
+	struct v4l2_requestbuffers request_buf, request_buf2;
 	unsigned char *ptr_mmap;
 	int codec_id = omap4_dce_priv_t.codec_id; // FIXME: hack
 	int frame_width, frame_height;
 
 	stream_on_off = V4L2_BUF_TYPE_VIDEO_OUTPUT;
 	ioctl(v4l2_handle, VIDIOC_STREAMOFF, &stream_on_off);
+	ioctl(v4l2_handle2, VIDIOC_STREAMOFF, &stream_on_off);
 
 	switch (format) {
 	case IMGFMT_NV12:
@@ -185,6 +225,7 @@ static int config(uint32_t width, uint32_t height, uint32_t d_width, uint32_t d_
 	}
 
 	v4l2_vout_format.type = V4L2_BUF_TYPE_VIDEO_OUTPUT;
+	v4l2_vout_format2.type = V4L2_BUF_TYPE_VIDEO_OUTPUT;
 	if (dce) {
 		v4l2_num_buffers = 30;
 		switch (codec_id) {
@@ -215,9 +256,20 @@ static int config(uint32_t width, uint32_t height, uint32_t d_width, uint32_t d_
 		v4l2_vout_format.fmt.pix.width = ALIGN2(width, 5);
 		v4l2_vout_format.fmt.pix.height = ALIGN2(height, 5);
 	}
+	v4l2_num_buffers2 = 4;
+	v4l2_vout_format2.fmt.pix.width = osd_buffer_width;
+	v4l2_vout_format2.fmt.pix.height = osd_buffer_height;
+
 	v4l2_vout_format.fmt.pix.pixelformat = V4L2_PIX_FMT_NV12;
 	v4l2_vout_format.fmt.pix.field = V4L2_FIELD_NONE;
 	if (ioctl(v4l2_handle, VIDIOC_S_FMT, &v4l2_vout_format) == -1) {
+		mp_msg(MSGT_VO, MSGL_FATAL, "[omap4_v4l2] Error setup video format (VIDIOC_S_FMT)\n");
+		return -1;
+	}
+
+	v4l2_vout_format2.fmt.pix.pixelformat = V4L2_PIX_FMT_RGB32;
+	v4l2_vout_format2.fmt.pix.field = V4L2_FIELD_NONE;
+	if (ioctl(v4l2_handle2, VIDIOC_S_FMT, &v4l2_vout_format2) == -1) {
 		mp_msg(MSGT_VO, MSGL_FATAL, "[omap4_v4l2] Error setup video format (VIDIOC_S_FMT)\n");
 		return -1;
 	}
@@ -228,6 +280,13 @@ static int config(uint32_t width, uint32_t height, uint32_t d_width, uint32_t d_
 	v4l2_stride[1] = v4l2_vout_format.fmt.pix.bytesperline;
 	v4l2_offset[2] = 0;
 	v4l2_stride[2] = 0;
+
+	v4l2_offset2[0] = 0;
+	v4l2_stride2[0] = v4l2_vout_format2.fmt.pix.bytesperline;
+	v4l2_offset2[1] = 0;
+	v4l2_stride2[1] = 0;
+	v4l2_offset2[2] = 0;
+	v4l2_stride2[2] = 0;
 
 	v4l2_frame_info.y_stride = v4l2_stride[0];
 	v4l2_frame_info.uv_stride = v4l2_stride[1];
@@ -242,10 +301,25 @@ static int config(uint32_t width, uint32_t height, uint32_t d_width, uint32_t d_
 	}
 	mp_msg(MSGT_VO, MSGL_INFO, "[omap4_v4l2] Allocated V4L2 bufffers: %d\n", request_buf.count);
 
+	request_buf2.count = v4l2_num_buffers2;
+	request_buf2.type = V4L2_BUF_TYPE_VIDEO_OUTPUT;
+	request_buf2.memory = V4L2_MEMORY_MMAP;
+	if (ioctl(v4l2_handle2, VIDIOC_REQBUFS, &request_buf2) == -1) {
+		mp_msg(MSGT_VO, MSGL_FATAL, "[omap4_v4l2] Error request buffers(VIDIOC_REQBUFS)\n");
+		return -1;
+	}
+
 	// prepare info array of v4l2 buffers
 	v4l2_num_buffers = request_buf.count;
 	v4l2_buffers = malloc(v4l2_num_buffers * sizeof(struct v4l2_buf));
 	if (!v4l2_buffers) {
+		mp_msg(MSGT_VO, MSGL_FATAL, "[omap4_v4l2] Error allocate v4l2 info buffers\n");
+		return -1;
+	}
+
+	v4l2_num_buffers2 = request_buf2.count;
+	v4l2_buffers2 = malloc(v4l2_num_buffers2 * sizeof(struct v4l2_buf));
+	if (!v4l2_buffers2) {
 		mp_msg(MSGT_VO, MSGL_FATAL, "[omap4_v4l2] Error allocate v4l2 info buffers\n");
 		return -1;
 	}
@@ -296,12 +370,56 @@ static int config(uint32_t width, uint32_t height, uint32_t d_width, uint32_t d_
 		}
 	}
 
+	for (i = 0; i < v4l2_num_buffers2; i++) {
+		// initialize v4l2 driver buffer
+		v4l2_buffers2[i].buffer.index = i;
+		v4l2_buffers2[i].buffer.type = V4L2_BUF_TYPE_VIDEO_OUTPUT;
+		v4l2_buffers2[i].buffer.memory = V4L2_MEMORY_MMAP;
+		if (ioctl(v4l2_handle2, VIDIOC_QUERYBUF, &v4l2_buffers2[i].buffer) == -1) {
+			mp_msg(MSGT_VO, MSGL_FATAL, "[omap4_v4l2] Error query buffers (VIDIOC_QUERYBUF)\n");
+			goto error;
+		}
+
+		// mmap v4l2 driver output buffer
+		ptr_mmap = mmap(NULL, v4l2_buffers2[i].buffer.length, PROT_READ | PROT_WRITE, MAP_SHARED, v4l2_handle2, v4l2_buffers2[i].buffer.m.offset);
+		if (ptr_mmap == MAP_FAILED) {
+			mp_msg(MSGT_VO, MSGL_FATAL, "[omap4_v4l2] Error mmap video buffer\n");
+			goto error;
+		}
+		// clean planes buffer
+		memset(ptr_mmap, 0, v4l2_buffers2[i].buffer.length);
+		// setup pointers to planes
+		for (k = 0; k < 3; k++) {
+			v4l2_buffers2[i].plane[k] = ptr_mmap + v4l2_offset2[k];
+		}
+		v4l2_buffers2[i].used = false;
+	}
+
+	for (i = 0; i < 3; i++) {
+		if (ioctl(v4l2_handle2, VIDIOC_QBUF, &v4l2_buffers2[i].buffer) == -1) {
+			mp_msg(MSGT_VO, MSGL_FATAL, "[omap4_v4l2] Error queue buffer (VIDIOC_QBUF)\n");
+			goto error;
+		}
+		v4l2_buffers2[i].used = true;
+	}
+	v4l2_draw_buffer_id2 = 3;
+
 	v4l2_vout_crop.type = V4L2_BUF_TYPE_VIDEO_OUTPUT;
 	v4l2_vout_crop.c.left = 0;
 	v4l2_vout_crop.c.top = 0;
 	v4l2_vout_crop.c.width = width;
 	v4l2_vout_crop.c.height = height;
 	if (ioctl(v4l2_handle, VIDIOC_S_CROP, &v4l2_vout_crop) == -1) {
+		mp_msg(MSGT_VO, MSGL_FATAL, "[omap4_v4l2] Error crop video output (VIDIOC_S_CROP)\n");
+		goto error;
+	}
+
+	v4l2_vout_crop2.type = V4L2_BUF_TYPE_VIDEO_OUTPUT;
+	v4l2_vout_crop2.c.left = 0;
+	v4l2_vout_crop2.c.top = 0;
+	v4l2_vout_crop2.c.width = osd_buffer_width;
+	v4l2_vout_crop2.c.height = osd_buffer_height;
+	if (ioctl(v4l2_handle2, VIDIOC_S_CROP, &v4l2_vout_crop2) == -1) {
 		mp_msg(MSGT_VO, MSGL_FATAL, "[omap4_v4l2] Error crop video output (VIDIOC_S_CROP)\n");
 		goto error;
 	}
@@ -321,8 +439,18 @@ static int config(uint32_t width, uint32_t height, uint32_t d_width, uint32_t d_
 	overlay_format.fmt.win.w.top = v4l2_frame_info.dy;
 	overlay_format.fmt.win.w.height = v4l2_frame_info.dh;
 	overlay_format.fmt.win.field = V4L2_FIELD_NONE;
-	overlay_format.fmt.win.global_alpha = 255;
 	if (ioctl(v4l2_handle, VIDIOC_S_FMT, &overlay_format) == -1) {
+		mp_msg(MSGT_VO, MSGL_FATAL, "[omap4_v4l2] Error configure overlay (VIDIOC_S_FMT)\n");
+		goto error;
+	}
+
+	overlay_format2.type = V4L2_BUF_TYPE_VIDEO_OVERLAY;
+	overlay_format2.fmt.win.w.left = 0;
+	overlay_format2.fmt.win.w.width = display_info.xres;
+	overlay_format2.fmt.win.w.top = 0;
+	overlay_format2.fmt.win.w.height = display_info.yres;
+	overlay_format2.fmt.win.field = V4L2_FIELD_NONE;
+	if (ioctl(v4l2_handle2, VIDIOC_S_FMT, &overlay_format2) == -1) {
 		mp_msg(MSGT_VO, MSGL_FATAL, "[omap4_v4l2] Error configure overlay (VIDIOC_S_FMT)\n");
 		goto error;
 	}
@@ -332,9 +460,17 @@ static int config(uint32_t width, uint32_t height, uint32_t d_width, uint32_t d_
 		mp_msg(MSGT_VO, MSGL_FATAL, "[omap4_v4l2] Error turn on streaming (VIDIOC_STREAMON)\n");
 		goto error;
 	}
-
+/*
+	stream_on_off = V4L2_BUF_TYPE_VIDEO_OUTPUT;
+	if (ioctl(v4l2_handle2, VIDIOC_STREAMON, &stream_on_off) == -1) {
+		mp_msg(MSGT_VO, MSGL_FATAL, "[omap4_v4l2] Error turn on streaming (VIDIOC_STREAMON)\n");
+		goto error;
+	}
+*/
 	tmp_v4l2_buffer.type = V4L2_BUF_TYPE_VIDEO_OUTPUT;
 	tmp_v4l2_buffer.memory = V4L2_MEMORY_MMAP;
+	tmp_v4l2_buffer2.type = V4L2_BUF_TYPE_VIDEO_OUTPUT;
+	tmp_v4l2_buffer2.memory = V4L2_MEMORY_MMAP;
 
 	// FIXME: no way for now how to access to sh handle
 	omap4_dce_priv_t.reset_buffers = omap4_v4l2_reset_buffers;
@@ -344,11 +480,33 @@ static int config(uint32_t width, uint32_t height, uint32_t d_width, uint32_t d_
 	return 0;
 error:
 	free(v4l2_buffers);
+	free(v4l2_buffers2);
 	v4l2_buffers = NULL;
+	v4l2_buffers2 = NULL;
 	return -1;
 }
 
+static void draw_osd_stride(int x0, int y0, int w, int h, unsigned char *src, unsigned char *srca, int stride) {
+	if (dce) {
+//		vo_draw_alpha_rgb32(w, h, src, srca, stride,
+//				v4l2_buffers2[v4l2_draw_buffer_id2].plane[0] + y0 * v4l2_stride2[0] + x0 * 4, v4l2_stride2[0]);
+		if (!v4l2_buffers[v4l2_draw_buffer_id].to_free)
+			return;
+		vo_draw_alpha_yv12(w, h, src, srca, stride,
+				v4l2_buffers[v4l2_draw_buffer_id].plane[0] + y0 * v4l2_stride[0] + x0, v4l2_stride[0]);
+	} else {
+		vo_draw_alpha_yv12(w, h, src, srca, stride,
+				v4l2_buffers[tmp_v4l2_buffer.index].plane[0] + y0 * v4l2_stride[0] + x0, v4l2_stride[0]);
+	}
+}
+
 static void draw_osd(void) {
+	if (dce) {
+//		vo_draw_text(osd_buffer_width, osd_buffer_height, draw_osd_stride);
+		vo_draw_text(v4l2_vout_crop.c.width + v4l2_vout_crop.c.left, v4l2_vout_crop.c.height + v4l2_vout_crop.c.top, draw_osd_stride);
+	} else {
+		vo_draw_text(v4l2_vout_format.fmt.pix.width, v4l2_vout_format.fmt.pix.height, draw_osd_stride);
+	}
 }
 
 static int draw_frame(uint8_t *src[]) {
@@ -451,6 +609,8 @@ static uint32_t put_image(mp_image_t *mpi) {
 }
 
 static void flip_page(void) {
+	int line;
+
 	if (dce) {
 		ioctl(v4l2_handle, VIDIOC_QBUF, &v4l2_buffers[v4l2_draw_buffer_id].buffer);
 		v4l2_buffers[v4l2_draw_buffer_id].locked = true;
@@ -459,6 +619,16 @@ static void flip_page(void) {
 	} else {
 		ioctl(v4l2_handle, VIDIOC_QBUF, &v4l2_buffers[tmp_v4l2_buffer.index].buffer);
 	}
+/*	ioctl(v4l2_handle2, VIDIOC_QBUF, &v4l2_buffers2[v4l2_draw_buffer_id2].buffer);
+	ioctl(v4l2_handle2, VIDIOC_DQBUF, &tmp_v4l2_buffer2);
+	v4l2_draw_buffer_id2 = tmp_v4l2_buffer2.index;
+	// FIXME: temporary cleanup whole buffer
+	for (line = 0; line < osd_buffer_height; line++) {
+		unsigned int *p = v4l2_buffers2[v4l2_draw_buffer_id2].plane[0] + line * v4l2_stride2[0];
+		for (int pixels = 0; pixels < osd_buffer_width; pixels++) {
+			p[pixels] = 0xff000000;
+		}
+	}*/
 }
 
 static int omap4_v4l2_reset_buffers(void) {
@@ -480,11 +650,9 @@ static int omap4_v4l2_reset_buffers(void) {
 }
 
 static int query_format(uint32_t format) {
-	if (format == IMGFMT_YV12)
-		return VFCAP_CSP_SUPPORTED | VFCAP_CSP_SUPPORTED_BY_HW | VFCAP_OSD | VFCAP_SWSCALE | VFCAP_ACCEPT_STRIDE | VOCAP_NOSLICES;
-
-	if (format == IMGFMT_NV12)
-		return VFCAP_CSP_SUPPORTED | VFCAP_CSP_SUPPORTED_BY_HW | VFCAP_OSD | VFCAP_SWSCALE | VFCAP_ACCEPT_STRIDE | VOCAP_NOSLICES;
+	if (format == IMGFMT_YV12 || format == IMGFMT_NV12)
+		return VFCAP_CSP_SUPPORTED | VFCAP_CSP_SUPPORTED_BY_HW | VFCAP_OSD | VFCAP_EOSD | VFCAP_EOSD_UNSCALED |
+				VFCAP_SWSCALE | VFCAP_ACCEPT_STRIDE | VOCAP_NOSLICES;
 
 	return 0;
 }
@@ -495,6 +663,7 @@ static void uninit() {
 	if (vo_config_count > 0) {
 		stream_off = V4L2_BUF_TYPE_VIDEO_OUTPUT;
 		ioctl(v4l2_handle, VIDIOC_STREAMOFF, &stream_off);
+		ioctl(v4l2_handle2, VIDIOC_STREAMOFF, &stream_off);
 
 		if (v4l2_buffers) {
 			for (i = 0; i < v4l2_num_buffers; i++) {
@@ -505,10 +674,24 @@ static void uninit() {
 			free(v4l2_buffers);
 			v4l2_buffers = NULL;
 		}
+
+		if (v4l2_buffers2) {
+			for (i = 0; i < v4l2_num_buffers2; i++) {
+				if (v4l2_buffers2[i].plane[0]) {
+					munmap(v4l2_buffers2[i].plane[0], v4l2_buffers2[i].buffer.length);
+				}
+			}
+			free(v4l2_buffers2);
+			v4l2_buffers2 = NULL;
+		}
 	}
 	if (v4l2_handle != -1) {
 		close(v4l2_handle);
 		v4l2_handle = -1;
+	}
+	if (v4l2_handle2 != -1) {
+		close(v4l2_handle2);
+		v4l2_handle2 = -1;
 	}
 }
 
@@ -517,8 +700,6 @@ static int control(uint32_t request, void *data) {
 	case VOCTRL_QUERY_FORMAT:
 		return query_format(*((uint32_t *)data));
 	case VOCTRL_FULLSCREEN:
-		if (WinID > 0)
-			return VO_FALSE;
 		return VO_TRUE;
 	case VOCTRL_UPDATE_SCREENINFO:
 		vo_screenwidth = display_info.xres;
@@ -529,6 +710,21 @@ static int control(uint32_t request, void *data) {
 		return get_image(data);
 	case VOCTRL_DRAW_IMAGE:
 		return put_image(data);
+	case VOCTRL_GET_EOSD_RES: {
+			struct mp_eosd_settings *r = data;
+			r->mt = r->mb = r->ml = r->mr = 0;
+			r->srcw = osd_buffer_width;
+			r->srch = osd_buffer_height;
+			r->w = osd_buffer_width;
+			r->h = osd_buffer_height;
+		}
+		return VO_TRUE;
+	case VOCTRL_DRAW_EOSD:
+		if (!data)
+			return VO_FALSE;
+//		generate_eosd(data);
+//		draw_eosd();
+		return VO_TRUE;
 	}
 
 	return VO_NOTIMPL;
