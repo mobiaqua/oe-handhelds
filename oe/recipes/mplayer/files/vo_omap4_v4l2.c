@@ -160,8 +160,8 @@ static int config(uint32_t width, uint32_t height, uint32_t d_width, uint32_t d_
 	frame_width = ALIGN2(width, 4);
 	frame_height = ALIGN2(height, 4);
 
-	yuv420_frame_info.w = frame_width;
-	yuv420_frame_info.h = frame_height;
+	yuv420_frame_info.w = ALIGN2(width, 5);
+	yuv420_frame_info.h = ALIGN2(height, 5);
 	yuv420_frame_info.dx = 0;
 	yuv420_frame_info.dy = 0;
 	yuv420_frame_info.dw = width;
@@ -212,8 +212,8 @@ static int config(uint32_t width, uint32_t height, uint32_t d_width, uint32_t d_
 		}
 	} else {
 		v4l2_num_buffers = 3;
-		v4l2_vout_format.fmt.pix.width = frame_width;
-		v4l2_vout_format.fmt.pix.height = frame_height;
+		v4l2_vout_format.fmt.pix.width = ALIGN2(width, 5);
+		v4l2_vout_format.fmt.pix.height = ALIGN2(height, 5);
 	}
 	v4l2_vout_format.fmt.pix.pixelformat = V4L2_PIX_FMT_NV12;
 	v4l2_vout_format.fmt.pix.field = V4L2_FIELD_NONE;
