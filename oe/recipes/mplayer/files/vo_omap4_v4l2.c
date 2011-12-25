@@ -97,7 +97,7 @@ static int preinit(const char *arg) {
 	struct v4l2_capability v4l2_cap;
 	struct v4l2_fmtdesc v4l2_formatdesc;
 
-	fb_handle = open("/dev/fb0", O_RDWR);
+	fb_handle = open("/dev/fb0", O_RDONLY);
 	if (fb_handle == -1) {
 		mp_msg(MSGT_VO, MSGL_FATAL, "[omap4_v4l2] Error open /dev/fb0\n");
 		return -1;
@@ -107,8 +107,8 @@ static int preinit(const char *arg) {
 		return -1;
 	}
 	close(fb_handle);
-	osd_buffer_width = display_info.xres / 4;
-	osd_buffer_height = display_info.yres / 4;
+	osd_buffer_width = display_info.xres / 2;
+	osd_buffer_height = display_info.yres / 2;
 
 	v4l2_handle = open("/dev/video1", O_RDWR);
 	if (v4l2_handle == -1) {
@@ -440,6 +440,7 @@ static int config(uint32_t width, uint32_t height, uint32_t d_width, uint32_t d_
 	overlay_format.fmt.win.w.top = v4l2_frame_info.dy;
 	overlay_format.fmt.win.w.height = v4l2_frame_info.dh;
 	overlay_format.fmt.win.field = V4L2_FIELD_NONE;
+	overlay_format.fmt.win.global_alpha = 255;
 	if (ioctl(v4l2_handle, VIDIOC_S_FMT, &overlay_format) == -1) {
 		mp_msg(MSGT_VO, MSGL_FATAL, "[omap4_v4l2] Error configure overlay (VIDIOC_S_FMT)\n");
 		goto error;
@@ -451,6 +452,7 @@ static int config(uint32_t width, uint32_t height, uint32_t d_width, uint32_t d_
 	overlay_format2.fmt.win.w.top = 0;
 	overlay_format2.fmt.win.w.height = display_info.yres;
 	overlay_format2.fmt.win.field = V4L2_FIELD_NONE;
+	overlay_format2.fmt.win.global_alpha = 255;
 	if (ioctl(v4l2_handle2, VIDIOC_S_FMT, &overlay_format2) == -1) {
 		mp_msg(MSGT_VO, MSGL_FATAL, "[omap4_v4l2] Error configure overlay (VIDIOC_S_FMT)\n");
 		goto error;
@@ -461,13 +463,13 @@ static int config(uint32_t width, uint32_t height, uint32_t d_width, uint32_t d_
 		mp_msg(MSGT_VO, MSGL_FATAL, "[omap4_v4l2] Error turn on streaming (VIDIOC_STREAMON)\n");
 		goto error;
 	}
-/*
+
 	stream_on_off = V4L2_BUF_TYPE_VIDEO_OUTPUT;
 	if (ioctl(v4l2_handle2, VIDIOC_STREAMON, &stream_on_off) == -1) {
 		mp_msg(MSGT_VO, MSGL_FATAL, "[omap4_v4l2] Error turn on streaming (VIDIOC_STREAMON)\n");
 		goto error;
 	}
-*/
+
 	tmp_v4l2_buffer.type = V4L2_BUF_TYPE_VIDEO_OUTPUT;
 	tmp_v4l2_buffer.memory = V4L2_MEMORY_MMAP;
 	tmp_v4l2_buffer2.type = V4L2_BUF_TYPE_VIDEO_OUTPUT;
@@ -488,26 +490,12 @@ error:
 }
 
 static void draw_osd_stride(int x0, int y0, int w, int h, unsigned char *src, unsigned char *srca, int stride) {
-	if (dce) {
-//		vo_draw_alpha_rgb32(w, h, src, srca, stride,
-//				v4l2_buffers2[v4l2_draw_buffer_id2].plane[0] + y0 * v4l2_stride2[0] + x0 * 4, v4l2_stride2[0]);
-		if (!v4l2_buffers[v4l2_draw_buffer_id].to_free && codec_id == CODEC_ID_H264)
-			return;
-		vo_draw_alpha_yv12(w, h, src, srca, stride,
-				v4l2_buffers[v4l2_draw_buffer_id].plane[0] + y0 * v4l2_stride[0] + x0, v4l2_stride[0]);
-	} else {
-		vo_draw_alpha_yv12(w, h, src, srca, stride,
-				v4l2_buffers[tmp_v4l2_buffer.index].plane[0] + y0 * v4l2_stride[0] + x0, v4l2_stride[0]);
-	}
+	vo_draw_alpha_rgb32(w, h, src, srca, stride,
+			v4l2_buffers2[v4l2_draw_buffer_id2].plane[0] + y0 * v4l2_stride2[0] + x0 * 4, v4l2_stride2[0]);
 }
 
 static void draw_osd(void) {
-	if (dce) {
-//		vo_draw_text(osd_buffer_width, osd_buffer_height, draw_osd_stride);
-		vo_draw_text(v4l2_vout_crop.c.width + v4l2_vout_crop.c.left, v4l2_vout_crop.c.height + v4l2_vout_crop.c.top, draw_osd_stride);
-	} else {
-		vo_draw_text(v4l2_vout_format.fmt.pix.width, v4l2_vout_format.fmt.pix.height, draw_osd_stride);
-	}
+	vo_draw_text(osd_buffer_width, osd_buffer_height, draw_osd_stride);
 }
 
 static int draw_frame(uint8_t *src[]) {
@@ -620,16 +608,13 @@ static void flip_page(void) {
 	} else {
 		ioctl(v4l2_handle, VIDIOC_QBUF, &v4l2_buffers[tmp_v4l2_buffer.index].buffer);
 	}
-/*	ioctl(v4l2_handle2, VIDIOC_QBUF, &v4l2_buffers2[v4l2_draw_buffer_id2].buffer);
+	ioctl(v4l2_handle2, VIDIOC_QBUF, &v4l2_buffers2[v4l2_draw_buffer_id2].buffer);
 	ioctl(v4l2_handle2, VIDIOC_DQBUF, &tmp_v4l2_buffer2);
 	v4l2_draw_buffer_id2 = tmp_v4l2_buffer2.index;
 	// FIXME: temporary cleanup whole buffer
 	for (line = 0; line < osd_buffer_height; line++) {
-		unsigned int *p = v4l2_buffers2[v4l2_draw_buffer_id2].plane[0] + line * v4l2_stride2[0];
-		for (int pixels = 0; pixels < osd_buffer_width; pixels++) {
-			p[pixels] = 0xff000000;
-		}
-	}*/
+		memset(v4l2_buffers2[v4l2_draw_buffer_id2].plane[0] + line * v4l2_stride2[0], 0, v4l2_stride2[0]);
+	}
 }
 
 static int omap4_v4l2_reset_buffers(void) {
