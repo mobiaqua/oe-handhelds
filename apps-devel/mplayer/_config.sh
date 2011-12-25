@@ -5,7 +5,7 @@
 ./configure --prefix=/usr --target=arm-linux-gnueabi --disable-mencoder --disable-gui --disable-lirc --disable-lircc --disable-joystick \
 	--disable-vm --disable-xf86keysym --disable-tv --enable-networking --enable-rtc --disable-smb --enable-live \
 	--disable-dvdnav --disable-dvdread --disable-dvdread-internal --disable-libdvdcss-internal --disable-cdparanoia \
-	--enable-freetype --enable-menu --enable-sortsub --disable-fribidi --disable-enca --disable-ftp --disable-vstream \
+	--enable-freetype --disable-menu --enable-sortsub --disable-fribidi --disable-enca --disable-ftp --disable-vstream \
 	--disable-gif --disable-png --disable-jpeg --disable-libcdio --disable-liblzo --disable-qtx --disable-xanim \
 	--disable-real --disable-xvid --disable-x264 --disable-ffmpeg_so --disable-speex --disable-theora --disable-faac \
 	--disable-faad --disable-ladspa --disable-libdv --disable-mad --disable-toolame --disable-twolame --disable-xmms \

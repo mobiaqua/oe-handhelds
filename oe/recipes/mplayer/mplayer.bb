@@ -69,7 +69,7 @@ EXTRA_OECONF = " \
 	--disable-libdvdcss-internal \
 	--disable-cdparanoia \
 	--enable-freetype \
-	--enable-menu \
+	--disable-menu \
 	--enable-sortsub \
 	--disable-fribidi \
 	--disable-enca \
