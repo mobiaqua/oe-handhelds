@@ -9,25 +9,26 @@ RDEPENDS_${PN} = "mplayer-common glibc-gconv-cp1250 ttf-dejavu-sans"
 LICENSE = "GPL"
 
 SRC_URI = "svn://svn.mplayerhq.hu/mplayer;module=trunk \
-	   git://git.videolan.org/ffmpeg.git;protocol=git;tag=1d0afec8fcfaca9736c927715ddd56a5902855ab;name=ffmpeg \
+	   git://git.videolan.org/ffmpeg.git;protocol=git;tag=1795fed7bc7a8b8109757cb5f27198c5b05698b5;name=ffmpeg \
 	   file://makefile-nostrip-svn.patch \
 	   file://mplayer-arm-pld.patch \
 "
 SRCREV_FORMAT = "ffmpeg"
-SRCREV = "34199"
+SRCREV = "34463"
 SRC_URI_append_armv7a = " \
 	file://yuv420_to_yuv422.S \
 	file://yuv420_to_nv12.S \
+	file://vo_omapfb.c \
+	file://vo_omap4_v4l2.c \
+	file://vd_omap4_dce.c \
+	file://vd_omap4_dce.h \
 	file://omapfb.patch \
 	file://omap4.patch \
 	file://fix_h264.patch \
 	file://fix_wmv3.patch \
 	file://add-level-to-sh-video.patch \
 	file://fast-osd.patch \
-	file://vo_omapfb.c \
-	file://vo_omap4_v4l2.c \
-	file://vd_omap4_dce.c \
-	file://vd_omap4_dce.h \
+	file://fix-compilation.patch \
 	"
 
 ARM_INSTRUCTION_SET = "ARM"
