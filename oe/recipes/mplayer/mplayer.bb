@@ -23,6 +23,7 @@ SRC_URI_append_armv7a = " \
 	file://fix_h264.patch \
 	file://fix_wmv3.patch \
 	file://add-level-to-sh-video.patch \
+	file://fast-osd.patch \
 	file://vo_omapfb.c \
 	file://vo_omap4_v4l2.c \
 	file://vd_omap4_dce.c \
