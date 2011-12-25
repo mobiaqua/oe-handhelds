@@ -90,6 +90,7 @@ static int dce;
 static int v4l2_draw_buffer_id;
 static int v4l2_draw_buffer_id2;
 static int interlaced_applied;
+static int codec_id;
 
 static int preinit(const char *arg) {
 	int fb_handle;
@@ -178,7 +179,7 @@ static int config(uint32_t width, uint32_t height, uint32_t d_width, uint32_t d_
 	int i, k, stream_on_off;
 	struct v4l2_requestbuffers request_buf, request_buf2;
 	unsigned char *ptr_mmap;
-	int codec_id = omap4_dce_priv_t.codec_id; // FIXME: hack
+	codec_id = omap4_dce_priv_t.codec_id; // FIXME: hack
 	int frame_width, frame_height;
 
 	stream_on_off = V4L2_BUF_TYPE_VIDEO_OUTPUT;
@@ -490,7 +491,7 @@ static void draw_osd_stride(int x0, int y0, int w, int h, unsigned char *src, un
 	if (dce) {
 //		vo_draw_alpha_rgb32(w, h, src, srca, stride,
 //				v4l2_buffers2[v4l2_draw_buffer_id2].plane[0] + y0 * v4l2_stride2[0] + x0 * 4, v4l2_stride2[0]);
-		if (!v4l2_buffers[v4l2_draw_buffer_id].to_free)
+		if (!v4l2_buffers[v4l2_draw_buffer_id].to_free && codec_id == CODEC_ID_H264)
 			return;
 		vo_draw_alpha_yv12(w, h, src, srca, stride,
 				v4l2_buffers[v4l2_draw_buffer_id].plane[0] + y0 * v4l2_stride[0] + x0, v4l2_stride[0]);
