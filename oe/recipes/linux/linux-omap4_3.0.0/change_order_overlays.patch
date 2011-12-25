@@ -1,0 +1,16 @@
+diff -ur old/drivers/video/omap2/dss/dispc.c new/drivers/video/omap2/dss/dispc.c
+--- old/drivers/video/omap2/dss/dispc.c	2011-12-25 21:36:28.000000000 +0100
++++ new/drivers/video/omap2/dss/dispc.c	2011-12-25 21:35:33.000000000 +0100
+@@ -1900,6 +1900,12 @@
+ 
+ 	_dispc_set_rotation_attrs(plane, rotation, mirror, color_mode);
+ 
++	REG_FLD_MOD(DISPC_OVL_ATTRIBUTES(0), 3, 27, 26);
++	REG_FLD_MOD(DISPC_OVL_ATTRIBUTES(1), 1, 27, 26);
++	REG_FLD_MOD(DISPC_OVL_ATTRIBUTES(2), 2, 27, 26);
++	REG_FLD_MOD(DISPC_OVL_ATTRIBUTES(0), 1, 25, 25);
++	REG_FLD_MOD(DISPC_OVL_ATTRIBUTES(1), 1, 25, 25);
++	REG_FLD_MOD(DISPC_OVL_ATTRIBUTES(2), 1, 25, 25);
+ 	_dispc_set_pre_mult_alpha(plane, pre_mult_alpha);
+ 	_dispc_setup_global_alpha(plane, global_alpha);
+ 

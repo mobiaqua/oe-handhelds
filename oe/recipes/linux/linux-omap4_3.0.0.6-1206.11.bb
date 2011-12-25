@@ -29,6 +29,8 @@ SRC_URI = "git://kernel.ubuntu.com/ubuntu/ubuntu-oneiric.git;protocol=git;branch
            file://fix_hdmi_audio.patch \
            file://fix-overlay.patch \
            file://fixes-for-cache.patch \
+           file://make_fb0_alpha.patch \
+           file://change_order_overlays.patch \
            file://defconfig"
 
 SRC_URI[md5sum] = "3f52da7b22960aec5f86a605df8c745a"
