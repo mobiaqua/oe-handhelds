@@ -257,7 +257,7 @@ static int config(uint32_t width, uint32_t height, uint32_t d_width, uint32_t d_
 		v4l2_vout_format.fmt.pix.width = ALIGN2(width, 5);
 		v4l2_vout_format.fmt.pix.height = ALIGN2(height, 5);
 	}
-	v4l2_num_buffers2 = 4;
+	v4l2_num_buffers2 = 6;
 	v4l2_vout_format2.fmt.pix.width = osd_buffer_width;
 	v4l2_vout_format2.fmt.pix.height = osd_buffer_height;
 
@@ -361,7 +361,7 @@ static int config(uint32_t width, uint32_t height, uint32_t d_width, uint32_t d_
 	}
 
 	if (dce) {
-		for (i = 0; i < 2; i++) {
+		for (i = 0; i < 3; i++) {
 			if (ioctl(v4l2_handle, VIDIOC_QBUF, &v4l2_buffers[i].buffer) == -1) {
 				mp_msg(MSGT_VO, MSGL_FATAL, "[omap4_v4l2] Error queue buffer (VIDIOC_QBUF)\n");
 				goto error;
@@ -396,14 +396,14 @@ static int config(uint32_t width, uint32_t height, uint32_t d_width, uint32_t d_
 		v4l2_buffers2[i].used = false;
 	}
 
-	for (i = 0; i < 3; i++) {
+	for (i = 0; i < 5; i++) {
 		if (ioctl(v4l2_handle2, VIDIOC_QBUF, &v4l2_buffers2[i].buffer) == -1) {
 			mp_msg(MSGT_VO, MSGL_FATAL, "[omap4_v4l2] Error queue buffer (VIDIOC_QBUF)\n");
 			goto error;
 		}
 		v4l2_buffers2[i].used = true;
 	}
-	v4l2_draw_buffer_id2 = 3;
+	v4l2_draw_buffer_id2 = 5;
 
 	v4l2_vout_crop.type = V4L2_BUF_TYPE_VIDEO_OUTPUT;
 	v4l2_vout_crop.c.left = 0;
@@ -546,7 +546,7 @@ static uint32_t get_image(mp_image_t *mpi) {
 		}
 		for (i = 0; i < v4l2_num_buffers; i++) {
 			if (v4l2_buffers[i].to_free && !v4l2_buffers[i].locked) {
-				if (v4l2_buffers[i].to_free++ < 3)
+				if (v4l2_buffers[i].to_free++ < 4)
 					continue;
 				v4l2_buffers[i].used = false;
 				v4l2_buffers[i].to_free = 0;
