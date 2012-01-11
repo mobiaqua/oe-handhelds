@@ -29,18 +29,12 @@ do_compile() {
 }
 
 do_install() {
-	install -d ${D}${bindir}
-	install -m 0755 ${S}${bindir}/* ${D}${bindir}
-
 	install -d ${D}${includedir}
 	cp -pR ${S}${includedir}/* ${D}${includedir}/
 	cp -pR ${WORKDIR}/includes/* ${D}${includedir}/
 
 	install -d ${D}${libdir}
 	cp -pR ${S}${libdir}/* ${D}${libdir}/
-
-	install -d ${D}${datadir}
-	cp -pR ${S}${datadir}/sgx-lib ${D}${datadir}/
 
 	install -d ${D}/usr/share/doc/${PN}
 	install -m 0666 ${WORKDIR}/LICENSE.txt ${D}/usr/share/doc/${PN}
