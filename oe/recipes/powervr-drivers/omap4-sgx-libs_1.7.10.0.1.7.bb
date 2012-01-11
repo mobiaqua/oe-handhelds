@@ -3,7 +3,7 @@ LICENSE = "proprietary-binary"
 
 PR = "r1"
 
-SRC_URI = "http://launchpadlibrarian.net/86859223/pvr-omap4_${PV}.orig.tar.gz \
+SRC_URI = "http://launchpadlibrarian.net/89451441/pvr-omap4_${PV}.orig.tar.gz \
 	   file://LICENSE.txt \
 	   file://includes \
 	   "
