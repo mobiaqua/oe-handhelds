@@ -27,5 +27,10 @@
 ## Set rootfs path on NFS server
 #MA_NFS_PATH=/nfsroot
 
+
 ## Set target root password in encoded form
 #MA_ROOT_PASS=
+
+
+## Set rootfs postprocess commands
+#MA_ROOTFS_POSTPROCESS=

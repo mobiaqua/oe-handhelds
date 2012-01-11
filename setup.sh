@@ -14,15 +14,15 @@ setup() {
 	if [ "$1" = "tv" ]; then
 		export DISTRO=mobiaqua-tv
 		export MACHINE=pandaboard
-		image=rootfs-image-tv
+		image=rootfs-devel-tv
 	elif [ "$1" = "car" ]; then
 		export DISTRO=mobiaqua-car
 		export MACHINE=igep0030
-		image=rootfs-image-car
+		image=rootfs-devel-car
 	else
 		export DISTRO=mobiaqua
 		export MACHINE=${MACHINE:=h2200}
-		image=rootfs-image
+		image=rootfs-devel-generic
 	fi
 
 	if [ -e ${HOME}/.mobiaqua/oe/${DISTRO}_defaults ]; then
@@ -41,8 +41,10 @@ setup() {
 	export MA_NFS_PATH=${MA_NFS_PATH:="/nfsroot"}
 	export MA_ROOT_PASSWORD=${MA_ROOT_PASSWORD:=""}
 	export MA_DROPBEAR_KEY_FILE="$HOME/.mobiaqua/oe/${DISTRO}_dropbear_rsa_host_key"
-
-	export BB_ENV_EXTRAWHITE="MA_TARGET_IP MA_TARGET_MAC MA_DNS_IP MA_NFS_IP MA_NFS_PATH MA_ROOT_PASSWORD MA_DROPBEAR_KEY_FILE"
+	export MA_FSTAB_FILE="$HOME/.mobiaqua/oe/${DISTRO}_fstab"
+	export MA_ROOTFS_POSTPROCESS=${MA_ROOTFS_POSTPROCESS:=""}
+	export BB_ENV_EXTRAWHITE="MA_TARGET_IP MA_TARGET_MAC MA_DNS_IP MA_NFS_IP MA_NFS_PATH MA_ROOT_PASSWORD MA_DROPBEAR_KEY_FILE \
+				MA_FSTAB_FILE MA_ROOTFS_POSTPROCESS"
 
 	echo "--- Settings:"
 	echo " -  sources:    ${MA_DL_DIR}"
@@ -60,6 +62,16 @@ setup() {
 		echo " -  target dropbear host key file found"
 	else
 		echo " -  target dropbear host key file NOT found"
+	fi
+	if [ -f ${MA_FSTAB_FILE} ]; then
+		echo " -  target fstab file found"
+	else
+		echo " -  target fstab file NOT found"
+	fi
+	if [ "${MA_ROOTFS_POSTPROCESS}" != "" ]; then
+		echo " -  rootfs postprocess commands is defined"
+	else
+		echo " -  rootfs postprocess commands is NOT defined"
 	fi
 	mkdir -p ${OE_BASE}/build-${DISTRO}/conf
 
