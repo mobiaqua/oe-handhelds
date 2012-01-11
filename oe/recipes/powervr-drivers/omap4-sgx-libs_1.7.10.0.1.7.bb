@@ -8,8 +8,8 @@ SRC_URI = "http://launchpadlibrarian.net/89451441/pvr-omap4_${PV}.orig.tar.gz \
 	   file://includes \
 	   "
 
-SRC_URI[md5sum] = "892dfeeb2c2663c9ac92cc200bc2e56b"
-SRC_URI[sha256sum] = "51774b2f6503793115a60cd30860573fced695a16a1212ee8b7795f453318cbe"
+SRC_URI[md5sum] = "f4188f3c84fe3ea774a6f9b68e732a1a"
+SRC_URI[sha256sum] = "5d985741829bb2e734fe47f469626aead1cb669ffb1dc15ffd687a269da42f8b"
 
 COMPATIBLE_MACHINE = "pandaboard"
 DEPENDS = "omap4-sgx-modules"
