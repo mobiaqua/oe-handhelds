@@ -66,10 +66,10 @@ static int pvrLinuxFBInitFbScreen(void) {
     unsigned long length;
     int width, height, stride;
     PVR2DFORMAT format;
-		void *mapped;
+    void *mapped;
     int fd, bytesPerPixel;
-		PVR2DMEMINFO *memInfo;
-		unsigned long pageAddresses[2];
+    PVR2DMEMINFO *memInfo;
+    unsigned long pageAddresses[2];
 
     if (pvrLinuxFBDisplay.screen.initialized)
         return 1;
@@ -120,24 +120,24 @@ static int pvrLinuxFBInitFbScreen(void) {
     start = fix.smem_start;
     length = var.xres_virtual * var.yres_virtual * bytesPerPixel;
 
-		mapped = mmap(0, length, PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0);
-		if (!mapped || mapped == (void *)(-1)) {
-			perror("LINUXFBWSEGL: mmap");
-			close(fd);
-			return 0;
-		}
+    mapped = mmap(0, length, PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0);
+    if (!mapped || mapped == (void *)(-1)) {
+        perror("LINUXFBWSEGL: mmap");
+        close(fd);
+        return 0;
+    }
 
-		/* Allocate a PVR2D memory region for the framebuffer */
-		memInfo = 0;
-		if (pvrLinuxFBDisplay.context) {
-			pageAddresses[0] = start & 0xFFFFF000;
-			pageAddresses[1] = 0;
-			if (PVR2DMemWrap(pvrLinuxFBDisplay.context, mapped, PVR2D_WRAPFLAG_CONTIGUOUS, length, pageAddresses, &memInfo) != PVR2D_OK) {
-				munmap(mapped, length);
-				close(fd);
-				return 0;
-			}
-		}
+    /* Allocate a PVR2D memory region for the framebuffer */
+    memInfo = 0;
+    if (pvrLinuxFBDisplay.context) {
+        pageAddresses[0] = start & 0xFFFFF000;
+        pageAddresses[1] = 0;
+        if (PVR2DMemWrap(pvrLinuxFBDisplay.context, mapped, PVR2D_WRAPFLAG_CONTIGUOUS, length, pageAddresses, &memInfo) != PVR2D_OK) {
+            munmap(mapped, length);
+            close(fd);
+            return 0;
+        }
+    }
 
     /* We don't need the file descriptor any more */
     close(fd);
@@ -203,10 +203,10 @@ static int pvrLinuxFBAddDrawable(void) {
     }
 
     if (!pvrLinuxFBDisplay.screen.mapped) {
-				PVR2DDestroyDeviceContext(pvrLinuxFBDisplay.context);
-				pvrLinuxFBDisplay.context = 0;
-				return 0;
-		}
+        PVR2DDestroyDeviceContext(pvrLinuxFBDisplay.context);
+        pvrLinuxFBDisplay.context = 0;
+        return 0;
+    }
 
     /* Create a flip chain for the screen if supported by the hardware */
     pvrLinuxFBDisplay.usePresentBlit = 0;

@@ -86,15 +86,15 @@ static WSEGLError wseglIsDisplayValid(NativeDisplayType nativeDisplay) {
 /* Initialize a native display for use with WSEGL */
 static WSEGLError wseglInitializeDisplay(NativeDisplayType nativeDisplay, WSEGLDisplayHandle *display, const WSEGLCaps **caps, WSEGLConfig **configs) {
 	WSEGLPixelFormat pixelFormat;
-	
+
 	/* Bail out if the native display is incorrect */
 	if (nativeDisplay != WSEGL_DEFAULT_DISPLAY)
 		return WSEGL_CANNOT_INITIALISE;
-	
+
 	/* Open the PVR/QWS display, which will initialize the framebuffer */
 	if (!pvrLinuxFBDisplayOpen())
 		return WSEGL_CANNOT_INITIALISE;
-	
+
 	/* Convert the PVR2D pixel format into a WSEGL pixel format */
 	switch (pvrLinuxFBDisplay.screen.pixelFormat) {
 		case PVR2D_RGB565:
@@ -132,20 +132,20 @@ static WSEGLError wseglCloseDisplay(WSEGLDisplayHandle display) {
 
 static WSEGLRotationAngle wseglRotationValue(int degrees) {
 	switch (degrees) {
-    case 90:  return WSEGL_ROTATE_90;
-    case 180: return WSEGL_ROTATE_180;
-    case 270: return WSEGL_ROTATE_270;
-    default:  return WSEGL_ROTATE_0;
+		case 90:  return WSEGL_ROTATE_90;
+		case 180: return WSEGL_ROTATE_180;
+		case 270: return WSEGL_ROTATE_270;
+		default:  return WSEGL_ROTATE_0;
 	}
 }
 
 /* Create the WSEGL drawable version of a native window */
 static WSEGLError wseglCreateWindowDrawable(WSEGLDisplayHandle display, WSEGLConfig *config, WSEGLDrawableHandle *drawable, NativeWindowType nativeWindow, WSEGLRotationAngle *rotationAngle) {
 	PvrLinuxFBDrawable *draw;
-	
+
 	WSEGL_UNUSED(display);
 	WSEGL_UNUSED(config);
-	
+
 	/* Check for special handles that indicate framebuffer screens */
 	if (nativeWindow == (NativeWindowType)0) {
 		PvrLinuxFBDrawable *screen = pvrLinuxFBScreenWindow((int)nativeWindow);
@@ -229,17 +229,17 @@ static WSEGLError wseglCopyFromDrawable(WSEGLDrawableHandle _drawable, NativePix
 	PvrLinuxFBDrawable *drawable = (PvrLinuxFBDrawable *)_drawable;
 	PvrLinuxFBDrawable *pixmap = (PvrLinuxFBDrawable *)nativePixmap;
 	PVR2DBLTINFO blit;
-	
+
 	if (!drawable || !drawable->backBuffersValid)
 		return WSEGL_BAD_NATIVE_WINDOW;
 	if (!pixmap || !pixmap->backBuffersValid)
 		return WSEGL_BAD_NATIVE_PIXMAP;
-	
+
 	memset(&blit, 0, sizeof(blit));
 	
 	blit.CopyCode = PVR2DROPcopy;
 	blit.BlitFlags = PVR2D_BLIT_DISABLE_ALL;
-	
+
 	blit.pSrcMemInfo = drawable->backBuffers[drawable->currentBackBuffer];
 	blit.SrcStride = drawable->strideBytes;
 	blit.SrcX = 0;
@@ -247,7 +247,7 @@ static WSEGLError wseglCopyFromDrawable(WSEGLDrawableHandle _drawable, NativePix
 	blit.SizeX = drawable->rect.width;
 	blit.SizeY = drawable->rect.height;
 	blit.SrcFormat = drawable->pixelFormat;
-	
+
 	blit.pDstMemInfo = pixmap->backBuffers[pixmap->currentBackBuffer];
 	blit.DstStride = pixmap->strideBytes;
 	blit.DstX = 0;
@@ -255,10 +255,10 @@ static WSEGLError wseglCopyFromDrawable(WSEGLDrawableHandle _drawable, NativePix
 	blit.DSizeX = pixmap->rect.width;
 	blit.DSizeY = pixmap->rect.height;
 	blit.DstFormat = pixmap->pixelFormat;
-	
+
 	PVR2DBlt(pvrLinuxFBDisplay.context, &blit);
 	PVR2DQueryBlitsComplete(pvrLinuxFBDisplay.context, pixmap->backBuffers[pixmap->currentBackBuffer], 1);
-	
+
 	return WSEGL_SUCCESS;
 }
 
@@ -266,10 +266,10 @@ static WSEGLError wseglCopyFromDrawable(WSEGLDrawableHandle _drawable, NativePix
 static WSEGLError wseglCopyFromPBuffer(void *address, unsigned long width, unsigned long height, unsigned long stride, WSEGLPixelFormat format, NativePixmapType nativePixmap) {
 	PvrLinuxFBDrawable *pixmap = (PvrLinuxFBDrawable *)nativePixmap;
 	PVR2DFORMAT pixelFormat;
-	
+
 	if (!pixmap)
 		return WSEGL_BAD_NATIVE_PIXMAP;
-	
+
 	/* We can only copy under certain conditions */
 	switch (format) {
 		case WSEGL_PIXELFORMAT_565:
@@ -288,7 +288,7 @@ static WSEGLError wseglCopyFromPBuffer(void *address, unsigned long width, unsig
 			pixelFormat != pixmap->pixelFormat) {
 		return WSEGL_BAD_CONFIG;
 	}
-	
+
 	/* We'd like to use PVR2DBlt to do this, but there is no easy way
 	 to map the virtual "address" into physical space to be able
 	 to use the hardware assist.  Use memcpy to do the work instead.
@@ -315,7 +315,7 @@ static WSEGLError wseglGetDrawableParameters(WSEGLDrawableHandle _drawable, WSEG
 	
 	if (!pvrLinuxFBGetBuffers(drawable, &source, &render))
 		return WSEGL_BAD_DRAWABLE;
-	
+
 	switch (drawable->pixelFormat) {
 		case PVR2D_RGB565:
 			pixelFormat = WSEGL_PIXELFORMAT_565;
@@ -332,7 +332,7 @@ static WSEGLError wseglGetDrawableParameters(WSEGLDrawableHandle _drawable, WSEG
 		default:
 			return WSEGL_BAD_DRAWABLE;
 	}
-	
+
 	sourceParams->ui32Width = drawable->rect.width;
 	sourceParams->ui32Height = drawable->rect.height;
 	sourceParams->ui32Stride = drawable->stridePixels;
@@ -340,7 +340,7 @@ static WSEGLError wseglGetDrawableParameters(WSEGLDrawableHandle _drawable, WSEG
 	sourceParams->pvLinearAddress = source->pBase;
 	sourceParams->ui32HWAddress = source->ui32DevAddr;
 	sourceParams->hPrivateData = source->hPrivateData;
-	
+
 	renderParams->ui32Width = drawable->rect.width;
 	renderParams->ui32Height = drawable->rect.height;
 	renderParams->ui32Stride = drawable->stridePixels;
@@ -348,19 +348,19 @@ static WSEGLError wseglGetDrawableParameters(WSEGLDrawableHandle _drawable, WSEG
 	renderParams->pvLinearAddress = render->pBase;
 	renderParams->ui32HWAddress = render->ui32DevAddr;
 	renderParams->hPrivateData = render->hPrivateData;
-	
+
 	return WSEGL_SUCCESS;
 }
 
 static WSEGLError wseglConnectDrawable(WSEGLDrawableHandle _drawable) {
 	WSEGL_UNREFERENCED_PARAMETER(_drawable);
-	// FIXME: stub
+
 	return WSEGL_SUCCESS;
 }
 
 static WSEGLError wseglDisconnectDrawable(WSEGLDrawableHandle _drawable) {
 	WSEGL_UNREFERENCED_PARAMETER(_drawable);
-	// FIXME: stub
+
 	return WSEGL_SUCCESS;
 }
 
