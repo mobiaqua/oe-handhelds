@@ -11,9 +11,7 @@ RDEPENDS_${PN} += "${PN}-depmod"
 FILES_${PN}-depmod = "${sbindir}/depmod.26"
 FILES_${PN}-insmod-static = "${sbindir}/insmod.static"
 
-#MobiAqua: temporary mirror as main site is down
-SRC_URI = "http://mirror.xmission.com/kernel.org/linux/utils/kernel/module-init-tools/module-init-tools-${PV}.tar.gz \
-#SRC_URI = "${KERNELORG_MIRROR}/pub/linux/utils/kernel/module-init-tools/module-init-tools-${PV}.tar.bz2 \
+SRC_URI = "${KERNELORG_MIRROR}/pub/linux/utils/kernel/module-init-tools/module-init-tools-${PV}.tar.bz2 \
 	   file://ignore_arch_directory;apply=yes \
 	   file://modutils_extension;apply=yes \
 	   file://no_man_rebuild;apply=yes \

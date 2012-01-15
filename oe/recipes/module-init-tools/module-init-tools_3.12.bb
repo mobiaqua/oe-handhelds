@@ -1,9 +1,7 @@
 require module-init-tools.inc
 
-#MobiAqua: temporary mirror as main site is down
-SRC_URI = "http://mirror.xmission.com/kernel.org/linux/utils/kernel/module-init-tools/module-init-tools-${PV}.tar.gz"
-#SRC_URI = "${KERNELORG_MIRROR}/pub/linux/utils/kernel/module-init-tools/module-init-tools-${PV}.tar.bz2 \
-#"
+SRC_URI = "${KERNELORG_MIRROR}/pub/linux/utils/kernel/module-init-tools/module-init-tools-${PV}.tar.bz2 \
+"
 EXTRA_OECONF += "--disable-builddir"
 
 bindir = "/bin"
@@ -49,7 +47,5 @@ pkg_prerm_module-init-tools-depmod() {
 #!/bin/sh
 update-alternatives --remove depmod /sbin/depmod.26
 }
-#SRC_URI[md5sum] = "8b2257ce9abef74c4a44d825d23140f3"
-#SRC_URI[sha256sum] = "d012ab07ea26721467a85a775f34747c1c8897e37f16bec5317d8a72ef8b4f17"
-SRC_URI[md5sum] = "c2c8ad5b5bbe7f75f1292ea22163bf28"
-SRC_URI[sha256sum] = "8914e1b050c2aacfcf27daf829e179fb244deae601ace353f3112ddf84f35b16"
+SRC_URI[md5sum] = "8b2257ce9abef74c4a44d825d23140f3"
+SRC_URI[sha256sum] = "d012ab07ea26721467a85a775f34747c1c8897e37f16bec5317d8a72ef8b4f17"
