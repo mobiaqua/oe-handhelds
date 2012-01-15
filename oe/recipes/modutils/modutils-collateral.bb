@@ -9,13 +9,14 @@ SRC_URI = "file://modules \
 do_compile () {
 }
 
+#MobiAqua: forced new method
 do_install () {
 	install -d ${D}${sysconfdir}
 	install -m 0644 ${WORKDIR}/modules ${D}${sysconfdir}/modules
-        if [ ${MAJOR_KERNEL_VERSION}=2.6 ]; then
+#        if [ ${MAJOR_KERNEL_VERSION}=2.6 ]; then
   	 install -d ${D}${sysconfdir}/modprobe.d         
-        else
- 	 install -m 0644 ${WORKDIR}/modules.conf ${D}${sysconfdir}/modules.conf
-        fi
+#        else
+# 	 install -m 0644 ${WORKDIR}/modules.conf ${D}${sysconfdir}/modules.conf
+#        fi
 
 }
