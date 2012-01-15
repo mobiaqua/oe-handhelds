@@ -157,7 +157,7 @@ static int pvrLinuxFBInitFbScreen(void) {
     }
     pvrLinuxFBDisplay.screen.mappedLength = length;
     pvrLinuxFBDisplay.screen.screenStart = start;
-    pvrLinuxFBDisplay.screen.needsUnmap = 0;
+    pvrLinuxFBDisplay.screen.needsUnmap = (mapped != 0);
     pvrLinuxFBDisplay.screen.initialized = 1;
     return 1;
 }
