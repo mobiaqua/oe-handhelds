@@ -195,12 +195,12 @@ static int pvrLinuxFBAddDrawable(void) {
         return 0;
     pvrLinuxFBDisplay.numFlipBuffers = 0;
     pvrLinuxFBDisplay.flipChain = 0;
-    if (PVR2DGetDeviceInfo(pvrLinuxFBDisplay.context, &displayInfo) == PVR2D_OK) {
+/*    if (PVR2DGetDeviceInfo(pvrLinuxFBDisplay.context, &displayInfo) == PVR2D_OK) {
         if (displayInfo.ulMaxFlipChains > 0 && displayInfo.ulMaxBuffersInChain > 0)
             pvrLinuxFBDisplay.numFlipBuffers = displayInfo.ulMaxBuffersInChain;
         if (pvrLinuxFBDisplay.numFlipBuffers > PVRLINUXFB_MAX_FLIP_BUFFERS)
             pvrLinuxFBDisplay.numFlipBuffers = PVRLINUXFB_MAX_FLIP_BUFFERS;
-    }
+    }*/
 
     if (!pvrLinuxFBDisplay.screen.mapped) {
         PVR2DDestroyDeviceContext(pvrLinuxFBDisplay.context);
