@@ -34,6 +34,9 @@ do_install() {
 	cp -pR ${WORKDIR}/includes/* ${D}${includedir}/
 
 	install -d ${D}${libdir}
+	rm -r ${S}${libdir}/debug/
+	rm -r ${S}${libdir}/xorg/
+	rm ${S}${libdir}/libpvrPVR2D_DRIWSEGL*
 	cp -pR ${S}${libdir}/* ${D}${libdir}/
 
 	install -d ${D}/usr/share/doc/${PN}
