@@ -151,10 +151,10 @@ static int pvrLinuxFBInitFbScreen(void) {
     pvrLinuxFBDisplay.screen.pixelFormat = format;
     pvrLinuxFBDisplay.screen.bytesPerPixel = bytesPerPixel;
     pvrLinuxFBDisplay.screen.screenDrawable = 0;
-		if (mapped) {
-			pvrLinuxFBDisplay.screen.frameBuffer = memInfo;
-			pvrLinuxFBDisplay.screen.mapped = mapped;
-		}
+    if (mapped) {
+        pvrLinuxFBDisplay.screen.frameBuffer = memInfo;
+        pvrLinuxFBDisplay.screen.mapped = mapped;
+    }
     pvrLinuxFBDisplay.screen.mappedLength = length;
     pvrLinuxFBDisplay.screen.screenStart = start;
     pvrLinuxFBDisplay.screen.needsUnmap = 0;
