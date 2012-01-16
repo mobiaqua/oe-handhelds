@@ -74,7 +74,7 @@ static int pvrLinuxFBInitFbScreen(void) {
     if (pvrLinuxFBDisplay.screen.initialized)
         return 1;
 
-    fd = open("/dev/fb0", O_RDONLY, 0);
+    fd = open("/dev/fb0", O_RDWR, 0);
     if (fd < 0) {
         perror("LINUXFBWSEGL: error open /dev/fb0");
         return 0;

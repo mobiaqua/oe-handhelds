@@ -13,7 +13,7 @@ do_configure() {
 }
 
 do_compile() {
-	${CC} ${CFLAGS} ${LDFLAGS} -s -fPIC -shared ${S}/pvrlinuxfbdrawable.c ${S}/pvrlinuxfbwsegl.c -o ${S}/pvrlinuxfbwsegl.so
+	${CC} ${CFLAGS} ${LDFLAGS} -s -fPIC -lpvr2d -shared ${S}/pvrlinuxfbdrawable.c ${S}/pvrlinuxfbwsegl.c -o ${S}/pvrlinuxfbwsegl.so
 }
 
 do_install() {
