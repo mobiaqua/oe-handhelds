@@ -12,7 +12,7 @@ SRC_URI[md5sum] = "f4188f3c84fe3ea774a6f9b68e732a1a"
 SRC_URI[sha256sum] = "5d985741829bb2e734fe47f469626aead1cb669ffb1dc15ffd687a269da42f8b"
 
 COMPATIBLE_MACHINE = "pandaboard"
-DEPENDS = "omap4-sgx-modules"
+DEPENDS = "omap4-sgx-modules libdrm"
 PROVIDES += "virtual/egl"
 
 DEFAULT_PREFERENCE = "2"
