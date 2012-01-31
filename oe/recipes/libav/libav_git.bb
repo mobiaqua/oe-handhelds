@@ -3,9 +3,9 @@ require libav.inc
 #DEPENDS += "virtual/libsdl schroedinger libgsm libvpx"
 
 # When bumping SRCREV make sure you bump PR here and in dependant recipes (gst-ffmpeg, gnash, omxil, etc) to account for SOVERSION changes
-SRCREV = "c6c2dfcf15c1d93b2189adff6f71c5c4b6b05338"
+SRCREV = "4b63cc18bc44517f0f9e04b39ab873cbc3c6aee5"
 
-PV = "0.6.2+${PR}+gitr${SRCPV}"
+PV = "0.8+${PR}+gitr${SRCPV}"
 PR = "${INC_PR}.2"
 
 SRC_URI = "git://git.libav.org/libav.git;protocol=git"
@@ -22,15 +22,17 @@ EXTRA_FFCONF ?= ""
 EXTRA_OECONF = " \
         --enable-shared \
         --enable-pthreads \
-        --disable-stripping \
         --enable-gpl \
-        --enable-postproc \
         \
         --cross-prefix=${TARGET_PREFIX} \
         --prefix=${prefix} \
         \
-        --disable-ffserver \
-        --disable-ffplay \
+        --disable-ffmpeg \
+        --disable-avconv \
+        --disable-avplay \
+        --disable-avprobe \
+        --disable-avserver \
+        --disable-swscale \
         --disable-x11grab \
         --arch=${TARGET_ARCH} \
         --target-os="linux" \
