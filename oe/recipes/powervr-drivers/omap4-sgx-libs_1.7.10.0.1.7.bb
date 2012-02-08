@@ -3,14 +3,14 @@ LICENSE = "proprietary-binary"
 
 PR = "r1"
 
-SRC_URI = "http://launchpadlibrarian.net/91202777/pvr-omap4_${PV}.orig.tar.gz \
+SRC_URI = "http://launchpadlibrarian.net/89451441/pvr-omap4_${PV}.orig.tar.gz \
 	   file://99-pvr.conf \
 	   file://LICENSE.txt \
 	   file://includes \
 	   "
 
-SRC_URI[md5sum] = "8538799461794654b03d43fc5dfbaa36"
-SRC_URI[sha256sum] = "b0a15ef5123a953eff26f5cd82aed553b4139fc420a31add8924789d6d1d0341"
+SRC_URI[md5sum] = "f4188f3c84fe3ea774a6f9b68e732a1a"
+SRC_URI[sha256sum] = "5d985741829bb2e734fe47f469626aead1cb669ffb1dc15ffd687a269da42f8b"
 
 COMPATIBLE_MACHINE = "pandaboard"
 DEPENDS = "omap4-sgx-modules libdrm"
