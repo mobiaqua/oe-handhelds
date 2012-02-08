@@ -1,0 +1,25 @@
+diff -ur old/arch/arm/mach-omap2/Makefile new/arch/arm/mach-omap2/Makefile
+--- old/arch/arm/mach-omap2/Makefile	2012-02-04 09:22:58.000000000 +0100
++++ new/arch/arm/mach-omap2/Makefile	2012-02-04 09:23:40.000000000 +0100
+@@ -30,8 +30,8 @@
+ obj-$(CONFIG_ARCH_OMAP4)		+= omap4-common.o omap-wakeupgen.o
+ 
+ plus_sec := $(call as-instr,.arch_extension sec,+sec)
+-AFLAGS_omap-headsmp.o			:=-Wa,-march=armv7-a$(plus_sec)
+-AFLAGS_omap-smc.o			:=-Wa,-march=armv7-a$(plus_sec)
++AFLAGS_omap-headsmp.o			:=-Wa,-march=armv7-a+sec
++AFLAGS_omap-smc.o			:=-Wa,-march=armv7-a+sec
+ 
+ # Functions loaded to SRAM
+ obj-$(CONFIG_SOC_OMAP2420)		+= sram242x.o
+@@ -75,8 +75,8 @@
+ obj-$(CONFIG_OMAP_SMARTREFLEX_CLASS3)	+= smartreflex-class3.o
+ 
+ AFLAGS_sleep24xx.o			:=-Wa,-march=armv6
+-AFLAGS_sleep34xx.o			:=-Wa,-march=armv7-a$(plus_sec)
+-AFLAGS_sleep44xx.o			:=-Wa,-march=armv7-a$(plus_sec)
++AFLAGS_sleep34xx.o			:=-Wa,-march=armv7-a+sec
++AFLAGS_sleep44xx.o			:=-Wa,-march=armv7-a+sec
+ 
+ ifeq ($(CONFIG_PM_VERBOSE),y)
+ CFLAGS_pm_bus.o				+= -DDEBUG
