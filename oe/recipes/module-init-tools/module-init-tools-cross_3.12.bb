@@ -1,7 +1,9 @@
 require module-init-tools.inc
 inherit cross
 #MobiAqua: added fix_build_native_nonlinux.patch
-SRC_URI = "${KERNELORG_MIRROR}/pub/linux/utils/kernel/module-init-tools/module-init-tools-${PV}.tar.bz2"
+SRC_URI = "${KERNELORG_MIRROR}/pub/linux/utils/kernel/module-init-tools/module-init-tools-${PV}.tar.bz2 \
+	   file://fix_build_native_nonlinux.patch \
+	  "
 EXTRA_OECONF += "--disable-builddir"
 #DEPENDS += "docbook-utils-native"
 
