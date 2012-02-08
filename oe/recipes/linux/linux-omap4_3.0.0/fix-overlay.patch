@@ -5,7 +5,7 @@ diff -ur old/drivers/media/video/omap/omap_vout.c new/drivers/media/video/omap/o
  			win->global_alpha = f->fmt.win.global_alpha;
  	}
  
-+	/* Save the changes in the overlay strcuture */
++	/* Save the changes in the overlay structure */
 +	ret = omapvid_init(vout, 0, 0);
 +	if (ret) {
 +		v4l2_err(&vout->vid_dev->v4l2_dev, "failed to change mode\n");

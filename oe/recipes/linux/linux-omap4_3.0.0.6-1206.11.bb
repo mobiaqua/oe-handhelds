@@ -7,7 +7,7 @@ COMPATIBLE_MACHINE = "pandaboard"
 DEFAULT_PREFERENCE = "-1"
 DEFAULT_PREFERENCE_pandaboard = "5"
 
-DEPENDS = "coreutils-native"
+DEPENDS = "coreutils-native elf-native"
 
 inherit kernel
 
