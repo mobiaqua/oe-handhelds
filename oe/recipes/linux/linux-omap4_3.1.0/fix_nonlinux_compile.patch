@@ -12,3 +12,15 @@ diff -ur old/scripts/mod/sumversion.c new/scripts/mod/sumversion.c
  /*
   * Stolen form Cryptographic API.
   *
+diff -ur old/Makefile new/Makefile
+--- old/Makefile	2012-02-09 17:15:53.000000000 +0100
++++ new/Makefile	2012-02-09 17:10:49.000000000 +0100
+@@ -245,7 +245,7 @@
+ 
+ HOSTCC       = gcc
+ HOSTCXX      = g++
+-HOSTCFLAGS   = -Wall -Wmissing-prototypes -Wstrict-prototypes -O2 -fomit-frame-pointer
++HOSTCFLAGS   = -Wall -Wmissing-prototypes -Wstrict-prototypes -O2 -fomit-frame-pointer $(HOST_INC)
+ HOSTCXXFLAGS = -O2
+ 
+ # Decide whether to build built-in, modular, or both.

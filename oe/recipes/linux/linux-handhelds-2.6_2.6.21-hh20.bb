@@ -19,6 +19,23 @@ SRC_URI = "http://dl.dropbox.com/u/12617418/linux26-2.6.21-hh20.tar.bz2 \
 
 require linux-handhelds-2.6.inc
 
+do_compile() {
+	HOST_INC=-I${STAGING_INCDIR_NATIVE}
+	unset CFLAGS CPPFLAGS CXXFLAGS LDFLAGS MACHINE
+	oe_runmake include/linux/version.h ${KERNEL_EXTRA_OEMAKE}
+	oe_runmake ${KERNEL_IMAGETYPE} ${KERNEL_EXTRA_OEMAKE} HOST_INC=${HOST_INC}
+}
+
+do_compile_kernelmodules() {
+	HOST_INC=-I${STAGING_INCDIR_NATIVE}
+	unset CFLAGS CPPFLAGS CXXFLAGS LDFLAGS MACHINE
+	if (grep -q -i -e '^CONFIG_MODULES=y$' .config); then
+		oe_runmake modules ${KERNEL_EXTRA_OEMAKE} HOST_INC=${HOST_INC}
+	else
+		oenote "no modules to compile"
+	fi
+}
+
 SRC_URI[md5sum] = "62423b3c5840956387a523619e714e0b"
 SRC_URI[sha256sum] = "b214f70bf693fb67543d69f4e80bf6b4a35eec2c0c16e8dd4c78546af277f236"
 SRC_URI[rppatch35.md5sum] = "8ab51e8ff728f4155db64b9bb6ea6d71"
