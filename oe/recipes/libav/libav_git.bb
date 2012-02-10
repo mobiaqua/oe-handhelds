@@ -28,11 +28,11 @@ EXTRA_OECONF = " \
         --prefix=${prefix} \
         \
         --disable-ffmpeg \
-        --disable-avconv \
-        --disable-avplay \
-        --disable-avprobe \
         --disable-avserver \
-        --disable-swscale \
+        --disable-avplay \
+        --disable-avconv \
+        --enable-avprobe \
+        --enable-swscale \
         --disable-x11grab \
         --arch=${TARGET_ARCH} \
         --target-os="linux" \
