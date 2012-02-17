@@ -3,7 +3,8 @@ LICENSE = "GPLv2"
 
 PR = "r4"
 
-SRC_URI = "http://mirror.its.uidaho.edu/pub/savannah/attr/attr-${PV}.src.tar.gz"
+#MobiAqua: updated url
+SRC_URI = "http://download.savannah.gnu.org/releases/attr/attr-${PV}.src.tar.gz"
 
 inherit gettext autotools lib_package
 EXTRA_OECONF = " --enable-gettext=yes \
