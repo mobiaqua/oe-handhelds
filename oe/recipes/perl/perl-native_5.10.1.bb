@@ -23,6 +23,7 @@ SRC_URI = "http://ftp.funet.fi/pub/CPAN/src/perl-${PV}.tar.gz;name=perl-${PV} \
            file://fix-for-macosx.patch \
 	   file://perl-fix-cross-library-check.patch \
            file://ubuntu-11.04-multiarch.patch \
+           file://0001-Find-pthread-libraries.patch \
 	   "
 
 SRC_URI[perl-5.10.1.md5sum] = "b9b2fdb957f50ada62d73f43ee75d044"
