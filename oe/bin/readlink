@@ -1,0 +1,22 @@
+#!/bin/sh
+
+if [ -e /bin/uname ]; then
+    os=`/bin/uname -s`
+elif [ -e /usr/bin/uname ]; then
+    os=`/usr/bin/uname -s`
+fi
+
+case $os in
+    Darwin)
+        if [ -e /opt/local/bin/greadlink ]; then
+                exec "/opt/local/bin/greadlink" "$@"
+        elif [ -e /sw/sbin/readlink ]; then
+                exec "/sw/sbin/readlink" "$@"
+        else
+                exec "greadlink" "$@"
+        fi
+        ;;
+    Linux)
+        exec "/bin/readlink" "$@"
+        ;;
+esac
