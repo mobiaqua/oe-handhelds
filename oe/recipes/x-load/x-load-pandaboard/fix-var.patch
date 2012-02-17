@@ -1,0 +1,20 @@
+diff -ur old/lib/printf.c new/lib/printf.c
+--- old/lib/printf.c	2011-10-06 07:49:13.000000000 +0200
++++ new/lib/printf.c	2012-02-16 19:38:57.000000000 +0100
+@@ -287,7 +287,6 @@
+ void serial_printf (const char *fmt, ...)
+ {
+ 	va_list args;
+-	uint i;
+ 	char printbuffer[CFG_PBSIZE];
+ 
+ 	va_start (args, fmt);
+@@ -295,7 +294,7 @@
+ 	/* For this to work, printbuffer must be larger than
+ 	 * anything we ever want to print.
+ 	 */
+-	i = vsprintf (printbuffer, fmt, args);
++	vsprintf (printbuffer, fmt, args);
+ 	va_end (args);
+ 
+ 	/* Print the string */

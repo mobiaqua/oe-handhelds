@@ -17,7 +17,8 @@ PR ="r1"
 SRCREV = "04b1732220078d47c18a84cbafc52e45db71f13d"
 
 SRC_URI = "git://gitorious.org/pandaboard/x-loader-mainline.git;branch=master;protocol=git \
-	   file://no_signGP.patch"
+	   file://no_signGP.patch \
+	   file://fix-var.patch"
 
 XLOAD_LOAD_ADDRESS = 0x40304350
 XLOAD_MACHINE = "omap4430panda_config"
