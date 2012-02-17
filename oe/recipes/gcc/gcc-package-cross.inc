@@ -22,13 +22,6 @@ do_install () {
 	install -d ${D}${target_base_libdir}
 	install -d ${D}${target_libdir}
 
-	#MobiAqua: below 'if' fix stdc++ includes
-	if [ -e ${S}/build.${HOST_SYS}.${TARGET_SYS}/${TARGET_SYS}/libstdc++-v3/include/${TARGET_SYS}/bits ]; then
-		install -d ${D}${target_includedir}/c++/bits
-		install -d ${STAGING_DIR_TARGET}${target_includedir}/c++/bits/
-		cp -RL ${S}/build.${HOST_SYS}.${TARGET_SYS}/${TARGET_SYS}/libstdc++-v3/include/${TARGET_SYS}/bits/* ${STAGING_DIR_TARGET}${target_includedir}/c++/bits/
-	fi
-
 	for d in ${TARGET_SYS}/lib/nof ${TARGET_SYS}/lib64 ${TARGET_SYS}/lib; do
 		if [ -d ${D}${prefix}/$d/ ]; then
 			mv -f ${D}${prefix}/$d/libgcc* ${D}${target_base_libdir} || true
