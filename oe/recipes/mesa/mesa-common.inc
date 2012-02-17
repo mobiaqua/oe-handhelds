@@ -50,8 +50,3 @@ do_install_append () {
     install -d ${D}/${includedir}/GL
     cp -pPr ${S}/include/GL/internal* ${D}/${includedir}/GL
 }
-
-do_configure_prepend() {
-  #MobiAqua: addded path for stdc++ includes
-  export CXXFLAGS="$CXXFLAGS -I${STAGING_INCDIR}/c++"
-}

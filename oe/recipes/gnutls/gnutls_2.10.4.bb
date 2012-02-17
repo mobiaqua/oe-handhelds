@@ -10,7 +10,6 @@ SRC_URI += "file://gettextize-with-gettext-0.18.patch \
            "
 
 do_configure_prepend() {
- export CXXFLAGS="$CXXFLAGS -I${STAGING_INCDIR}/c++"
  MACROS="libtool.m4 lt~obsolete.m4 ltoptions.m4 ltsugar.m4 ltversion.m4"
 
  for i in ${MACROS}; do

@@ -20,8 +20,3 @@ do_install_append() {
         install -m 0755 scripts/xinput_calibrator_pointercal.sh ${D}${bindir}/xinput_calibrator_once.sh
         install -m 0755 scripts/xinput_calibrator_get_hal_calibration.sh ${D}${bindir}/xinput_calibrator_get_hal_calibration.sh
 }
-
-do_configure_prepend() {
-    #MobiAqua: addded path for stdc++ includes
-    export CXXFLAGS="$CXXFLAGS -I${STAGING_INCDIR}/c++"
-}
