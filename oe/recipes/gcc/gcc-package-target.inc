@@ -14,12 +14,11 @@ PACKAGES = "\
   ${PN}-doc \
 "
 
-#MobiAqua: added missing paths: cc*, lto*, lib*, liblto*, include-fixed
+#MobiAqua: added missing paths: lto*, lib*, liblto*, include-fixed
 FILES_${PN} = "\
   ${bindir}/${TARGET_PREFIX}gcc \
   ${bindir}/${TARGET_PREFIX}gccbug \
   ${libexecdir}/gcc/${TARGET_SYS}/${BINV}/collect2 \
-  ${libexecdir}/gcc/${TARGET_SYS}/${BINV}/cc* \
   ${libexecdir}/gcc/${TARGET_SYS}/${BINV}/lto* \
   ${libexecdir}/gcc/${TARGET_SYS}/${BINV}/lib* \
   ${libexecdir}/gcc/${TARGET_SYS}/${BINV}/liblto* \
