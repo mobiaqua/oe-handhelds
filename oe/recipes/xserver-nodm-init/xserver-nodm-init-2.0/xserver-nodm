@@ -11,11 +11,6 @@ for x in $(cat /proc/cmdline); do
         esac
 done
 
-kernel=`uname -r | cut -c 1-8`
-if [ "$kernel" == "2.6.35.3" ]; then
-	exit 0;
-fi
-
 case "$1" in
   start)
     # We don't want this script to block the rest of the boot process
