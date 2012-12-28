@@ -5,17 +5,12 @@ LICENSE = "GPLv2+"
 
 PR = "r7"
 
-# Untested
-DEFAULT_PREFERENCE = "-1"
-
 #MobiAqua: use this working version as newer doesn't work properly
 
 # Needed for udev-extras
 DEPENDS = "gperf-native usbutils acl glib-2.0 mtd-utils"
 RDEPENDS_${PN} += "module-init-tools-depmod udev-utils"
 
-#MobiAqua: add mirror as main site is down
-#SRC_URI = "http://kernel.org/pub/linux/utils/kernel/hotplug/udev-${PV}.tar.gz \
 SRC_URI = "http://www.mirrorservice.org/sites/ftp.kernel.org/pub/linux/utils/kernel/hotplug/udev-${PV}.tar.gz \
 	   file://mount.blacklist \
 	   file://run.rules \

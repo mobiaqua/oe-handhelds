@@ -12,7 +12,6 @@ INC_PR = "r36"
 # allows for a release candidate
 RC ?= ""
 
-#MobiAqua: updated url
 SRC_URI = "${KERNELORG_MIRROR}/pub/linux/utils/util-linux/v${PV}/util-linux-ng-${PV}${RC}.tar.bz2;name=archive"
 
 SRC_URI_append_chinook-compat = " file://chinook_libtool.patch "

@@ -5,7 +5,7 @@ PR = "${INC_PR}.0"
 #MobiAqua: keep using this version
 
 SRC_URI =+ "\
-  http://snapshot.debian.org/archive/debian/20110301/pool/main/f/fakeroot/fakeroot_1.14.5.orig.tar.bz2 \
+  https://launchpad.net/ubuntu/+archive/primary/+files/${PN}_${PV}.orig.tar.bz2 \
   file://quiet-getopt-check.patch \
 "
 

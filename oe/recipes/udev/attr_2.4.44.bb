@@ -3,7 +3,6 @@ LICENSE = "GPLv2"
 
 PR = "r4"
 
-#MobiAqua: updated url
 SRC_URI = "http://download.savannah.gnu.org/releases/attr/attr-${PV}.src.tar.gz"
 
 inherit gettext autotools lib_package
