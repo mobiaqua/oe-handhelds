@@ -10,8 +10,3 @@ Usage Information:
 
 	Then use bitbake command.
 
-FAQ:
-	Q: Why I get an error on Mac OS X when I try to compile glibc?
-
-	A: OE directory need to be on case-sensitive filesystem.
-

@@ -57,6 +57,7 @@ SRC_URI = "ftp://ftp.gnu.org/pub/gnu/glibc/glibc-${PV}.tar.bz2;name=archive \
 	   file://PTR_MANGLE.patch \
 	   file://cross-readelf.patch \
 	   file://skip-iconv-modules.patch \
+	   file://fix-compile-fs-noncase.patch \
            "
 
 # Build fails on sh3 and sh4 without additional patches
