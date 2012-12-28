@@ -8,6 +8,9 @@ SRC_URI = " \
 
 inherit native
 
+#MobiAqua: added CFLAGS for mac os x
+CFLAGS_append_darwin = " -DSTD_INSPIRED"
+
 do_install () {
         install -d ${D}${bindir}
         install -m 755 zic ${D}${bindir}/
