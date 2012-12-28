@@ -11,8 +11,8 @@ COMPATIBLE_TARGET_SYS = (?!sh[34])
 
 #MobiAqua: use newer patch
 SRC_URI = "\
-  http://snapshot.debian.org/archive/debian/20090801T192339Z/pool/main/l/ltrace/ltrace_${PV}.orig.tar.gz;name=archive \
-  http://snapshot.debian.org/archive/debian/20090801T192339Z/pool/main/l/ltrace/ltrace_${PV}-2.diff.gz;name=patch \
+  ${DEBIAN_MIRROR}/main/l/ltrace/ltrace_${PV}.orig.tar.gz;name=archive \
+  ${DEBIAN_MIRROR}/main/l/ltrace/ltrace_${PV}-2.1.diff.gz;name=patch \
   file://add-sysdep.patch \
   file://ltrace-compile.patch \
   file://ltrace-mips-remove-CP.patch \
