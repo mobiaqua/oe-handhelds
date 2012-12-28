@@ -5,6 +5,7 @@ S = "${WORKDIR}/mpfr-${PV}"
 NATIVE_INSTALL_WORKS = "1"
 PR = "${INC_PR}.1"
 
+#MobiAqua: fixed p1.patch
 SRC_URI = "http://www.mpfr.org/mpfr-${PV}/mpfr-${PV}.tar.bz2 \
            file://p1.patch"
 
