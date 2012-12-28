@@ -8,9 +8,7 @@ INC_PR = "r9"
 
 inherit autotools
 
-#MobiAqua: mirror
-SRC_URI = "http://ftp.dti.ad.jp/pub/GNU/gdb/gdb-${PV}.tar.gz"
-#SRC_URI = "${GNU_MIRROR}/gdb/gdb-${PV}.tar.gz"
+SRC_URI = "${GNU_MIRROR}/gdb/gdb-${PV}.tar.gz"
 
 FILESPATHPKG =. "gdb-${PV}:" 
 
