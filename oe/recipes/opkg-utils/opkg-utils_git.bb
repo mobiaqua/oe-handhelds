@@ -12,7 +12,7 @@ PR = "r1"
 
 #MobiAqua: added fix-for-cutoff-filenames.patch
 SRC_URI = "git://git.yoctoproject.org/opkg-utils;protocol=git \
-           file://fix-for-cutoff-filenames.patch \"
+           file://fix-for-cutoff-filenames.patch \
            "
 
 S = "${WORKDIR}/git"
