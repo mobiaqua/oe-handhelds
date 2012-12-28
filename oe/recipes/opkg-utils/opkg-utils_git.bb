@@ -10,9 +10,10 @@ SRCREV = "423ecd36b4782327c16f516885d1248249c7724a"
 PV = "0.1.8+git${SRCPV}"
 PR = "r1"
 
-#MobiAqua: added fix-for-cutoff-filenames.patch
+#MobiAqua: added fix-for-cutoff-filenames.patch, remove_f_from_ar.patch
 SRC_URI = "git://git.yoctoproject.org/opkg-utils;protocol=git \
            file://fix-for-cutoff-filenames.patch \
+           file://remove_f_from_ar.patch \
            "
 
 S = "${WORKDIR}/git"
