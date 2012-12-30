@@ -11,14 +11,13 @@ PROVIDES += "x-load"
 PARALLEL_MAKE=""
 PACKAGE_ARCH = "${MACHINE_ARCH}"
 
-PV = "1.5.0+${PR}+gitr${SRCREV}"
+PV = "1.5.1+${PR}+gitr${SRCREV}"
 PR ="r1"
 
-SRCREV = "04b1732220078d47c18a84cbafc52e45db71f13d"
+SRCREV = "ce2dc2f1edf152d681c732f378e2bd464d78050f"
 
-SRC_URI = "git://gitorious.org/pandaboard/x-loader-mainline.git;branch=master;protocol=git \
-	   file://no_signGP.patch \
-	   file://fix-var.patch"
+SRC_URI = "git://gitorious.org/x-loader/x-loader.git;branch=master;protocol=git \
+	   file://no_signGP.patch"
 
 XLOAD_LOAD_ADDRESS = 0x40304350
 XLOAD_MACHINE = "omap4430panda_config"
