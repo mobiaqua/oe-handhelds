@@ -11,7 +11,8 @@ export OE_LDFLAGS="${LDFLAGS}"
 SRC_URI += "file://configure-targets.patch \
             file://shared-libs.patch \
             file://debian.patch \
-            file://oe-ldflags.patch"
+            file://oe-ldflags.patch \
+            file://no-docs.patch"
 
 SRC_URI_append_nios2 += "file://Configure-nios2.patch"
 
