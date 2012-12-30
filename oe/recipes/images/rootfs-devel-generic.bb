@@ -1,6 +1,6 @@
 
 require rootfs-base.inc
-require rootfs-devel.inc
+require rootfs-tools.inc
 require rootfs-release-tv.bb
 
 DESCRIPTION = "<description>"

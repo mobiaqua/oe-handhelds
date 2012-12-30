@@ -1,7 +1,7 @@
 
 require rootfs-base.inc
 require rootfs-release-car.bb
-require rootfs-devel.inc
+require rootfs-tools.inc
 
 #not use currently:
 #INSTALL_PKGS += "u-boot-igep omap3-sgx-libs"
