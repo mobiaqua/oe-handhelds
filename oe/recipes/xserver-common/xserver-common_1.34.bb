@@ -10,6 +10,7 @@ inherit gpe
 SRC_URI[md5sum] = "82f2f84cd96610e8f7b92c700cd31c14"
 SRC_URI[sha256sum] = "cd04c33418f776b1e13fcc7af3d6bd0c7cccd03fbabd7dbcd97f88166cc34210"
 
+#MobiAqua: added Xserver.sh to prevent on mac os x name clash
 SRC_URI_append = " \
                    file://gplv2-license.patch \
                    file://setDPI.sh \
@@ -22,8 +23,13 @@ SRC_URI_append = " \
                    file://Xserver.n900.patch \
                    file://Xserver.htcdream.patch \
                    file://Xserver.nexusone.patch \
+                   file://Xserver.sh \
+                   file://fix-name-clash.patch \
 "
 
+do_configure_prepend() {
+        cp ${WORKDIR}/Xserver.sh ${S}/X11/
+}
 
 do_install_append() {
         install -m 0755 "${WORKDIR}/setDPI.sh" "${D}/etc/X11/Xinit.d/50setdpi"
