@@ -9,10 +9,6 @@ PROVIDES = "ffmpeg"
 
 ARM_INSTRUCTION_SET = "arm"
 
-PE = "2"
-
-INC_PR = "r0"
-
 inherit autotools pkgconfig
 
 LEAD_SONAME = "libavcodec.so"
@@ -54,7 +50,6 @@ PACKAGES += "ffmpeg-x264-presets \
              libpostproc libpostproc-dev libpostproc-dbg \
              libswscale  libswscale-dev  libswscale-dbg \
              libavfilter libavfilter-dev libavfilter-dbg \
-             libavcore   libavcore-dev   libavcore-dbg \
             "
 
 FILES_ffmpeg-x264-presets = "${datadir}/*.ffpreset"
@@ -88,17 +83,13 @@ FILES_libavfilter = "${libdir}/libavfilter*.so.*"
 FILES_libavfilter-dev = "${libdir}/libavfilter*.so ${libdir}/pkgconfig/libavfilter.pc ${libdir}/libavfilter*.a"
 FILES_libavfilter-dbg += "${libdir}/.debug/libavfilter*"
 
-FILES_libavcore = "${libdir}/libavcore*.so.*"
-FILES_libavcore-dev = "${libdir}/libavcore*.so ${libdir}/pkgconfig/libavcore.pc ${libdir}/libavcore*.a"
-FILES_libavcore-dbg += "${libdir}/.debug/libavcore*"
-
 DEPENDS_i586 += "yasm-native"
 DEPENDS_i686 += "yasm-native"
 
-SRCREV = "4b63cc18bc44517f0f9e04b39ab873cbc3c6aee5"
+SRCREV = "5e6ee38bd3cef0dd05f1dd7977c71f3479eb6d01"
 
-PV = "0.8+${PR}+gitr${SRCPV}"
-PR = "${INC_PR}.1"
+PV = "0.9+${PR}+gitr${SRCPV}"
+PR = "r1"
 
 SRC_URI = "git://git.libav.org/libav.git;protocol=git"
 
@@ -119,7 +110,6 @@ EXTRA_OECONF = " \
         --cross-prefix=${TARGET_PREFIX} \
         --prefix=${prefix} \
         \
-        --disable-ffmpeg \
         --disable-avserver \
         --disable-avplay \
         --disable-avconv \
@@ -135,7 +125,7 @@ EXTRA_OECONF = " \
         --disable-hwaccels \
         --disable-bzlib \
         --disable-avfilter \
-#        --disable-avresample \
+        --disable-avresample \
         --disable-avdevice \
         --arch=${TARGET_ARCH} \
         --target-os="linux" \
