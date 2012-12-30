@@ -19,7 +19,8 @@
 # The package.bbclass can help us here.
 #
 inherit package
-PACKAGE_DEPENDS += "pax-utils-native desktop-file-utils-native"
+#MobiAqua: added findutils-native
+PACKAGE_DEPENDS += "pax-utils-native desktop-file-utils-native findutils-native"
 PACKAGEFUNCS += " do_package_qa "
 
 
