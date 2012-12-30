@@ -5,7 +5,7 @@ require rootfs-release-tv.bb
 
 DESCRIPTION = "<description>"
 
-PV = "0.0.1"
+PV = "1.0.0"
 PR = "r0"
 
 INSTALL_PKGS += ""
