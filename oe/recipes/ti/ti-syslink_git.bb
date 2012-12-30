@@ -8,7 +8,8 @@ PR = "${MACHINE_KERNEL_PR}"
 PR_append = "+m2+gitr-${SRCREV}"
 
 SRCREV = "b1b8045b89402a0fe4f4ca133d400ee12a40d55a"
-SRC_URI = "git://git.omapzoom.org/platform/hardware/ti/syslink.git;protocol=git;branch=syslink-2.0"
+SRC_URI = "git://git.omapzoom.org/platform/hardware/ti/syslink.git;protocol=git;branch=syslink-2.0 \
+	   file://fix-string.patch"
 
 inherit autotools
 
