@@ -16,7 +16,8 @@ ARCH_FLAGS_FOR_TARGET += "-isystem${STAGING_INCDIR}"
 export CPP="gcc -E"
 export BUILD_LDFLAGS="-L${STAGING_LIBDIR_NATIVE}"
 
-DEPENDS = "mpfr gmp libelf"
+#MobiAqua: added libmpc
+DEPENDS = "mpfr gmp libelf libmpc"
 RDEPENDS = "libmpc-static"
 
 SRC_URI += "\
