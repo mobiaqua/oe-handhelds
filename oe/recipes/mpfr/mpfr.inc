@@ -8,9 +8,8 @@ INC_PR = "r3"
 inherit autotools
 
 do_fixup() {
-	rm ${S}/PATCHES || true
-	if [ $BUILD_OS != "darwin" ]; then
-		touch ${S}/PATCHES
+	if [ `uname -s` == "Darwin" ]; then
+		rm ${S}/PATCHES || true
 	fi
 }
 
