@@ -9,6 +9,7 @@ inherit autotools
 
 do_fixup() {
 	rm ${S}/PATCHES || true
+	touch ${S}/PATCHES
 }
 
 addtask fixup after do_unpack before do_patch
