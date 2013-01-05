@@ -9,7 +9,7 @@ EXTRA_OECONF += "--disable-builddir"
 
 DEFAULT_PREFERENCE = "0"
 PROVIDES += "virtual/${TARGET_PREFIX}depmod virtual/${TARGET_PREFIX}depmod-2.6 virtual/${TARGET_PREFIX}depmod-3.0 \
-	virtual/${TARGET_PREFIX}depmod-3.1 virtual/${TARGET_PREFIX}depmod-3.2"
+	virtual/${TARGET_PREFIX}depmod-3.1 virtual/${TARGET_PREFIX}depmod-3.2 virtual/${TARGET_PREFIX}depmod-3.4"
 
 # Remove the RDEPENDS_${PN} we picked up from the "require";
 # it's simply extraneous for the cross package

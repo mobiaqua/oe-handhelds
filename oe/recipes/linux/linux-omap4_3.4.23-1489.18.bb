@@ -5,22 +5,22 @@ KERNEL_IMAGETYPE = "uImage"
 COMPATIBLE_MACHINE = "pandaboard"
 
 DEFAULT_PREFERENCE = "-1"
-DEFAULT_PREFERENCE_pandaboard = "-10"
+DEFAULT_PREFERENCE_pandaboard = "10"
 
 DEPENDS = "coreutils-native elf-native"
 
 inherit kernel
 
-FILESPATHPKG =. "linux-omap4_3.1.0:"
+FILESPATHPKG =. "linux-omap4_3.4.0:"
 
-SRCREV = "ti-ubuntu-3.1-1282.10"
+SRCREV = "ti-ubuntu-3.4.0-1489.18"
 
 COMPATIBLE_HOST = "arm.*-linux"
 
 export ARCH = "arm"
 export OS = "Linux"
 
-SRC_URI = "git://dev.omapzoom.org/pub/scm/integration/kernel-ubuntu.git;protocol=git;branch=ti-ubuntu-3.1-1282 \
+SRC_URI = "git://dev.omapzoom.org/pub/scm/integration/kernel-ubuntu.git;protocol=git;branch=ti-ubuntu-3.4-1489 \
            file://fix-for-new-binutils.patch \
            file://fix_nonlinux_compile.patch \
            file://defconfig"
@@ -29,7 +29,8 @@ S = "${WORKDIR}/git"
 
 do_configure() {
 	install ${WORKDIR}/defconfig ${S}/.config
-	yes '' | oe_runmake oldconfig
+	install ${WORKDIR}/defconfig ${S}/.config.old
+#	yes '' | oe_runmake oldconfig
 }
 
 do_compile() {

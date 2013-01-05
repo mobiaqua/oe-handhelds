@@ -1,0 +1,16 @@
+diff -urp old/arch/arm/mach-omap2/Makefile new/arch/arm/mach-omap2/Makefile
+--- old/arch/arm/mach-omap2/Makefile	2013-01-05 20:17:06.000000000 +0100
++++ new/arch/arm/mach-omap2/Makefile	2013-01-05 20:20:33.000000000 +0100
+@@ -36,9 +36,9 @@ obj-$(CONFIG_ARCH_OMAP5)                
+ 					   sleep44xx.o omap-sar.o
+ 
+ plus_sec := $(call as-instr,.arch_extension sec,+sec)
+-AFLAGS_omap-headsmp.o			:=-Wa,-march=armv7-a$(plus_sec)
+-AFLAGS_omap-smc.o			:=-Wa,-march=armv7-a$(plus_sec)
+-AFLAGS_sleep44xx.o			:=-Wa,-march=armv7-a$(plus_sec)
++AFLAGS_omap-headsmp.o			:=-Wa,-march=armv7-a+sec
++AFLAGS_omap-smc.o			:=-Wa,-march=armv7-a+sec
++AFLAGS_sleep44xx.o			:=-Wa,-march=armv7-a+sec
+ 
+ # Functions loaded to SRAM
+ obj-$(CONFIG_SOC_OMAP2420)		+= sram242x.o
