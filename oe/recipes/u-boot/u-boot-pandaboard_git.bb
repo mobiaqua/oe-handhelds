@@ -48,9 +48,6 @@ do_configure () {
 	sed -i -e s,TARGET_MAC,${MA_TARGET_MAC},g ${WORKDIR}/boot-panda-nfs.script
 	sed -i -e s,TARGET_MAC,${MA_TARGET_MAC},g ${WORKDIR}/boot-panda-label.script
 	sed -i -e s,TARGET_MAC,${MA_TARGET_MAC},g ${WORKDIR}/boot-panda-sdcard.script
-	uboot-mkimage -A arm -O linux -T script -C none -a 0 -e 0 -n "Boot from 'panda' labeled disk" -d ${WORKDIR}/boot-panda-label.script ${WORKDIR}/boot-label.scr
-	uboot-mkimage -A arm -O linux -T script -C none -a 0 -e 0 -n "Boot from SD card" -d ${WORKDIR}/boot-panda-sdcard.script ${WORKDIR}/boot-sdcard.scr
-	uboot-mkimage -A arm -O linux -T script -C none -a 0 -e 0 -n "Boot from NFS server" -d ${WORKDIR}/boot-panda-nfs.script ${WORKDIR}/boot-nfs.scr
 }
 
 do_compile () {
@@ -65,10 +62,10 @@ do_install () {
 	install -d ${D}/boot
 	install -m 0644 ${S}/${UBOOT_BINARY} ${D}/boot/${UBOOT_IMAGE}
 	ln -sf ${UBOOT_IMAGE} ${D}/boot/${UBOOT_BINARY}
-	install -m 0644 ${WORKDIR}/boot-sdcard.scr ${D}/boot/
-	install -m 0644 ${WORKDIR}/boot-label.scr ${D}/boot/
-	install -m 0644 ${WORKDIR}/boot-nfs.scr ${D}/boot/
-	ln -sf boot-label.scr ${D}/boot/boot.scr
+	install -m 0644 ${WORKDIR}/boot-panda-sdcard.script ${D}/boot/uEnv-sdcard.txt
+	install -m 0644 ${WORKDIR}/boot-panda-label.script ${D}/boot/uEnv-label.txt
+	install -m 0644 ${WORKDIR}/boot-panda-nfs.script ${D}/boot/uEnv-nfs.txt
+	ln -sf uEnv-label.txt ${D}/boot/uEnv.txt
 }
 
 FILES_${PN} = "/boot"
@@ -90,12 +87,12 @@ do_deploy () {
 	ln -sf ${UBOOT_IMAGE} ${UBOOT_SYMLINK}
 	package_stagefile_shell ${DEPLOY_DIR_IMAGE}/${UBOOT_SYMLINK}
 
-	install -m 0644 ${WORKDIR}/boot-label.scr ${DEPLOY_DIR_IMAGE}
-	install -m 0644 ${WORKDIR}/boot-sdcard.scr ${DEPLOY_DIR_IMAGE}
-	install -m 0644 ${WORKDIR}/boot-nfs.scr ${DEPLOY_DIR_IMAGE}
-	rm -f boot.scr
-	ln -sf boot-label.scr boot.scr
-	package_stagefile_shell ${DEPLOY_DIR_IMAGE}/boot.scr
+	install -m 0644 ${D}/boot/uEnv-label.txt ${DEPLOY_DIR_IMAGE}
+	install -m 0644 ${D}/boot/uEnv-sdcard.txt ${DEPLOY_DIR_IMAGE}
+	install -m 0644 ${D}/boot/uEnv-nfs.txt ${DEPLOY_DIR_IMAGE}
+	rm -f uEnv.txt
+	ln -sf uEnv-label.txt uEnv.txt
+	package_stagefile_shell ${DEPLOY_DIR_IMAGE}/uEnv.txt
 }
 do_deploy[dirs] = "${S}"
 addtask deploy before do_package_stage after do_compile
