@@ -11,15 +11,16 @@ DEFAULT_PREFERENCE_pandaboard = "1"
 
 COMPATIBLE_MACHINE = "pandaboard"
 
-SRCREV = "b1af6f532e0d348b153d5c148369229d24af361a"
+SRCREV = "dc80e007bc12f30e087891873332ddb3c710c6f3"
 
 PV = "2011.06+${PR}+gitr${SRCREV}"
 PE = "1"
 
-SRC_URI = "git://gitorious.org/pandaboard/u-boot-mainline.git;protocol=git \
-	   file://fix-break-caused-by-new-binutils.patch \
-	   file://no_getline.patch \
+SRC_URI = "git://git.linaro.org/boot/u-boot-linaro-stable.git;protocol=git \
+#	   file://fix-break-caused-by-new-binutils.patch \
+#	   file://no_getline.patch \
 	   file://panda_no_delay.patch \
+	   file://fix_older_cards.patch \
 	   file://boot-panda-label.script \
 	   file://boot-panda-sdcard.script \
 	   file://boot-panda-nfs.script \
