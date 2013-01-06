@@ -22,7 +22,7 @@ FILES_${PN}-locale += "${datadir}/X11/locale ${libdir}/X11/locale"
 
 XORG_PN = "libX11"
 
-EXTRA_OECONF += " --with-xcb --with-keysymdefdir=${STAGING_INCDIR}/X11 --with-groff=no --with-ps2pdf=no --with-fop=no"
+EXTRA_OECONF += " --with-xcb --with-keysymdefdir=${STAGING_INCDIR}/X11 --with-groff=no --with-ps2pdf=no --with-fop=no --disable-xf86bigfont"
 EXTRA_OECONF_virtclass-native = " --without-xcb --with-groff=no --with-ps2pdf=no --with-fop=no"
 EXTRA_OECONF_virtclass-nativesdk = " --without-xcb --with-groff=no --with-ps2pdf=no --with-fop=no"
 
@@ -32,11 +32,13 @@ EXTRA_OECONF_virtclass-nativesdk = " --without-xcb --with-groff=no --with-ps2pdf
 
 CFLAGS_append_arm = " -fforward-propagate "
 
-SRC_URI += " file://keysymdef_include.patch \
-             file://x11_disable_makekeys.patch \
-"
+SRC_URI += " file://keysymdef_include.patch"
+SRC_URI_append_arm = " file://x11_disable_makekeys.patch"
 
-do_compile_prepend() {
+CPPFLAGS_FOR_BUILD += "-D_GNU_SOURCE"
+EXTRA_OEMAKE += 'CWARNFLAGS=""'
+
+do_compile_prepend_arm() {
 	(
 		unset CC LD CXX CCLD CFLAGS CPPFLAGS LDFLAGS CXXFLAGS
 		cd src/util; 

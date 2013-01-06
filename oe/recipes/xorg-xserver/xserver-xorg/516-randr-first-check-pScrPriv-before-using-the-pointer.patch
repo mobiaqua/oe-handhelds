@@ -1,0 +1,30 @@
+From 32603f57ca03b6390b109960f8bb5ea53ac95ecb Mon Sep 17 00:00:00 2001
+From: Ricardo Salveti de Araujo <ricardo.salveti@linaro.org>
+Date: Thu, 21 Jun 2012 00:55:53 -0300
+Subject: [PATCH] randr: first check pScrPriv before using the pointer at
+ RRFirstOutput
+
+Fix a seg fault in case pScrPriv is NULL at ProcRRGetScreenInfo,
+which later calls RRFirstOutput.
+
+Signed-off-by: Ricardo Salveti de Araujo <ricardo.salveti@linaro.org>
+Reviewed-by: Keith Packard <keithp@keithp.com>
+Signed-off-by: Keith Packard <keithp@keithp.com>
+---
+ randr/randr.c |    3 +++
+ 1 file changed, 3 insertions(+)
+
+Index: xorg-server-1.11.4/randr/randr.c
+===================================================================
+--- xorg-server-1.11.4.orig/randr/randr.c	2012-07-17 18:46:06.000000000 -0300
++++ xorg-server-1.11.4/randr/randr.c	2012-07-17 18:48:35.169824448 -0300
+@@ -454,6 +454,9 @@
+     rrScrPriv(pScreen);
+     RROutputPtr		    output;
+     int	i, j;
++
++    if (!pScrPriv)
++        return NULL;
+     
+     if (pScrPriv->primaryOutput && pScrPriv->primaryOutput->crtc)
+ 	return pScrPriv->primaryOutput;

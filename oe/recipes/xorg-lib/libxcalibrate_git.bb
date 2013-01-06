@@ -6,7 +6,8 @@ PE = "3"
 PV = "0.0+${PR}+gitr${SRCPV}"
 PR = "${INC_PR}.0"
 
-SRC_URI = "git://anongit.freedesktop.org/git/xorg/lib/libXCalibrate;protocol=git"
+SRC_URI = "git://anongit.freedesktop.org/git/xorg/lib/libXCalibrate;protocol=git \
+           file://fix-xcb.patch"
 
 SRCREV = "209d83af61ed38a002c8096377deac292b3e396c"
 S = "${WORKDIR}/git"

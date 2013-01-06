@@ -1,0 +1,63 @@
+diff --git a/exa/exa_priv.h b/exa/exa_priv.h
+index 70de4bd..60aa328 100644
+--- a/exa/exa_priv.h
++++ b/exa/exa_priv.h
+@@ -206,6 +206,7 @@ typedef struct {
+     RegionRec srcReg;
+     RegionRec maskReg;
+     PixmapPtr srcPix;
++    PixmapPtr maskPix;
+ 
+ } ExaScreenPrivRec, *ExaScreenPrivPtr;
+ 
+diff --git a/exa/exa_unaccel.c b/exa/exa_unaccel.c
+index 219f903..7d83d15 100644
+--- a/exa/exa_unaccel.c
++++ b/exa/exa_unaccel.c
+@@ -448,6 +448,13 @@ ExaSrcValidate(DrawablePtr pDrawable,
+     RegionPtr dst;
+     int xoff, yoff;
+ 
++    if (pExaScr->srcPix == pPix)
++        dst = &pExaScr->srcReg;
++    else if (pExaScr->maskPix == pPix)
++        dst = &pExaScr->maskReg;
++    else
++        return;
++
+     exaGetDrawableDeltas(pDrawable, pPix, &xoff, &yoff);
+ 
+     box.x1 = x + xoff;
+@@ -455,9 +462,6 @@ ExaSrcValidate(DrawablePtr pDrawable,
+     box.x2 = box.x1 + width;
+     box.y2 = box.y1 + height;
+ 
+-    dst = (pExaScr->srcPix == pPix) ? &pExaScr->srcReg :
+-	&pExaScr->maskReg;
+-
+     RegionInit(&reg, &box, 1);
+     RegionUnion(dst, dst, &reg);
+     RegionUninit(&reg);
+@@ -506,17 +510,20 @@ ExaPrepareCompositeReg(ScreenPtr  pScreen,
+ 	    RegionTranslate(pSrc->pCompositeClip,
+ 			     -pSrc->pDrawable->x,
+ 			     -pSrc->pDrawable->y);
+-    }
++    } else
++        pExaScr->srcPix = NULL;
+ 
+     if (pMask && pMask->pDrawable) {
+ 	pMaskPix = exaGetDrawablePixmap(pMask->pDrawable);
+ 	RegionNull(&pExaScr->maskReg);
+ 	maskReg = &pExaScr->maskReg;
++	pExaScr->maskPix = pMaskPix;
+ 	if (pMask != pDst && pMask != pSrc)
+ 	    RegionTranslate(pMask->pCompositeClip,
+ 			     -pMask->pDrawable->x,
+ 			     -pMask->pDrawable->y);
+-    }
++    } else
++        pExaScr->maskPix = NULL;
+ 
+     RegionTranslate(pDst->pCompositeClip,
+ 		     -pDst->pDrawable->x,

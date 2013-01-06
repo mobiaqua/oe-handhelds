@@ -12,5 +12,5 @@ S = "${WORKDIR}/${XORG_PN}-${PV}"
 
 inherit autotools pkgconfig
 
-EXTRA_OECONF = "--enable-malloc0returnsnull"
+EXTRA_OECONF = "--enable-malloc0returnsnull --disable-specs "
 

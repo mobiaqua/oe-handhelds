@@ -1,0 +1,52 @@
+From 855003c333a0ead1db912695bc9705ef2b3144b4 Mon Sep 17 00:00:00 2001
+From: Keith Packard <keithp@keithp.com>
+Date: Thu, 21 Jun 2012 18:45:18 -0700
+Subject: [PATCH] randr: Catch two more potential unset rrScrPriv uses
+
+Ricardo Salveti <ricardo.salveti@linaro.org> found one place where the
+randr code could use the randr screen private data without checking
+for null first. This happens when the X server is running with
+multiple screens, some of which are randr enabled and some of which
+are not. Applications making protocol requests to the non-randr
+screens can cause segfaults where the server touches the unset private
+structure.
+
+I audited the code and found two more possible problem spots; the
+trick to auditing for this issue was to look for functions not taking
+a RandR data structure and where there was no null screen private
+check above them in the call graph.
+
+Signed-off-by: Keith Packard <keithp@keithp.com>
+---
+ randr/rroutput.c |    3 ++-
+ randr/rrscreen.c |    3 +++
+ 2 files changed, 5 insertions(+), 1 deletion(-)
+
+diff --git a/randr/rroutput.c b/randr/rroutput.c
+index 091e06b..fbd0e32 100644
+--- a/randr/rroutput.c
++++ b/randr/rroutput.c
+@@ -546,7 +546,8 @@ ProcRRSetOutputPrimary(ClientPtr client)
+     }
+ 
+     pScrPriv = rrGetScrPriv(pWin->drawable.pScreen);
+-    RRSetPrimaryOutput(pWin->drawable.pScreen, pScrPriv, output);
++    if (pScrPriv)
++        RRSetPrimaryOutput(pWin->drawable.pScreen, pScrPriv, output);
+ 
+     return Success;
+ }
+diff --git a/randr/rrscreen.c b/randr/rrscreen.c
+index f570afa..55110e0 100644
+--- a/randr/rrscreen.c
++++ b/randr/rrscreen.c
+@@ -261,6 +261,9 @@
+ 
+     pScreen = pWin->drawable.pScreen;
+     pScrPriv = rrGetScrPriv(pScreen);
++    if (!pScrPriv)
++        return BadMatch;
++
+     if (stuff->width < pScrPriv->minWidth || pScrPriv->maxWidth < stuff->width)
+     {
+ 	client->errorValue = stuff->width;
