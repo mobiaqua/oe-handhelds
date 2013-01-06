@@ -1,14 +1,16 @@
-Index: libX11-1.3.4/src/util/Makefile.am
-===================================================================
---- libX11-1.3.4.orig/src/util/Makefile.am
-+++ libX11-1.3.4/src/util/Makefile.am
-@@ -1,24 +1 @@
--
+diff -ur old/src/util/Makefile.am new/src/util/Makefile.am
+--- old/src/util/Makefile.am	2012-06-02 08:37:19.000000000 +0200
++++ new/src/util/Makefile.am	2013-01-06 14:21:51.000000000 +0100
+@@ -1,27 +1,3 @@
+ 
 -noinst_PROGRAMS=makekeys
 -
 -makekeys_CFLAGS = \
 -	$(X11_CFLAGS) \
 -	$(CWARNFLAGS)
+-
+-makekeys_CPPFLAGS = \
+-	-I$(top_srcdir)/include
 -
 -CC = @CC_FOR_BUILD@
 -CPPFLAGS = @CPPFLAGS_FOR_BUILD@
@@ -16,7 +18,7 @@ Index: libX11-1.3.4/src/util/Makefile.am
 -LDFLAGS = @LDFLAGS_FOR_BUILD@
 -
  EXTRA_DIST = mkks.sh
--
+ 
 -if LINT
 -# Check source code with tools like lint & sparse
 -
