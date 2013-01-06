@@ -7,31 +7,21 @@ PR = "r0"
 
 FILESPATHPKG =. "libdce:"
 
-SRC_URI = "http://launchpadlibrarian.net/85355221/tiomap4-syslink-mm-firmware_1.50.21.1+dce2+3.tar.gz;name=dce \
-	   http://launchpadlibrarian.net/84868865/tiomap4-syslink-ipc-firmware_2.6.1+git20111110+f289b98f.orig.tar.gz;name=ipc \
-	   file://ducati-init.sh"
+SRC_URI = "http://launchpadlibrarian.net/125118254/ti-firmware-ipu-dce_1.6+121207+151913+git17438c0.tar.gz"
 
-S = "${WORKDIR}"
+SRC_URI[md5sum] = "d0309bfe18d70f95a48e15f5cb6c1c3a"
+SRC_URI[sha256sum] = "36e1523e9c6b3cd9db60ec35e1307053f72e357b1033795e016bad6e1bdf2ac3"
 
-SRC_URI[dce.md5sum] = "6b67e0d5e276df19f55b025a60f30e97"
-SRC_URI[dce.sha256sum] = "e3cdb33e08237e497d86c1ea0297ab2185f0954217cdffbfdc0d8d1c00ca7b51"
-SRC_URI[ipc.md5sum] = "ba352b0de9ff468ccbc07ed4c19f91cc"
-SRC_URI[ipc.sha256sum] = "8f01097699b514cf54832c095183f3a2a58dfb35e426fef4753823da34419b42"
-
-INITSCRIPT_NAME = "ducati-init.sh"
+S = "${WORKDIR}/ducati-dce-ee4f5fd145de23fb00ee61a4f98dc4f8ae7d812e"
 
 do_install() {
-	install -d ${D}${base_libdir}/firmware/omap4
-	install -m 0644 ${S}/tiomap4-syslink-mm-firmware/license.txt ${D}${base_libdir}/firmware/omap4/
-	install -m 0644 ${S}/tiomap4-syslink-mm-firmware/dce_app_m3.xem3 ${D}${base_libdir}/firmware/omap4/
-	install -m 0644 ${S}/tiomap4-syslink-ipc-firmware-2.6.1+git20111110+f289b98f/Notify_MPUSYS_reroute_Test_Core0.xem3 ${D}${base_libdir}/firmware/omap4/
+	install -d ${D}${base_libdir}/firmware
+	install -m 0644 ${S}/ti-firmware-ipu-dce.xem3 ${D}${base_libdir}/firmware/
+	install -m 0644 ${S}/ti-firmware-ipu-dce.xem3.debug ${D}${base_libdir}/firmware/
+	install -m 0644 ${S}/ti-firmware-ipu-dce.xem3.map ${D}${base_libdir}/firmware/
+	install -m 0644 ${S}/ti-firmware-ipu-dce.license.txt ${D}${base_libdir}/firmware/
 
-	install -d ${D}${sysconfdir}/init.d
-	install -m 0755 ${WORKDIR}/${INITSCRIPT_NAME} ${D}${sysconfdir}/init.d/${INITSCRIPT_NAME}
-	for i in 2 3 4 5; do
-		install -d ${D}${sysconfdir}/rc${i}.d
-		ln -sf ../init.d/${INITSCRIPT_NAME} ${D}${sysconfdir}/rc${i}.d/S30${INITSCRIPT_NAME}
-	done
+	ln -s ti-firmware-ipu-dce.xem3 ${D}${base_libdir}/firmware/ducati-m3-core0.xem3
 }
 
 FILES_${PN} += "${base_libdir}/firmware/"
