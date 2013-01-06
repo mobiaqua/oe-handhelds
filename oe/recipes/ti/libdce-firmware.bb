@@ -1,5 +1,3 @@
-DEPENDS = "ti-libd2cmap ti-tilermemmgr ti-syslink"
-
 LICENSE = "TI"
 
 inherit autotools lib_package
