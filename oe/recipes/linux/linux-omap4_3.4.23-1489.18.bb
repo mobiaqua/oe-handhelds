@@ -52,6 +52,14 @@ do_compile_kernelmodules() {
 
 do_install_append() {
 	oe_runmake headers_install INSTALL_HDR_PATH=${D}${exec_prefix}/src/linux-${KERNEL_VERSION} ARCH=$ARCH
+	install -d ${D}${exec_prefix}/include/linux
+}
+
+staging_helper_append() {
+	rm ${STAGING_KERNEL_DIR}/include/linux/omap_drm.h
+	rm ${STAGING_KERNEL_DIR}/include/linux/omap_drv.h
+	cp -L ${S}/include/linux/omap_drm.h ${STAGING_KERNEL_DIR}/include/linux
+	cp -L ${S}/include/linux/omap_drv.h ${STAGING_KERNEL_DIR}/include/linux
 }
 
 PACKAGES =+ "kernel-headers"
