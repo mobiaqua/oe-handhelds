@@ -1,0 +1,26 @@
+diff -urp old/util/demux.c new/util/demux.c
+--- old/util/demux.c	2013-01-08 00:26:46.000000000 +0100
++++ new/util/demux.c	2013-01-08 00:59:35.000000000 +0100
+@@ -49,18 +49,18 @@ struct demux {
+ static AVFormatContext *
+ open_file(const char *filename)
+ {
+-	AVFormatContext *afc;
+-	int err = av_open_input_file(&afc, filename, NULL, 0, NULL);
++	AVFormatContext *afc = NULL;
++	int err = avformat_open_input(&afc, filename, NULL, NULL);
+ 
+ 	if (!err)
+-		err = av_find_stream_info(afc);
++		err = avformat_find_stream_info(afc, NULL);
+ 
+ 	if (err < 0) {
+ 		ERROR("%s: lavf error %d", filename, err);
+ 		exit(1);
+ 	}
+ 
+-	dump_format(afc, 0, filename, 0);
++	av_dump_format(afc, 0, filename, 0);
+ 
+ 	return afc;
+ }
