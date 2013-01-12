@@ -35,7 +35,7 @@ EXTRA_OECONF = "${@['--enable-clocale=generic', ''][bb.data.getVar('USE_NLS', d,
                 --enable-shared \
                 --enable-languages=${LANGUAGES} \
                 --enable-threads=posix \
-		--disable-multilib \
+                --disable-multilib \
                 --enable-c99 \
                 --enable-long-long \
                 --enable-symvers=gnu \
@@ -45,7 +45,7 @@ EXTRA_OECONF = "${@['--enable-clocale=generic', ''][bb.data.getVar('USE_NLS', d,
                 ${EXTRA_OECONF_BASE} \
                 ${EXTRA_OECONF_FPU} \
                 ${EXTRA_OECONF_PATHS} \
-		${@get_gcc_mips_plt_setting(bb, d)}"
+                ${@get_gcc_mips_plt_setting(bb, d)}"
 
 # Build uclibc compilers without cxa_atexit support
 EXTRA_OECONF_append_linux               = " --enable-__cxa_atexit"

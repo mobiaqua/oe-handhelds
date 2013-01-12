@@ -183,24 +183,6 @@ Index: gcc-4.6.0/gcc/configure
    --enable-plugin         enable plugin support
    --disable-libquadmath-support
                            disable libquadmath support for Fortran
-@@ -17508,7 +17511,7 @@ else
-   lt_dlunknown=0; lt_dlno_uscore=1; lt_dlneed_uscore=2
-   lt_status=$lt_dlunknown
-   cat > conftest.$ac_ext <<_LT_EOF
--#line 17511 "configure"
-+#line 17514 "configure"
- #include "confdefs.h"
- 
- #if HAVE_DLFCN_H
-@@ -17614,7 +17617,7 @@ else
-   lt_dlunknown=0; lt_dlno_uscore=1; lt_dlneed_uscore=2
-   lt_status=$lt_dlunknown
-   cat > conftest.$ac_ext <<_LT_EOF
--#line 17617 "configure"
-+#line 17620 "configure"
- #include "confdefs.h"
- 
- #if HAVE_DLFCN_H
 @@ -26127,6 +26130,19 @@ fi
  
  

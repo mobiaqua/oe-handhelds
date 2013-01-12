@@ -16,7 +16,7 @@ diff -uNr glib-2.23.6.orig//glib/Makefile.am glib-2.23.6/glib/Makefile.am
  uninstall-ms-lib:
  	$(uninstall_ms_lib_cmd)
  
-+libgatomic_la_CFLAGS = $(CFLAGS) -mno-thumb
++libgatomic_la_CFLAGS = $(CFLAGS) -marm
 +
 +libgatomic_la_SOURCES =                \
 +	${gatomic_c}

@@ -100,24 +100,6 @@ Index: gcc-4.6.0/gcc/configure
  fi
  
  # Expand extra_headers to include complete path.
-@@ -17505,7 +17508,7 @@ else
-   lt_dlunknown=0; lt_dlno_uscore=1; lt_dlneed_uscore=2
-   lt_status=$lt_dlunknown
-   cat > conftest.$ac_ext <<_LT_EOF
--#line 17508 "configure"
-+#line 17511 "configure"
- #include "confdefs.h"
- 
- #if HAVE_DLFCN_H
-@@ -17611,7 +17614,7 @@ else
-   lt_dlunknown=0; lt_dlno_uscore=1; lt_dlneed_uscore=2
-   lt_status=$lt_dlunknown
-   cat > conftest.$ac_ext <<_LT_EOF
--#line 17614 "configure"
-+#line 17617 "configure"
- #include "confdefs.h"
- 
- #if HAVE_DLFCN_H
 Index: gcc-4.6.0/Makefile.tpl
 ===================================================================
 --- gcc-4.6.0.orig/Makefile.tpl
@@ -170,11 +152,3 @@ Index: gcc-4.6.0/configure
    CXXFLAGS_FOR_BUILD=${CXXFLAGS_FOR_BUILD-${CXXFLAGS}}
    LDFLAGS_FOR_BUILD=${LDFLAGS_FOR_BUILD-${LDFLAGS}}
  fi
-@@ -7740,6 +7742,7 @@ done
- 
- 
- 
-+
- 
- 
- 

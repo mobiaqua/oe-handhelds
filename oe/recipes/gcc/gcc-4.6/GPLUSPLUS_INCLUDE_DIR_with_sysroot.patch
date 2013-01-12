@@ -158,29 +158,3 @@ Index: gcc-4_6-branch/gcc/configure
  
  # Check whether --with-cpp_install_dir was given.
  if test "${with_cpp_install_dir+set}" = set; then :
-@@ -17514,7 +17524,7 @@
-   lt_dlunknown=0; lt_dlno_uscore=1; lt_dlneed_uscore=2
-   lt_status=$lt_dlunknown
-   cat > conftest.$ac_ext <<_LT_EOF
--#line 17517 "configure"
-+#line 17527 "configure"
- #include "confdefs.h"
- 
- #if HAVE_DLFCN_H
-@@ -17620,7 +17630,7 @@
-   lt_dlunknown=0; lt_dlno_uscore=1; lt_dlneed_uscore=2
-   lt_status=$lt_dlunknown
-   cat > conftest.$ac_ext <<_LT_EOF
--#line 17623 "configure"
-+#line 17633 "configure"
- #include "confdefs.h"
- 
- #if HAVE_DLFCN_H
-@@ -26151,6 +26161,7 @@
- 
- 
- 
-+
- 
- 
- 

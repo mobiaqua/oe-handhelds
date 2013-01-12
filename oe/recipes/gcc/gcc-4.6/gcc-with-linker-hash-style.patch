@@ -57,24 +57,6 @@ Index: gcc-4_6-branch/gcc/configure
  
  Some influential environment variables:
    CC          C compiler command
-@@ -17511,7 +17514,7 @@
-   lt_dlunknown=0; lt_dlno_uscore=1; lt_dlneed_uscore=2
-   lt_status=$lt_dlunknown
-   cat > conftest.$ac_ext <<_LT_EOF
--#line 17514 "configure"
-+#line 17517 "configure"
- #include "confdefs.h"
- 
- #if HAVE_DLFCN_H
-@@ -17617,7 +17620,7 @@
-   lt_dlunknown=0; lt_dlno_uscore=1; lt_dlneed_uscore=2
-   lt_status=$lt_dlunknown
-   cat > conftest.$ac_ext <<_LT_EOF
--#line 17620 "configure"
-+#line 17623 "configure"
- #include "confdefs.h"
- 
- #if HAVE_DLFCN_H
 @@ -26434,6 +26437,36 @@
  fi
  
