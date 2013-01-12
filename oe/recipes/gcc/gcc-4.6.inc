@@ -20,9 +20,6 @@ SRC_URI = "svn://gcc.gnu.org/svn/gcc/branches;module=${BRANCH};proto=http \
            file://gcc-4.3.1-ARCH_FLAGS_FOR_TARGET.patch \
            file://cache-amnesia.patch \
            file://gcc-flags-for-build.patch \
-           file://301-missing-execinfo_h.patch  \
-           file://302-c99-snprintf.patch  \
-           file://303-c99-complex-ugly-hack.patch  \
            file://304-index_macro.patch  \
            file://305-libmudflap-susv3-legacy.patch  \
            file://800-arm-bigendian.patch  \
