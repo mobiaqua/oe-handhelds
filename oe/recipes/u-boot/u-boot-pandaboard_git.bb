@@ -4,16 +4,16 @@ HOMEPAGE = "http://www.denx.de/wiki/U-Boot/WebHome"
 SECTION = "bootloaders"
 PRIORITY = "optional"
 LICENSE = "GPLv2"
-PROVIDES += "u-boot"
+PROVIDES += "u-boot x-load"
 
 DEFAULT_PREFERENCE = "-1"
-DEFAULT_PREFERENCE_pandaboard = "1"
+DEFAULT_PREFERENCE_pandaboard = "10"
 
 COMPATIBLE_MACHINE = "pandaboard"
 
 SRCREV = "dc80e007bc12f30e087891873332ddb3c710c6f3"
 
-PV = "2011.06+${PR}+gitr${SRCREV}"
+PV = "2012.04.01+${PR}+gitr${SRCREV}"
 PE = "1"
 
 SRC_URI = "git://git.linaro.org/boot/u-boot-linaro-stable.git;protocol=git \
@@ -39,6 +39,9 @@ UBOOT_BINARY ?= "u-boot.bin"
 UBOOT_IMAGE ?= "u-boot-${MACHINE}-${PV}-${PR}.bin"
 UBOOT_SYMLINK ?= "u-boot.bin"
 UBOOT_MAKE_TARGET ?= "all"
+
+MLO_IMAGE ?= "MLO-${MACHINE}-${PV}-${PR}"
+MLO_SYMLINK ?= "MLO"
 
 do_configure () {
 	oe_runmake ${UBOOT_MACHINE}
@@ -66,6 +69,8 @@ do_install () {
 	install -m 0644 ${WORKDIR}/boot-panda-label.script ${D}/boot/uEnv-label.txt
 	install -m 0644 ${WORKDIR}/boot-panda-nfs.script ${D}/boot/uEnv-nfs.txt
 	ln -sf uEnv-label.txt ${D}/boot/uEnv.txt
+	install -m 0644 ${S}/MLO ${D}/boot/${MLO_IMAGE}
+	ln -sf ${MLO_IMAGE} ${D}/boot/${MLO_SYMLINK}
 }
 
 FILES_${PN} = "/boot"
@@ -93,6 +98,9 @@ do_deploy () {
 	rm -f uEnv.txt
 	ln -sf uEnv-label.txt uEnv.txt
 	package_stagefile_shell ${DEPLOY_DIR_IMAGE}/uEnv.txt
+
+	install -m 0644 ${S}/MLO ${DEPLOY_DIR_IMAGE}/${MLO_IMAGE}
+	ln -sf ${MLO_IMAGE} ${DEPLOY_DIR_IMAGE}/${MLO_SYMLINK}
 }
 do_deploy[dirs] = "${S}"
 addtask deploy before do_package_stage after do_compile
