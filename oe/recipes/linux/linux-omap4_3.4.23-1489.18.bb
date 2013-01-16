@@ -58,7 +58,7 @@ do_install_append() {
 staging_helper_append() {
 	rm -f ${STAGING_KERNEL_DIR}/include/linux/omap_drm.h
 	rm -f ${STAGING_KERNEL_DIR}/include/linux/omap_drv.h
-	if [ -f cp -L ${S}/include/linux/omap_drm.h ]; then
+	if [ -f ${S}/include/linux/omap_drm.h ]; then
 		cp -L ${S}/include/linux/omap_drm.h ${STAGING_KERNEL_DIR}/include/linux
 		cp -L ${S}/include/linux/omap_drv.h ${STAGING_KERNEL_DIR}/include/linux
 	fi
