@@ -13,7 +13,7 @@ inherit kernel
 
 FILESPATHPKG =. "linux-omap4_3.4.0:"
 
-SRCREV = "ti-ubuntu-3.4.0-1489.18"
+SRCREV = "ti-ubuntu-3.4.0-1489.21"
 
 COMPATIBLE_HOST = "arm.*-linux"
 
@@ -21,7 +21,6 @@ export ARCH = "arm"
 export OS = "Linux"
 
 SRC_URI = "git://dev.omapzoom.org/pub/scm/integration/kernel-ubuntu.git;protocol=git;branch=ti-ubuntu-3.4-1489 \
-           file://fix-for-new-binutils.patch \
            file://fix_nonlinux_compile.patch \
            file://defconfig"
 
