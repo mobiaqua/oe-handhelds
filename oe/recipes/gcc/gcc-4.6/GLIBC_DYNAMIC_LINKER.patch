@@ -1,0 +1,37 @@
+This patch defines GLIBC_DYNAMIC_LINKER and UCLIBC_DYNAMIC_LINKER
+relative to SYSTEMLIBS_DIR which can be set in generated headers
+This breaks the assumption of hardcoded multilib in gcc
+Change is only for the supported architectures in OE including
+SH, spart, alpha for possible future support (if any)
+
+Removes the do_headerfix task in metadata
+
+Signed-off-by: Khem Raj
+Upstream-Status: Inappropriate [OE configuration]
+
+Index: git/gcc/config/arm/linux-eabi.h
+===================================================================
+--- git.orig/gcc/config/arm/linux-eabi.h	2012-07-08 11:16:26.000000000 -0700
++++ git/gcc/config/arm/linux-eabi.h	2012-07-08 11:20:40.947333288 -0700
+@@ -62,7 +62,7 @@
+ /* Use ld-linux.so.3 so that it will be possible to run "classic"
+    GNU/Linux binaries on an EABI system.  */
+ #undef  GLIBC_DYNAMIC_LINKER
+-#define GLIBC_DYNAMIC_LINKER "/lib/ld-linux.so.3"
++#define GLIBC_DYNAMIC_LINKER SYSTEMLIBS_DIR "ld-linux.so.3"
+ 
+ /* At this point, bpabi.h will have clobbered LINK_SPEC.  We want to
+    use the GNU/Linux version, not the generic BPABI version.  */
+Index: git/gcc/config/arm/linux-elf.h
+===================================================================
+--- git.orig/gcc/config/arm/linux-elf.h	2012-07-08 11:16:31.903320900 -0700
++++ git/gcc/config/arm/linux-elf.h	2012-07-08 11:21:37.619335646 -0700
+@@ -59,7 +59,7 @@
+ 
+ #define LIBGCC_SPEC "-lgcc"
+ 
+-#define GLIBC_DYNAMIC_LINKER "/lib/ld-linux.so.2"
++#define GLIBC_DYNAMIC_LINKER SYSTEMLIBS_DIR "ld-linux.so.2"
+ 
+ #define LINUX_TARGET_LINK_SPEC  "%{h*} \
+    %{static:-Bstatic} \

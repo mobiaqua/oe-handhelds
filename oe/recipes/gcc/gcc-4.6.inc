@@ -23,9 +23,12 @@ SRC_URI = "svn://gcc.gnu.org/svn/gcc/branches;module=${BRANCH};proto=http \
            file://304-index_macro.patch  \
            file://305-libmudflap-susv3-legacy.patch  \
            file://800-arm-bigendian.patch  \
-           file://904-flatten-switch-stmt-00.patch  \
-           file://arm-nolibfloat.patch  \
+           file://904-flatten-switch-stmt-00.patch \
+           file://arm-nolibfloat.patch \
            file://arm-softfloat.patch \
+           file://GLIBC_DYNAMIC_LINKER.patch \
+           file://arm-hard-float-loader.patch \
+           file://gcc-armv4-pass-fix-v4bx-to-ld.patch \
            file://zecke-xgcc-cpp.patch \
            file://gcc-poison-system-directories.patch \
            file://gcc-poison-dir-extend.patch \

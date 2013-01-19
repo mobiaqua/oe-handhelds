@@ -108,6 +108,7 @@ do_configure () {
 		echo "#ifndef STANDARD_INCLUDE_DIR" >> ${S}/gcc/defaults.h.new
 		echo "#define STANDARD_INCLUDE_DIR \"${target_includedir}\"" >> ${S}/gcc/defaults.h.new
 		echo "#endif" >> ${S}/gcc/defaults.h.new
+		echo "#define SYSTEMLIBS_DIR \"${target_base_libdir}/\"" >> ${S}/gcc/defaults.h.new
 		echo "#endif /* ! GCC_DEFAULTS_H */" >> ${S}/gcc/defaults.h.new
 		mv ${S}/gcc/defaults.h.new ${S}/gcc/defaults.h
 	fi
