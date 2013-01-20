@@ -3,7 +3,7 @@ require xorg-lib-common.inc
 DESCRIPTION = "Base X libs."
 COMMON_DEPENDS = "util-macros xtrans libxdmcp libxau \
                   bigreqsproto xproto xextproto xcmiscproto \
-                  xf86bigfontproto kbproto inputproto xproto-native"
+                  kbproto inputproto xproto-native"
 
 DEPENDS = "libxcb ${COMMON_DEPENDS}"		  
 DEPENDS_virtclass-native = "${COMMON_DEPENDS}"

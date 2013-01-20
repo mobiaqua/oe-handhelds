@@ -16,12 +16,12 @@ CONFIG_MANAGER_OPTION += "${@['--disable-config-udev','--enable-config-udev','']
 
 DEPENDS = "fontconfig freetype flex-native kbproto \ 
 xf86driproto drm glproto randrproto renderproto fixesproto damageproto \
-xcmiscproto xextproto xproto xf86miscproto xf86vidmodeproto xf86bigfontproto \
+xcmiscproto xextproto xproto xf86miscproto xf86vidmodeproto \
 scrnsaverproto bigreqsproto resourceproto fontsproto inputproto \
-xf86dgaproto videoproto compositeproto trapproto recordproto dmxproto \
+xf86dgaproto videoproto compositeproto recordproto dmxproto \
 resourceproto xineramaproto xtrans evieext libxkbfile libxfont libxau \
-libfontenc libxdmcp libxxf86vm libxaw libxmu libxt libxpm libxext libx11 \
-libxkbui libxxf86misc libxi libdmx libxtst libxres virtual/libgl libxcalibrate \
+libfontenc libxdmcp libxxf86vm libxmu libxt libxpm libxext libx11 \
+libxxf86misc libxi libdmx libxtst libxres virtual/libgl libxcalibrate \
 libxv libgcrypt ${DISTRO_XORG_CONFIG_MANAGER}"
 
 RRECOMMENDS_${PN} = "libpciaccess"
