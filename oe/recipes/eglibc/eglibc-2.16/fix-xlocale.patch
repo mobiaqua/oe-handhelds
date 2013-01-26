@@ -1,0 +1,436 @@
+diff -urNP old/Makefile new/Makefile
+--- old/Makefile	2010-11-30 03:24:32.000000000 +0100
++++ new/Makefile	2012-12-30 18:22:48.000000000 +0100
+@@ -280,7 +280,7 @@
+ 		    io/fcntl.h io/sys/fcntl.h io/poll.h io/sys/poll.h \
+ 		    io/utime.h io/ftw.h io/fts.h io/sys/sendfile.h \
+ 		    libio/stdio.h libio/libio.h locale/locale.h \
+-		    locale/langinfo.h locale/xlocale.h login/utmp.h \
++		    locale/langinfo.h locale/xlocale-libc.h login/utmp.h \
+ 		    login/lastlog.h login/pty.h malloc/malloc.h \
+ 		    malloc/obstack.h malloc/mcheck.h math/math.h \
+ 		    math/complex.h math/fenv.h math/tgmath.h misc/sys/uio.h \
+diff -urNP old/ctype/ctype.h new/ctype/ctype.h
+--- old/ctype/ctype.h	2010-11-30 03:24:32.000000000 +0100
++++ new/ctype/ctype.h	2012-12-30 17:49:47.000000000 +0100
+@@ -230,7 +230,7 @@
+ 
+ /* Structure for reentrant locale using functions.  This is an
+    (almost) opaque type for the user level programs.  */
+-# include <xlocale.h>
++# include <xlocale-libc.h>
+ 
+ /* These definitions are similar to the ones above but all functions
+    take as an argument a handle for the locale which shall be used.  */
+diff -urNP old/include/time.h new/include/time.h
+--- old/include/time.h	2010-11-30 03:24:32.000000000 +0100
++++ new/include/time.h	2012-12-30 17:49:56.000000000 +0100
+@@ -3,7 +3,7 @@
+ # include <time/time.h>
+ #else
+ # include <time/time.h>
+-# include <xlocale.h>
++# include <xlocale-libc.h>
+ 
+ __BEGIN_DECLS
+ 
+diff -urNP old/include/xlocale-libc.h new/include/xlocale-libc.h
+--- old/include/xlocale-libc.h	1970-01-01 01:00:00.000000000 +0100
++++ new/include/xlocale-libc.h	2012-12-30 17:50:06.000000000 +0100
+@@ -0,0 +1 @@
++#include <locale/xlocale-libc.h>
+diff -urNP old/include/xlocale.h new/include/xlocale.h
+--- old/include/xlocale.h	2010-11-30 03:24:32.000000000 +0100
++++ new/include/xlocale.h	1970-01-01 01:00:00.000000000 +0100
+@@ -1 +0,0 @@
+-#include <locale/xlocale.h>
+diff -ur old/locale/Makefile new/locale/Makefile
+--- old/locale/Makefile	2012-03-07 20:31:25.000000000 +0100
++++ new/locale/Makefile	2013-01-20 15:33:18.000000000 +0100
+@@ -23,7 +23,7 @@
+ 
+ subdir	:= locale
+ 
+-headers		= locale.h bits/locale.h langinfo.h xlocale.h
++headers		= locale.h bits/locale.h langinfo.h xlocale-libc.h
+ # catnames is needed by OPTION_EGLIBC_LOCALE_CODE and by the 'intl' code.
+ # If we put the latter in an option group, too, we can omit catnames
+ # when both option groups are disabled.  libstdc++-v3 needs mb_cur_max.
+diff -urNP old/locale/langinfo.h new/locale/langinfo.h
+--- old/locale/langinfo.h	2010-11-30 03:24:32.000000000 +0100
++++ new/locale/langinfo.h	2012-12-30 17:50:09.000000000 +0100
+@@ -589,7 +589,7 @@
+    more information.  */
+ 
+ /* Get locale datatype definition.  */
+-# include <xlocale.h>
++# include <xlocale-libc.h>
+ 
+ /* Just like nl_langinfo but get the information from the locale object L.  */
+ extern char *nl_langinfo_l (nl_item __item, __locale_t __l);
+diff -urNP old/locale/locale.h new/locale/locale.h
+--- old/locale/locale.h	2010-11-30 03:24:32.000000000 +0100
++++ new/locale/locale.h	2012-12-30 17:50:12.000000000 +0100
+@@ -143,7 +143,7 @@
+    This is a proof-of-concept implementation.  */
+ 
+ /* Get locale datatype definition.  */
+-# include <xlocale.h>
++# include <xlocale-libc.h>
+ 
+ /* Return a reference to a data structure representing a set of locale
+    datasets.  Unlike for the CATEGORY parameter for `setlocale' the
+diff -urNP old/locale/xlocale-libc.h new/locale/xlocale-libc.h
+--- old/locale/xlocale-libc.h	1970-01-01 01:00:00.000000000 +0100
++++ new/locale/xlocale-libc.h	2012-02-18 03:24:59.000000000 +0100
+@@ -0,0 +1,44 @@
++/* Definition of locale datatype.
++   Copyright (C) 1997,2000,2002,2009,2010 Free Software Foundation, Inc.
++   This file is part of the GNU C Library.
++   Contributed by Ulrich Drepper <drepper@cygnus.com>, 1997.
++
++   The GNU C Library is free software; you can redistribute it and/or
++   modify it under the terms of the GNU Lesser General Public
++   License as published by the Free Software Foundation; either
++   version 2.1 of the License, or (at your option) any later version.
++
++   The GNU C Library is distributed in the hope that it will be useful,
++   but WITHOUT ANY WARRANTY; without even the implied warranty of
++   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++   Lesser General Public License for more details.
++
++   You should have received a copy of the GNU Lesser General Public
++   License along with the GNU C Library; if not, see
++   <http://www.gnu.org/licenses/>.  */
++
++#ifndef _XLOCALE_H
++#define _XLOCALE_H	1
++
++/* Structure for reentrant locale using functions.  This is an
++   (almost) opaque type for the user level programs.  The file and
++   this data structure is not standardized.  Don't rely on it.  It can
++   go away without warning.  */
++typedef struct __locale_struct
++{
++  /* Note: LC_ALL is not a valid index into this array.  */
++  struct __locale_data *__locales[13]; /* 13 = __LC_LAST. */
++
++  /* To increase the speed of this solution we add some special members.  */
++  const unsigned short int *__ctype_b;
++  const int *__ctype_tolower;
++  const int *__ctype_toupper;
++
++  /* Note: LC_ALL is not a valid index into this array.  */
++  const char *__names[13];
++} *__locale_t;
++
++/* POSIX 2008 makes locale_t official.  */
++typedef __locale_t locale_t;
++
++#endif /* xlocale.h */
+diff -urNP old/locale/xlocale.h new/locale/xlocale.h
+--- old/locale/xlocale.h	2012-02-18 03:24:59.000000000 +0100
++++ new/locale/xlocale.h	1970-01-01 01:00:00.000000000 +0100
+@@ -1,44 +0,0 @@
+-/* Definition of locale datatype.
+-   Copyright (C) 1997,2000,2002,2009,2010 Free Software Foundation, Inc.
+-   This file is part of the GNU C Library.
+-   Contributed by Ulrich Drepper <drepper@cygnus.com>, 1997.
+-
+-   The GNU C Library is free software; you can redistribute it and/or
+-   modify it under the terms of the GNU Lesser General Public
+-   License as published by the Free Software Foundation; either
+-   version 2.1 of the License, or (at your option) any later version.
+-
+-   The GNU C Library is distributed in the hope that it will be useful,
+-   but WITHOUT ANY WARRANTY; without even the implied warranty of
+-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+-   Lesser General Public License for more details.
+-
+-   You should have received a copy of the GNU Lesser General Public
+-   License along with the GNU C Library; if not, see
+-   <http://www.gnu.org/licenses/>.  */
+-
+-#ifndef _XLOCALE_H
+-#define _XLOCALE_H	1
+-
+-/* Structure for reentrant locale using functions.  This is an
+-   (almost) opaque type for the user level programs.  The file and
+-   this data structure is not standardized.  Don't rely on it.  It can
+-   go away without warning.  */
+-typedef struct __locale_struct
+-{
+-  /* Note: LC_ALL is not a valid index into this array.  */
+-  struct __locale_data *__locales[13]; /* 13 = __LC_LAST. */
+-
+-  /* To increase the speed of this solution we add some special members.  */
+-  const unsigned short int *__ctype_b;
+-  const int *__ctype_tolower;
+-  const int *__ctype_toupper;
+-
+-  /* Note: LC_ALL is not a valid index into this array.  */
+-  const char *__names[13];
+-} *__locale_t;
+-
+-/* POSIX 2008 makes locale_t official.  */
+-typedef __locale_t locale_t;
+-
+-#endif /* xlocale.h */
+diff -urNP old/stdlib/stdlib.h new/stdlib/stdlib.h
+--- old/stdlib/stdlib.h	2010-11-30 03:24:32.000000000 +0100
++++ new/stdlib/stdlib.h	2012-12-30 17:50:21.000000000 +0100
+@@ -233,7 +233,7 @@
+ 
+ /* Structure for reentrant locale using functions.  This is an
+    (almost) opaque type for the user level programs.  */
+-# include <xlocale.h>
++# include <xlocale-libc.h>
+ 
+ /* Special versions of the functions above which take the locale to
+    use as an additional parameter.  */
+diff -urNP old/stdlib/strtod_l.c new/stdlib/strtod_l.c
+--- old/stdlib/strtod_l.c	2010-11-30 03:24:32.000000000 +0100
++++ new/stdlib/strtod_l.c	2012-12-30 18:49:18.000000000 +0100
+@@ -19,7 +19,7 @@
+    <http://www.gnu.org/licenses/>.  */ 
+ 
+ #include <gnu/option-groups.h>
+-#include <xlocale.h>
++#include <xlocale-libc.h>
+ 
+ extern double ____strtod_l_internal (const char *, char **, int, __locale_t);
+ extern unsigned long long int ____strtoull_l_internal (const char *, char **,
+diff -urNP old/stdlib/strtof_l.c new/stdlib/strtof_l.c
+--- old/stdlib/strtof_l.c	2010-11-30 03:24:32.000000000 +0100
++++ new/stdlib/strtof_l.c	2012-12-30 18:49:20.000000000 +0100
+@@ -18,7 +18,7 @@
+    License along with the GNU C Library; if not, see
+    <http://www.gnu.org/licenses/>.  */ 
+ 
+-#include <xlocale.h>
++#include <xlocale-libc.h>
+ 
+ extern float ____strtof_l_internal (const char *, char **, int, __locale_t);
+ extern unsigned long long int ____strtoull_l_internal (const char *, char **,
+diff -urNP old/stdlib/strtol_l.c new/stdlib/strtol_l.c
+--- old/stdlib/strtol_l.c	2010-11-30 03:24:32.000000000 +0100
++++ new/stdlib/strtol_l.c	2012-12-30 18:49:23.000000000 +0100
+@@ -43,7 +43,7 @@
+ #include <stdlib.h>
+ #include <string.h>
+ #include <locale.h>
+-#include <xlocale.h>
++#include <xlocale-libc.h>
+ #include <bits/wordsize.h>
+ 
+ #ifdef USE_NUMBER_GROUPING
+diff -urNP old/stdlib/strtold_l.c new/stdlib/strtold_l.c
+--- old/stdlib/strtold_l.c	2010-11-30 03:24:32.000000000 +0100
++++ new/stdlib/strtold_l.c	2012-12-30 18:49:26.000000000 +0100
+@@ -18,7 +18,7 @@
+ 
+ #include <math.h>
+ #include <stdlib.h>
+-#include <xlocale.h>
++#include <xlocale-libc.h>
+ 
+ #if defined _LIBC || defined HAVE_WCHAR_H
+ # include <wchar.h>
+diff -urNP old/stdlib/strtoll_l.c new/stdlib/strtoll_l.c
+--- old/stdlib/strtoll_l.c	2010-11-30 03:24:32.000000000 +0100
++++ new/stdlib/strtoll_l.c	2012-12-30 18:49:29.000000000 +0100
+@@ -20,7 +20,7 @@
+ 
+ #define QUAD	1
+ 
+-#include <xlocale.h>
++#include <xlocale-libc.h>
+ 
+ extern long long int ____strtoll_l_internal (const char *, char **, int, int,
+ 					     __locale_t);
+diff -urNP old/stdlib/strtoul_l.c new/stdlib/strtoul_l.c
+--- old/stdlib/strtoul_l.c	2010-11-30 03:24:32.000000000 +0100
++++ new/stdlib/strtoul_l.c	2012-12-30 18:49:32.000000000 +0100
+@@ -20,7 +20,7 @@
+ 
+ #define UNSIGNED	1
+ 
+-#include <xlocale.h>
++#include <xlocale-libc.h>
+ 
+ extern unsigned long int ____strtoul_l_internal (const char *, char **, int,
+ 						 int, __locale_t);
+diff -urNP old/stdlib/strtoull_l.c new/stdlib/strtoull_l.c
+--- old/stdlib/strtoull_l.c	2010-11-30 03:24:32.000000000 +0100
++++ new/stdlib/strtoull_l.c	2012-12-30 18:49:35.000000000 +0100
+@@ -21,7 +21,7 @@
+ #define QUAD		1
+ #define UNSIGNED	1
+ 
+-#include <xlocale.h>
++#include <xlocale-libc.h>
+ 
+ extern unsigned long long int ____strtoull_l_internal (const char *, char **,
+ 						       int, int, __locale_t);
+diff -urNP old/string/string.h new/string/string.h
+--- old/string/string.h	2010-11-30 03:24:32.000000000 +0100
++++ new/string/string.h	2012-12-30 17:50:24.000000000 +0100
+@@ -158,7 +158,7 @@
+ /* The following functions are equivalent to the both above but they
+    take the locale they use for the collation as an extra argument.
+    This is not standardsized but something like will come.  */
+-# include <xlocale.h>
++# include <xlocale-libc.h>
+ 
+ /* Compare the collated forms of S1 and S2 using rules from L.  */
+ extern int strcoll_l (__const char *__s1, __const char *__s2, __locale_t __l)
+diff -urNP old/string/strings.h new/string/strings.h
+--- old/string/strings.h	2010-11-30 03:24:32.000000000 +0100
++++ new/string/strings.h	2012-12-30 17:50:27.000000000 +0100
+@@ -117,7 +117,7 @@
+ /* The following functions are equivalent to the both above but they
+    take the locale they use for the collation as an extra argument.
+    This is not standardsized but something like will come.  */
+-# include <xlocale.h>
++# include <xlocale-libc.h>
+ 
+ /* Again versions of a few functions which use the given locale instead
+    of the global one.  */
+diff -urNP old/time/time.h new/time/time.h
+--- old/time/time.h	2010-11-30 03:24:32.000000000 +0100
++++ new/time/time.h	2012-12-30 17:50:30.000000000 +0100
+@@ -212,7 +212,7 @@
+ # ifdef __USE_XOPEN2K8
+ /* Similar to the two functions above but take the information from
+    the provided locale and not the global locale.  */
+-# include <xlocale.h>
++# include <xlocale-libc.h>
+ 
+ extern size_t strftime_l (char *__restrict __s, size_t __maxsize,
+ 			  __const char *__restrict __format,
+diff -urNP old/wcsmbs/wchar.h new/wcsmbs/wchar.h
+--- old/wcsmbs/wchar.h	2010-11-30 03:24:32.000000000 +0100
++++ new/wcsmbs/wchar.h	2012-12-30 18:52:15.000000000 +0100
+@@ -174,7 +174,7 @@
+ 
+ /* Similar to the two functions above but take the information from
+    the provided locale and not the global locale.  */
+-# include <xlocale.h>
++# include <xlocale-libc.h>
+ 
+ extern int wcscasecmp_l (__const wchar_t *__s1, __const wchar_t *__s2,
+ 			 __locale_t __loc) __THROW;
+@@ -521,7 +521,7 @@
+ 
+ /* Structure for reentrant locale using functions.  This is an
+    (almost) opaque type for the user level programs.  */
+-# include <xlocale.h>
++# include <xlocale-libc.h>
+ 
+ /* Special versions of the functions above which take the locale to
+    use as an additional parameter.  */
+@@ -856,7 +856,7 @@
+ __END_NAMESPACE_C99
+ 
+ # ifdef __USE_GNU
+-# include <xlocale.h>
++# include <xlocale-libc.h>
+ 
+ /* Similar to `wcsftime' but takes the information from
+    the provided locale and not the global locale.  */
+diff -urNP old/wcsmbs/wcstod.c new/wcsmbs/wcstod.c
+--- old/wcsmbs/wcstod.c	2010-11-30 03:24:32.000000000 +0100
++++ new/wcsmbs/wcstod.c	2012-12-30 18:49:38.000000000 +0100
+@@ -18,7 +18,7 @@
+    02111-1307 USA.  */
+ 
+ #include <stddef.h>
+-#include <xlocale.h>
++#include <xlocale-libc.h>
+ 
+ 
+ #define	USE_WIDE_CHAR	1
+diff -urNP old/wcsmbs/wcstod_l.c new/wcsmbs/wcstod_l.c
+--- old/wcsmbs/wcstod_l.c	2010-11-30 03:24:32.000000000 +0100
++++ new/wcsmbs/wcstod_l.c	2012-12-30 18:49:41.000000000 +0100
+@@ -19,7 +19,7 @@
+    02111-1307 USA.  */
+ 
+ #include <stddef.h>
+-#include <xlocale.h>
++#include <xlocale-libc.h>
+ 
+ 
+ extern double ____wcstod_l_internal (const wchar_t *, wchar_t **, int,
+diff -urNP old/wcsmbs/wcstof.c new/wcsmbs/wcstof.c
+--- old/wcsmbs/wcstof.c	2010-11-30 03:24:32.000000000 +0100
++++ new/wcsmbs/wcstof.c	2012-12-30 18:49:44.000000000 +0100
+@@ -18,7 +18,7 @@
+    02111-1307 USA.  */
+ 
+ #include <stddef.h>
+-#include <xlocale.h>
++#include <xlocale-libc.h>
+ 
+ #define	USE_WIDE_CHAR	1
+ 
+diff -urNP old/wcsmbs/wcstof_l.c new/wcsmbs/wcstof_l.c
+--- old/wcsmbs/wcstof_l.c	2010-11-30 03:24:32.000000000 +0100
++++ new/wcsmbs/wcstof_l.c	2012-12-30 18:49:46.000000000 +0100
+@@ -19,7 +19,7 @@
+    02111-1307 USA.  */
+ 
+ #include <stddef.h>
+-#include <xlocale.h>
++#include <xlocale-libc.h>
+ 
+ 
+ #define	USE_WIDE_CHAR	1
+diff -urNP old/wcsmbs/wcstold.c new/wcsmbs/wcstold.c
+--- old/wcsmbs/wcstold.c	2010-11-30 03:24:32.000000000 +0100
++++ new/wcsmbs/wcstold.c	2012-12-30 18:49:49.000000000 +0100
+@@ -18,7 +18,7 @@
+    02111-1307 USA.  */
+ 
+ #include <stddef.h>
+-#include <xlocale.h>
++#include <xlocale-libc.h>
+ 
+ #define USE_WIDE_CHAR	1
+ 
+diff -urNP old/wcsmbs/wcstold_l.c new/wcsmbs/wcstold_l.c
+--- old/wcsmbs/wcstold_l.c	2010-11-30 03:24:32.000000000 +0100
++++ new/wcsmbs/wcstold_l.c	2012-12-30 18:49:51.000000000 +0100
+@@ -19,7 +19,7 @@
+    02111-1307 USA.  */
+ 
+ #include <stddef.h>
+-#include <xlocale.h>
++#include <xlocale-libc.h>
+ 
+ #define USE_WIDE_CHAR	1
+ 
+diff -urNP old/wctype/wctype.h new/wctype/wctype.h
+--- old/wctype/wctype.h	2010-11-30 03:24:32.000000000 +0100
++++ new/wctype/wctype.h	2012-12-30 17:50:43.000000000 +0100
+@@ -224,7 +224,7 @@
+ 
+ # ifdef __USE_XOPEN2K8
+ /* Declare the interface to extended locale model.  */
+-#  include <xlocale.h>
++#  include <xlocale-libc.h>
+ 
+ /* Test for any wide character for which `iswalpha' or `iswdigit' is
+    true.  */
+diff -ur old/stdlib/monetary.h new/stdlib/monetary.h
+--- old/stdlib/monetary.h	2012-02-18 03:24:59.000000000 +0100
++++ new/stdlib/monetary.h	2013-01-20 16:21:40.000000000 +0100
+@@ -41,7 +41,7 @@
+      __THROW __attribute_format_strfmon__ (3, 4);
+ 
+ #ifdef __USE_XOPEN2K8
+-# include <xlocale.h>
++# include <xlocale-libc.h>
+ 
+ /* Formatting a monetary value according to the current locale.  */
+ extern ssize_t strfmon_l (char *__restrict __s, size_t __maxsize,
