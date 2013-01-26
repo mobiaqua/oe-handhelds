@@ -1,4 +1,4 @@
-DEPENDS = "libdce libdrm libav libdri2 libgbm virtual/egl"
+DEPENDS = "libdce libdrm libav libdri2 libgbm virtual/egl wayland"
 
 inherit autotools
 
@@ -12,3 +12,7 @@ SRC_URI = "git://github.com/robclark/omapdrmtest.git;protocol=git \
 "
 
 S = "${WORKDIR}/git"
+
+FLAGS="-lm -lavcodec"
+
+EXTRA_OECONF = "LDFLAGS='${FLAGS}' --disable-silent-rules"
