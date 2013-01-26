@@ -12,8 +12,6 @@ PV = "1.11.3+git${SRCPV}"
 DEFAULT_PREFERENCE = "1"
 SRCREV = "601ce0d17321a89ca5ccf0e8b7412580c443b3a2"
 
-FILESPATHPKG =. "xserver-org-1.11.3:"
-
 SRC_URI = "git://gitorious.org/ubuntu-omap/xserver.git;protocol=git \
            file://0001-add-dri2video.patch \
            file://001_fedora_extramodes.patch \
