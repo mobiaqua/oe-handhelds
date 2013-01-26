@@ -399,6 +399,13 @@ python () {
     need_unzip = bb.data.getVar('NEED_UNZIP_FOR_UNPACK', d, 1)
     src_uri = bb.data.getVar('SRC_URI', d, 1)
 
+    # *.xz should depends on xz-native for unpacking
+    # Not endswith because of "*.patch.xz;patch=1". Need bb.decodeurl in future
+    if '.xz' in srcuri:
+        depends = bb.data.getVarFlag('do_unpack', 'depends', d) or ""
+        depends = depends + " xz-native:do_populate_sysroot"
+        bb.data.setVarFlag('do_unpack', 'depends', depends, d)
+
     if ".zip" in src_uri or need_unzip == "1":
         depends = bb.data.getVarFlag('do_unpack', 'depends', d) or ""
         depends = depends + " unzip-native:do_populate_sysroot"
