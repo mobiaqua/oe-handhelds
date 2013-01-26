@@ -37,6 +37,7 @@ SRC_URI = "git://gitorious.org/ubuntu-omap/xf86-video-omap.git;protocol=git \
            file://0004-dri2-fix-various-leaks.patch \
            file://0005-dri2-fix-clipping-with-dri2video.patch \
            file://0006-Fix-WIP-dri2video-v5.patch \
+           file://dri2-fix-triple-buffer.patch \
 "
 
 S = "${WORKDIR}/git"

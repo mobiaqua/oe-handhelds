@@ -1,0 +1,14 @@
+diff -urp old/src/omap_dri2.c new/src/omap_dri2.c
+--- old/src/omap_dri2.c	2013-01-26 12:23:31.000000000 +0100
++++ new/src/omap_dri2.c	2013-01-26 12:27:00.000000000 +0100
+@@ -645,8 +645,9 @@ OMAPDRI2SwapComplete(OMAPDRISwapCmd *cmd
+ 		}
+ 		if (pPriv->cmd) {
+ 			/* dispatch queued flip: */
+-			OMAPDRI2SwapDispatch(pDraw, pPriv->cmd);
++			OMAPDRISwapCmd *cmd = pPriv->cmd;
+ 			pPriv->cmd = NULL;
++			OMAPDRI2SwapDispatch(pDraw, cmd);
+ 		}
+ 		pPriv->pending_swaps--;
+ 	}
