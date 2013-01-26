@@ -1,6 +1,6 @@
 #
 # Automatically generated file; DO NOT EDIT.
-# Linux/arm 3.4.23 Kernel Configuration
+# Linux/arm 3.4.27 Kernel Configuration
 #
 CONFIG_ARM=y
 CONFIG_SYS_SUPPORTS_APM_EMULATION=y
@@ -1403,7 +1403,6 @@ CONFIG_USB_STORAGE=y
 # CONFIG_USB_STORAGE_KARMA is not set
 # CONFIG_USB_STORAGE_CYPRESS_ATACB is not set
 # CONFIG_USB_STORAGE_ENE_UB6250 is not set
-# CONFIG_USB_UAS is not set
 # CONFIG_USB_LIBUSUAL is not set
 
 #
@@ -1588,7 +1587,7 @@ CONFIG_VIRTIO_RING=y
 # Virtio drivers
 #
 # CONFIG_VIRTIO_BALLOON is not set
-# CONFIG_VIRTIO_MMIO is not set
+CONFIG_VIRTIO_MMIO=y
 
 #
 # Microsoft Hyper-V guest support
@@ -1659,10 +1658,11 @@ CONFIG_OMAP_DSP_CMA_SIZE=0x700000
 # Rpmsg drivers (EXPERIMENTAL)
 #
 CONFIG_RPMSG=y
-# CONFIG_RPMSG_RESMGR is not set
-# CONFIG_OMAP_RPMSG_RESMGR is not set
+CONFIG_RPMSG_RESMGR_FWK=y
+CONFIG_RPMSG_RESMGR=y
+CONFIG_OMAP_RPMSG_RESMGR=y
 # CONFIG_RPMSG_OMX is not set
-# CONFIG_VIRT_DRIVERS is not set
+CONFIG_VIRT_DRIVERS=y
 # CONFIG_PM_DEVFREQ is not set
 CONFIG_STM_FW=y
 CONFIG_STM_OMAP_TI1_0=y
