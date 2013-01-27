@@ -4,35 +4,11 @@ SECTION = "libs"
 PRIORITY = "optional"
 LICENSE = "GPLv2+"
 
-# Provides ffmpeg compat, see http://libav.org/about.html
-PROVIDES = "ffmpeg"
-
 ARM_INSTRUCTION_SET = "arm"
 
 inherit autotools pkgconfig
 
 LEAD_SONAME = "libavcodec.so"
-
-FFMPEG_LIBS = "libavcodec libavformat libavutil"
-
-SYSROOT_PREPROCESS_FUNCS = " \
-  ffmpeg_stage_cleanup \
-  ffmpeg_create_compat_links"
-
-ffmpeg_create_compat_links() {
-        rm -rf ${SYSROOT_DESTDIR}${STAGING_INCDIR}/ffmpeg
-        mkdir -m 0755 ${SYSROOT_DESTDIR}${STAGING_INCDIR}/ffmpeg
-        cd ${SYSROOT_DESTDIR}${STAGING_INCDIR}/ffmpeg
-
-        for lib in ${FFMPEG_LIBS}; do
-                ln -s ../$lib/*.h '.' || true
-        done
-}
-
-ffmpeg_stage_cleanup() {
-        rm -rf ${SYSROOT_DESTDIR}${STAGING_LIBDIR}/vhook \
-        ${SYSROOT_DESTDIR}${STAGING_DATADIR}
-}
 
 PACKAGES += "${PN}-vhook-dbg ${PN}-vhook"
 
@@ -42,7 +18,7 @@ FILES_${PN}-dev = "${includedir}/${PN}"
 FILES_${PN}-vhook = "${libdir}/vhook"
 FILES_${PN}-vhook-dbg += "${libdir}/vhook/.debug"
 
-PACKAGES += "ffmpeg-x264-presets \
+PACKAGES += "libav-x264-presets \
              libavcodec  libavcodec-dev  libavcodec-dbg \
              libavdevice libavdevice-dev libavdevice-dbg \
              libavformat libavformat-dev libavformat-dbg \
@@ -52,7 +28,7 @@ PACKAGES += "ffmpeg-x264-presets \
              libavfilter libavfilter-dev libavfilter-dbg \
             "
 
-FILES_ffmpeg-x264-presets = "${datadir}/*.ffpreset"
+FILES_libav-x264-presets = "${datadir}/*.ffpreset"
 
 FILES_${PN}-dev = "${includedir}"
 FILES_libavcodec = "${libdir}/libavcodec*.so.*"
@@ -86,9 +62,9 @@ FILES_libavfilter-dbg += "${libdir}/.debug/libavfilter*"
 DEPENDS_i586 += "yasm-native"
 DEPENDS_i686 += "yasm-native"
 
-SRCREV = "5e6ee38bd3cef0dd05f1dd7977c71f3479eb6d01"
+SRCREV = "fe1057e017fc755128ceb15adee864c7800a5150"
 
-PV = "0.9+${PR}+gitr${SRCPV}"
+PV = "0.10+${PR}+gitr${SRCPV}"
 PR = "r1"
 
 SRC_URI = "git://git.libav.org/libav.git;protocol=git"
@@ -121,7 +97,7 @@ EXTRA_OECONF = " \
         --disable-protocols \
         --enable-protocol='file' \
         --disable-filters \
-        --disable-demuxers \
+        --disable-muxers \
         --disable-hwaccels \
         --disable-bzlib \
         --disable-avfilter \
