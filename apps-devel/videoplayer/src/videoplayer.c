@@ -1,5 +1,7 @@
 /*
- * VideoPlayer
+ * MobiAqua Media Player
+ *
+ * Copyright (C) 2013 Pawel Kolodziejski <aquadran at users.sourceforge.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -28,7 +30,8 @@
 #include <libavutil/pixfmt.h>
 #include <libavformat/avformat.h>
 
-#define ALIGN(n, a) (((n) + ((a) - 1)) & ~((a) - 1))
+#include "types.h"
+#include "log.h"
 
 static AVFormatContext *afc = NULL;
 static AVStream *st = NULL;
@@ -56,7 +59,7 @@ int init_decode(void) {
 }
 
 int init_display(void) {
-	return 0;
+	return S_OK;
 }
 
 int decode(void) {
@@ -75,7 +78,7 @@ int decode(void) {
 }
 
 int display(int buf_id) {
-	return 0;
+	return S_OK;
 }
 
 int main(int argc, char **argv) {
