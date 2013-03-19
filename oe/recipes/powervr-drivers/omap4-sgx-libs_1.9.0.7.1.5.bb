@@ -13,7 +13,7 @@ SRC_URI[md5sum] = "fe4f7101e7ecbf524cc4b2e381854bd9"
 SRC_URI[sha256sum] = "8822ca9472f099be06b1f6526711c0f949b0496056aad6fa67b04c5f8653c5ba"
 
 COMPATIBLE_MACHINE = "pandaboard"
-DEPENDS = "omap4-sgx-modules libdrm wayland"
+DEPENDS = "omap4-sgx-modules libdrm wayland pvrsrvinit"
 PROVIDES += "virtual/egl"
 
 DEFAULT_PREFERENCE = "10"
