@@ -7,7 +7,7 @@ HOMEPAGE = "http://dri.freedesktop.org"
 SECTION = "x11/base"
 LICENSE = "MIT"
 PROVIDES = "drm"
-DEPENDS = "libpthread-stubs udev libpciaccess"
+DEPENDS = "libpthread-stubs udev"
 
 DEFAULT_PREFERENCE_pandaboard = "10"
 
