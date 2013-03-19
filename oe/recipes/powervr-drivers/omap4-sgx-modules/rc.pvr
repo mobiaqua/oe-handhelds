@@ -14,4 +14,4 @@ LOAD_MODULE=/sbin/modprobe
 
 [ "$VERBOSE" != no ] && echo -n "Loading PVR modules: "
 
-modprobe omapdrm_pvr
+$LOAD_MODULE omapdrm_pvr
