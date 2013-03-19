@@ -13,7 +13,7 @@ inherit kernel
 
 FILESPATHPKG =. "linux-omap4_3.4.0:"
 
-SRCREV = "ti-ubuntu-3.4.0-1490.2"
+SRCREV = "ti-ubuntu-3.4.0-1490.5"
 
 COMPATIBLE_HOST = "arm.*-linux"
 
@@ -54,6 +54,7 @@ do_install_append() {
 	install -d ${D}${exec_prefix}/include/linux
 
 	# hack:
+	mkdir -p ${STAGING_KERNEL_DIR}/include/linux
 	rm -f ${STAGING_KERNEL_DIR}/include/linux/omap_drm.h
 	rm -f ${STAGING_KERNEL_DIR}/include/linux/omap_drv.h
 	if [ -f ${S}/include/linux/omap_drm.h ]; then
