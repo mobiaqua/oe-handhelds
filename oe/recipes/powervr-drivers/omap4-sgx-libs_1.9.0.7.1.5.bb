@@ -13,7 +13,7 @@ SRC_URI[md5sum] = "fe4f7101e7ecbf524cc4b2e381854bd9"
 SRC_URI[sha256sum] = "8822ca9472f099be06b1f6526711c0f949b0496056aad6fa67b04c5f8653c5ba"
 
 COMPATIBLE_MACHINE = "pandaboard"
-DEPENDS = "omap4-sgx-modules libdrm wayland pvrsrvinit"
+DEPENDS = "omap4-sgx-modules libdrm wayland"
 PROVIDES += "virtual/egl"
 
 DEFAULT_PREFERENCE = "10"
@@ -29,12 +29,17 @@ do_compile() {
 }
 
 do_install() {
+	install -d ${D}${bindir}
+	cp -pR ${S}${bindir}/* ${D}${bindir}/
+	cp -pR ${S}${libdir}/debug/usr/bin/* ${D}${bindir}/
+
 	install -d ${D}${includedir}
 	cp -pR ${S}${includedir}/* ${D}${includedir}/
 	cp -pR ${WORKDIR}/includes/* ${D}${includedir}/
 
 	install -d ${D}${libdir}
 	cp -pR ${S}${libdir}/* ${D}${libdir}/
+	cp -pR ${S}${libdir}/debug/usr/lib/* ${D}${libdir}/
 	rm -rf ${D}${libdir}/debug
 
 	install -d ${D}${datadir}/X11/xorg.conf.d
