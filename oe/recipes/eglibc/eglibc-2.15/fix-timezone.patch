@@ -1,0 +1,17 @@
+diff -ur old/timezone/Makefile new/timezone/Makefile
+--- old/timezone/Makefile	2013-03-23 17:31:50.000000000 +0100
++++ new/timezone/Makefile	2013-03-23 20:01:58.000000000 +0100
+@@ -181,11 +181,11 @@
+ $(objpfx)zic: $(addprefix $(objpfx), $(zic-objs))
+ 
+ $(addprefix $(objpfx)cross-,$(zic-objs)): $(objpfx)cross-%.o: %.c
+-	gcc $< -c $(OUTPUT_OPTION) $(CFLAGS-$*.c) $(CPPFLAGS-$*) \
++	gcc $< $(BUILD_CFLAGS) -c $(OUTPUT_OPTION) $(CFLAGS-$*.c) $(CPPFLAGS-$*) \
+ 		-DCROSS_ZIC $(compile-mkdep-flags)
+ 
+ $(objpfx)cross-zic: $(addprefix $(objpfx)cross-,$(zic-objs))
+-	gcc $(addprefix $(objpfx)cross-,$(zic-objs)) -o $@
++	gcc $(addprefix $(objpfx)cross-,$(zic-objs)) $(BUILD_LDFLAGS) -lintl -o $@
+ 
+ tz-cflags = -DTZDIR='"$(zonedir)"' \
+ 	    -DTZDEFAULT='"$(localtime-file)"' \
