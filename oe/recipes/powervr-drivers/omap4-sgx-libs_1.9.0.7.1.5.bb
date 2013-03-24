@@ -31,7 +31,7 @@ do_compile() {
 do_install() {
 	install -d ${D}${bindir}
 	cp -pR ${S}${bindir}/* ${D}${bindir}/
-	cp -pR ${S}${libdir}/debug/usr/bin/* ${D}${bindir}/
+#	cp -pR ${S}${libdir}/debug/usr/bin/* ${D}${bindir}/
 
 	install -d ${D}${includedir}
 	cp -pR ${S}${includedir}/* ${D}${includedir}/
@@ -39,7 +39,7 @@ do_install() {
 
 	install -d ${D}${libdir}
 	cp -pR ${S}${libdir}/* ${D}${libdir}/
-	cp -pR ${S}${libdir}/debug/usr/lib/* ${D}${libdir}/
+#	cp -pR ${S}${libdir}/debug/usr/lib/* ${D}${libdir}/
 	rm -rf ${D}${libdir}/debug
 
 	install -d ${D}${datadir}/X11/xorg.conf.d
