@@ -62,7 +62,7 @@ FILES_libavfilter-dbg += "${libdir}/.debug/libavfilter*"
 DEPENDS_i586 += "yasm-native"
 DEPENDS_i686 += "yasm-native"
 
-SRCREV = "fe1057e017fc755128ceb15adee864c7800a5150"
+SRCREV = "fdaacc5932a813c1974e4bd61b5b499b070a610a"
 
 PV = "0.10+${PR}+gitr${SRCPV}"
 PR = "r1"
@@ -75,7 +75,8 @@ B = "${S}/build.${HOST_SYS}.${TARGET_SYS}"
 FULL_OPTIMIZATION_armv7a = "-fexpensive-optimizations  -fno-tree-vectorize -fomit-frame-pointer -O4 -ffast-math"
 BUILD_OPTIMIZATION = "${FULL_OPTIMIZATION}"
 
-EXTRA_FFCONF_armv7a = "--cpu=cortex-a9"
+EXTRA_FFCONF_pandaboard = "--cpu=cortex-a9"
+EXTRA_FFCONF_igep0030 = "--cpu=cortex-a8"
 EXTRA_FFCONF ?= ""
 
 EXTRA_OECONF = " \
