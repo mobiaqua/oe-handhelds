@@ -24,3 +24,24 @@ diff -urp old/util/demux.c new/util/demux.c
  
  	return afc;
  }
+diff -urp old/util/demux.c new/util/demux.c
+--- old/util/demux.c	2013-03-24 18:42:17.000000000 +0100
++++ new/util/demux.c	2013-03-24 18:43:31.000000000 +0100
+@@ -89,7 +89,7 @@ static struct demux * open_stream(const 
+ 	AVBitStreamFilterContext *bsf = NULL;
+ 	struct demux *demux;
+ 
+-	if (cc->codec_id != CODEC_ID_H264) {
++	if (cc->codec_id != AV_CODEC_ID_H264) {
+ 		ERROR("could not open '%s': unsupported codec %d", filename, cc->codec_id);
+ 		return NULL;
+ 	}
+@@ -170,7 +170,7 @@ int demux_rewind(struct demux *demux)
+ 
+ void demux_deinit(struct demux *demux)
+ {
+-	av_close_input_file(demux->afc);
++	avformat_close_input(&demux->afc);
+ 	if (demux->bsf)
+ 		av_bitstream_filter_close(demux->bsf);
+ 	free(demux);
