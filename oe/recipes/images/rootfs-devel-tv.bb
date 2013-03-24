@@ -10,7 +10,7 @@ X11_PKGS = "xserver-xorg-extension-glx xserver-xorg-extension-dri2 \
 INSTALL_PKGS += "u-boot-pandaboard libdce libdce-firmware libavcodec libavformat libavutil omapdrmtest kmscube \
 		omap4-sgx-libs omap4-sgx-modules wayland"
 
-INSTALL_PKGS += "${X11_PKGS} "
+#INSTALL_PKGS += "${X11_PKGS} "
 
 RDEPENDS += ""
 RRECOMMENDS += ""
