@@ -1,5 +1,5 @@
 #MobiAqua: changed depends to libdce-firmware. update to new git revision
-DEPENDS = "libdce-firmware"
+DEPENDS = "libdce-firmware libdrm"
 
 LICENSE = "TI"
 
