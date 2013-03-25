@@ -6,7 +6,6 @@ PR = "r1"
 SRC_URI = "http://launchpadlibrarian.net/125415739/pvr-omap4_${PV}.orig.tar.gz \
 	   file://99-pvr.conf \
 	   file://LICENSE.txt \
-	   file://includes \
 	   "
 
 SRC_URI[md5sum] = "fe4f7101e7ecbf524cc4b2e381854bd9"
@@ -35,15 +34,14 @@ do_install() {
 
 	install -d ${D}${includedir}
 	cp -pR ${S}${includedir}/* ${D}${includedir}/
-	cp -pR ${WORKDIR}/includes/* ${D}${includedir}/
 
 	install -d ${D}${libdir}
 	cp -pR ${S}${libdir}/* ${D}${libdir}/
 #	cp -pR ${S}${libdir}/debug/usr/lib/* ${D}${libdir}/
 	rm -rf ${D}${libdir}/debug
 
-	install -d ${D}${datadir}/X11/xorg.conf.d
-	cp ${WORKDIR}/99-pvr.conf ${D}${datadir}/X11/xorg.conf.d/
+#	install -d ${D}${datadir}/X11/xorg.conf.d
+#	cp ${WORKDIR}/99-pvr.conf ${D}${datadir}/X11/xorg.conf.d/
 
 	install -d ${D}/usr/share/doc/${PN}
 	install -m 0666 ${WORKDIR}/LICENSE.txt ${D}/usr/share/doc/${PN}
