@@ -15,3 +15,5 @@ LOAD_MODULE=/sbin/modprobe
 [ "$VERBOSE" != no ] && echo -n "Loading PVR modules: "
 
 $LOAD_MODULE omapdrm_pvr
+
+[ -e /usr/bin/pvrsrvinit ] && /usr/bin/pvrsrvinit
