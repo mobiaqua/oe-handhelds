@@ -1,7 +1,7 @@
-Index: sgx-kernel-module/eurasiacon/build/linux2/config/core.mk
+Index: sgx-kernel-module/sgx/eurasiacon/build/linux2/config/core.mk
 ===================================================================
---- sgx-kernel-module.orig/eurasiacon/build/linux2/config/core.mk	2012-08-08 08:30:05.000000000 +0200
-+++ sgx-kernel-module/eurasiacon/build/linux2/config/core.mk	2012-08-08 08:32:20.000000000 +0200
+--- sgx-kernel-module.orig/sgx/eurasiacon/build/linux2/config/core.mk	2012-08-08 08:30:05.000000000 +0200
++++ sgx-kernel-module/sgx/eurasiacon/build/linux2/config/core.mk	2012-08-08 08:32:20.000000000 +0200
 @@ -470,9 +470,6 @@
  # Build-type dependent options
  #

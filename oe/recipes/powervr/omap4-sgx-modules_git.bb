@@ -2,18 +2,24 @@ DESCRIPTION = "Kernel drivers for the PowerVR SGX chipset found in the omap4 SoC
 LICENSE = "GPLv2"
 
 #MobiAqua: custom package
-DEFAULT_PREFERENCE = "2"
 COMPATIBLE_MACHINE = "pandaboard"
 
-SRC_URI = "http://launchpadlibrarian.net/121088771/pvr-omap4-dkms_${PV}.orig.tar.gz \
+PR = "r0"
+PV = "1.9.0.8.1.1"
+PR_append = "+gitr-${SRCREV}"
+
+SRCREV = "1b9a0badb65efd7f5112798b26ecbdbbc00ca5bb"
+
+SRC_URI = "git://gitorious.org/ubuntu-omap/pvr-omap4-dkms.git;protocol=git \
            file://rc.pvr \
-           file://0001-core-mk-fix.patch \
+           file://0001-core-mk-fix.patch;striplevel=2 \
+           file://0001-Revert-SGX-KM-HACK-Disable-burst-combiner.patch;striplevel=2 \
+           file://0002-Revert-No-more-__devinitdata-in-v3.8.patch;striplevel=2 \
+           file://0003-Revert-Hack-include-paths-to-fix-compilation-with-v3.patch;striplevel=2 \
+           file://0004-Revert-Fix-use-of-VM_RESERVED-for-kernel-3.7.patch;striplevel=2 \
           "
 
-SRC_URI[md5sum] = "13152f14f2c62fda215a7ba5d927d016"
-SRC_URI[sha256sum] = "3645f41267fc23a023ed05f06728135bfa6db3cabc06b27335ed42dc42ae7d8e"
-
-S = "${WORKDIR}/git-import-orig/sgx"
+S = "${WORKDIR}/git/sgx"
 
 inherit module
 
