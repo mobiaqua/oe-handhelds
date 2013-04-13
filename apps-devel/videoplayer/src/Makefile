@@ -1,7 +1,7 @@
-CORE = log.o main.o
+CORE = log.o options.o main.o
 OBJ  = $(addprefix $(O),$(CORE))
-CFLAGS += $(DCE_CFLAGS) $(AV_CFLAGS) $(PVR_CFLAGS) $(GLES_CFLAGS)
-LDFLAGS += $(DCE_LDFLAGS) $(AV_LDFLAGS) $(PVR_LDFLAGS) $(GLES_LDFLAGS)
+CFLAGS += $(DCE_CFLAGS) $(AV_CFLAGS) $(GLES_CFLAGS)
+LDFLAGS += $(DCE_LDFLAGS) $(AV_LDFLAGS) $(GLES_LDFLAGS)
 
 $(O)videoplayer: $(OBJ)
 
