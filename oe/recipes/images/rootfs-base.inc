@@ -4,7 +4,7 @@ DESCRIPTION = "<description>"
 PV = "1.0"
 PR = "r0"
 
-DEPENDS_append=" virtual/kernel"
+DEPENDS_append=" virtual/kernel gdb-cross"
 
 INSTALL_PKGS = "\
 	base-files base-passwd busybox kernel-modules sysvinit sysvinit-pidof netbase modutils-initscripts \
