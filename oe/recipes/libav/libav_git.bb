@@ -87,23 +87,23 @@ EXTRA_OECONF = " \
         --cross-prefix=${TARGET_PREFIX} \
         --prefix=${prefix} \
         \
-        --disable-avserver \
-        --disable-avplay \
-        --disable-avconv \
-        --disable-avprobe \
-        --disable-swscale \
-        --disable-x11grab \
-        --disable-encoders \
-        --disable-indevs \
-        --disable-protocols \
-        --enable-protocol='file' \
-        --disable-filters \
-        --disable-muxers \
-        --disable-hwaccels \
+        --disable-all \
         --disable-bzlib \
-        --disable-avfilter \
-        --disable-avresample \
-        --disable-avdevice \
+        --enable-avcodec \
+        --enable-avformat \
+        --enable-avutil \
+        --enable-protocol=file \
+        --enable-outdev=alsa \
+        --enable-bsf=mov2textsub,h264_mp4toannexb,mp3_header_decompress \
+        --enable-demuxer=aac,ac3,eac3,flac,matroska,mov,mp3,ogg,wav,truehd,srt,mpegps,mpegts,\
+asf,avi,dts,dv,h264,h263,h261,m4v,mpegvideo,pcm_s16be,pcm_s16le,pcm_s24be,pcm_s24le,pcm_s32be,\
+pcm_s32le,pcm_s8,pcm_u16be,pcm_u16le,pcm_u24be,pcm_u24le,pcm_u32be,pcm_u32le,pcm_u8,rl2,rm,rtp,\
+rtsp,spdif,swf,truehd,vc1,vc1t \
+        --enable-decoder=aac,ac3,eac3,dca,flac,flv,h261,h263,h263i,h264,mp1,mp1float,mp2,mp2float,\
+mp3,mp3adu,mp3adufloat,mp3float,mp3on4,mp3on4float,mpc7,mpc8,mpeg4,msmpeg4v1,msmpeg4v2,msmpeg4v3,\
+ralf,rv10,rv20,rv30,rv40,svq1,truehd,vorbis,vp3,vp5,vp6,vp8,wmapro,wmav1,wmav2,wmv1,wmv2,alac,\
+pcm_s8,pcm_u8,pcm_u16le,pcm_u24le,pcm_u32le,ra_144,ra_288,dvvideo,ffv1,pcm_bluray,pcm_dvd,pcm_s16le,\
+pcm_s24le,pcm_s32le,vp6a,vp6f,wmalossless,pcm_u16be,pcm_u24be,pcm_u32be,pcm_s16be,pcm_s24be,pcm_s32be \
         --arch=${TARGET_ARCH} \
         --target-os="linux" \
         --enable-cross-compile \
