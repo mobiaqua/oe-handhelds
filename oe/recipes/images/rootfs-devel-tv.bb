@@ -8,7 +8,7 @@ X11_PKGS = "xserver-xorg-extension-glx xserver-xorg-extension-dri2 \
 		libglu xorg-minimal-fonts xserver-xorg-extension-dri mesa-dri libx11"
 
 INSTALL_PKGS += "u-boot-pandaboard libdce libdce-firmware libavcodec libavformat libavutil omapdrmtest kmscube \
-		omap4-sgx-libs omap4-sgx-modules wayland"
+		omap4-sgx-libs omap4-sgx-modules wayland openssh-sftp-server"
 
 #INSTALL_PKGS += "${X11_PKGS} "
 
