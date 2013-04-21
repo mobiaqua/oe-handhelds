@@ -19,6 +19,14 @@
  *
  */
 
-int main(int argc, char **argv) {
+#include "typedefs.h"
+#include "logger.h"
+
+int main(int argc, char *argv[]) {
+	logger_init();
+
+
+	logger_deinit();
+
 	return 0;
 }
