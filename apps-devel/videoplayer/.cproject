@@ -35,6 +35,7 @@
 								<inputType id="org.eclipse.cdt.cross.arm.gnu.sourcery.macosx.assembler.base.input.1328651144" superClass="org.eclipse.cdt.cross.arm.gnu.sourcery.macosx.assembler.base.input"/>
 							</tool>
 							<tool command="arm-linux-gnueabi-gcc" id="org.eclipse.cdt.cross.arm.gnu.sourcery.macosx.elf.c.linker.debug.234263073" name="ARM Sourcery Mac OS X GCC C Linker" superClass="org.eclipse.cdt.cross.arm.gnu.sourcery.macosx.elf.c.linker.debug">
+								<option id="org.eclipse.cdt.cross.arm.gnu.c.link.option.nostart.71778470" superClass="org.eclipse.cdt.cross.arm.gnu.c.link.option.nostart" value="false" valueType="boolean"/>
 								<inputType id="org.eclipse.cdt.cross.arm.gnu.c.linker.input.1800230158" superClass="org.eclipse.cdt.cross.arm.gnu.c.linker.input">
 									<additionalInput kind="additionalinputdependency" paths="$(USER_OBJS)"/>
 									<additionalInput kind="additionalinput" paths="$(LIBS)"/>
@@ -46,7 +47,7 @@
 							<tool id="org.eclipse.cdt.cross.arm.gnu.sourcery.macosx.elf.cpp.linker.debug.159905203" name="ARM Sourcery Mac OS X GCC C++ Linker" superClass="org.eclipse.cdt.cross.arm.gnu.sourcery.macosx.elf.cpp.linker.debug"/>
 							<tool command="arm-linux-gnueabi-gcc" id="org.eclipse.cdt.cross.arm.gnu.sourcery.macosx.elf.c.compiler.debug.944160089" name="ARM Sourcery Mac OS X GCC C Compiler" superClass="org.eclipse.cdt.cross.arm.gnu.sourcery.macosx.elf.c.compiler.debug">
 								<option id="org.eclipse.cdt.cross.arm.gnu.c.compiler.option.optimization.level.732059951" name="Optimization level" superClass="org.eclipse.cdt.cross.arm.gnu.c.compiler.option.optimization.level" value="org.eclipse.cdt.cross.arm.gnu.base.option.optimization.level.none" valueType="enumerated"/>
-								<option id="org.eclipse.cdt.cross.arm.gnu.c.compiler.option.include.paths.1764249021" superClass="org.eclipse.cdt.cross.arm.gnu.c.compiler.option.include.paths" valueType="includePath">
+								<option id="org.eclipse.cdt.cross.arm.gnu.c.compiler.option.include.paths.1764249021" name="Include paths (-I)" superClass="org.eclipse.cdt.cross.arm.gnu.c.compiler.option.include.paths" valueType="includePath">
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/videoplayer/src}&quot;"/>
 								</option>
 								<inputType id="org.eclipse.cdt.cross.arm.gnu.sourcery.macosx.c.compiler.base.input.235508955" superClass="org.eclipse.cdt.cross.arm.gnu.sourcery.macosx.c.compiler.base.input"/>
@@ -78,4 +79,5 @@
 		</scannerConfigBuildInfo>
 	</storageModule>
 	<storageModule moduleId="org.eclipse.cdt.internal.ui.text.commentOwnerProjectMappings"/>
+	<storageModule moduleId="refreshScope"/>
 </cproject>
