@@ -24,12 +24,16 @@
 
 #define SIZE_OF_ARRAY(a) ((int)(sizeof(a) / sizeof(a[0])))
 
-typedef int STATUS;
-#define S_OK      1
-#define S_FAIL    0
+typedef int			STATUS;
+#define S_OK		1
+#define S_FAIL		0
 
-typedef int bool;
-#define true      1
-#define false     0
+typedef int			bool;
+#define true		1
+#define false		0
+
+#ifndef NULL
+#define NULL		(void*)0
+#endif
 
 #endif
