@@ -92,6 +92,7 @@ EXTRA_OECONF = " \
         --enable-avcodec \
         --enable-avformat \
         --enable-avutil \
+        --enable-swscale \
         --enable-protocol=file \
         --enable-outdev=alsa \
         --enable-bsf=mov2textsub,h264_mp4toannexb,mp3_header_decompress \
