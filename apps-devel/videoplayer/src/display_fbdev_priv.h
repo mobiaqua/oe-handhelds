@@ -19,51 +19,26 @@
  *
  */
 
-#include <unistd.h>
+#ifndef DISPLAY_FBDEV_PRIV_H
+#define DISPLAY_FBDEV_PRIV_H
+
+#include <linux/fb.h>
 
 #include "typedefs.h"
-#include "logger.h"
-#include "display.h"
 
-static display_t *display;
+typedef struct {
+	int fd;
+	struct fb_var_screeninfo vinfo;
+	struct fb_fix_screeninfo finfo;
+	unsigned char *fb_ptr;
+	unsigned int fb_size;
+	unsigned int fb_stride;
+	unsigned int fb_width;
+	unsigned int fb_height;
+} display_fbdev_t;
 
-int main(int argc, char *argv[]) {
-	int option;
-	char *filename;
+bool display_fbdev_init();
+void display_fbdev_deinit();
+bool display_fbdev_configure(int width, int height);
 
-	logger_init();
-
-	while ((option = getopt(argc, argv, ":")) != -1) {
-		switch (option) {
-		default:
-			break;
-		}
-	}
-
-	if (optind < argc) {
-		filename = argv[optind];
-	} else {
-		logger_printf("Missing filename param!\n");
-		goto end;
-	}
-
-	display = display_get("fbdev");
-	if (display == NULL) {
-		logger_printf("Failed get handle to display!\n");
-		goto end;
-	}
-	if (display->init() == false) {
-		logger_printf("Failed init display!\n");
-		goto end;
-	}
-
-
-
-end:
-	display->deinit();
-	display_release();
-
-	logger_deinit();
-
-	return 0;
-}
+#endif

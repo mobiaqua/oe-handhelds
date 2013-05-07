@@ -19,51 +19,33 @@
  *
  */
 
-#include <unistd.h>
+#include <string.h>
 
 #include "typedefs.h"
 #include "logger.h"
 #include "display.h"
+#include "display_fbdev_priv.h"
 
-static display_t *display;
+display_t *display_get(const char *driver_name) {
+	display_t *display = NULL;
 
-int main(int argc, char *argv[]) {
-	int option;
-	char *filename;
+	if (driver_name == NULL)
+		return NULL;
 
-	logger_init();
+	if (strcmp(driver_name, "fbdev") == 0) {
+		display->init = &display_fbdev_init;
+		display->deinit = &display_fbdev_deinit;
+		display->configure = &display_fbdev_configure;
+	} else
+		return NULL;
 
-	while ((option = getopt(argc, argv, ":")) != -1) {
-		switch (option) {
-		default:
-			break;
-		}
-	}
+	return display;
+}
 
-	if (optind < argc) {
-		filename = argv[optind];
-	} else {
-		logger_printf("Missing filename param!\n");
-		goto end;
-	}
+void display_release() {
+	display_t *display = NULL;
 
-	display = display_get("fbdev");
-	if (display == NULL) {
-		logger_printf("Failed get handle to display!\n");
-		goto end;
-	}
-	if (display->init() == false) {
-		logger_printf("Failed init display!\n");
-		goto end;
-	}
-
-
-
-end:
-	display->deinit();
-	display_release();
-
-	logger_deinit();
-
-	return 0;
+	display->init = NULL;
+	display->deinit = NULL;
+	display->configure = NULL;
 }

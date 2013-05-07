@@ -19,51 +19,25 @@
  *
  */
 
-#include <unistd.h>
+#ifndef DISPLAY_H
+#define DISPLAY_H
 
 #include "typedefs.h"
-#include "logger.h"
-#include "display.h"
 
-static display_t *display;
+typedef bool (display_init_t)();
+typedef void (display_deinit_t)();
+typedef bool (display_configure_t)(int, int);
 
-int main(int argc, char *argv[]) {
-	int option;
-	char *filename;
+typedef struct {
+	bool	initialized;
+	void	*priv;
 
-	logger_init();
+	display_init_t *init;
+	display_deinit_t *deinit;
+	display_configure_t *configure;
+} display_t;
 
-	while ((option = getopt(argc, argv, ":")) != -1) {
-		switch (option) {
-		default:
-			break;
-		}
-	}
+display_t *display_get(const char *driver_name);
+void display_release();
 
-	if (optind < argc) {
-		filename = argv[optind];
-	} else {
-		logger_printf("Missing filename param!\n");
-		goto end;
-	}
-
-	display = display_get("fbdev");
-	if (display == NULL) {
-		logger_printf("Failed get handle to display!\n");
-		goto end;
-	}
-	if (display->init() == false) {
-		logger_printf("Failed init display!\n");
-		goto end;
-	}
-
-
-
-end:
-	display->deinit();
-	display_release();
-
-	logger_deinit();
-
-	return 0;
-}
+#endif
