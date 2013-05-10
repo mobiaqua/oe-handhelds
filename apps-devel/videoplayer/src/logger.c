@@ -70,8 +70,6 @@ void logger_printf(const char *format_str, ...) {
 	if (logger.initialized == false)
 		return;
 
-	pthread_mutex_lock(&logger.lock);
-
 	gettimeofday(&current_time, NULL);
 	float timestamp = (current_time.tv_sec * 1000 + (current_time.tv_usec / 1000)) - logger.started_timestamp;
 
@@ -80,6 +78,8 @@ void logger_printf(const char *format_str, ...) {
 	va_end(arguments);
 
 	printf("[%.3f] %s", timestamp / 1000, message);
+
+	pthread_mutex_lock(&logger.lock);
 
 	FILE *file = fopen("log.txt", "a");
 	if (file != NULL) {
