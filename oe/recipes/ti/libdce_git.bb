@@ -5,11 +5,11 @@ LICENSE = "TI"
 
 inherit autotools lib_package
 
-PV = "1.6.7.3"
+PV = "1.7.0.2"
 PR = "r0"
 PR_append = "+gitr-${SRCREV}"
 
-SRCREV = "01cc1a28b069b80a2414095bfe3d0af52893056d"
+SRCREV = "43c3251ad0bcf1b329a9cca69d3716f56dcbf399"
 SRC_URI = "git://gitorious.org/ubuntu-omap/dce.git;protocol=git"
 
 S = "${WORKDIR}/git"
