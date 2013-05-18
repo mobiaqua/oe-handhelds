@@ -1,0 +1,32 @@
+From 3bba18f299f651422ad1688205f4c637baea79a4 Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?Herv=C3=A9=20Fache?= <h-fache@ti.com>
+Date: Mon, 14 Jan 2013 21:14:25 +0100
+Subject: [PATCH 3/4] omx cam: do not select sensor for stereo mode
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+Signed-off-by: Hervé Fache <h-fache@ti.com>
+---
+ omx_cam/VisionCamSimpleTest.cpp |    5 ++++-
+ 1 files changed, 4 insertions(+), 1 deletions(-)
+
+diff --git a/omx_cam/VisionCamSimpleTest.cpp b/omx_cam/VisionCamSimpleTest.cpp
+index db556d6..bf3fea6 100644
+--- a/omx_cam/VisionCamSimpleTest.cpp
++++ b/omx_cam/VisionCamSimpleTest.cpp
+@@ -296,7 +296,10 @@ int main(int argc, char *argv[]) {
+     // Can't set ROTATION here, see below
+     VCAM_COMPLAIN_IF_FAILED(greError, pCam->setParameter(VCAM_PARAM_FPS_FIXED, &fps, sizeof(fps)));
+     VCAM_COMPLAIN_IF_FAILED(greError, pCam->setParameter(VCAM_PARAM_CAP_MODE, &capmode, sizeof(capmode)));
+-    VCAM_COMPLAIN_IF_FAILED(greError, pCam->setParameter(VCAM_PARAM_SENSOR_SELECT, &sensorIndex, sizeof(sensorIndex)));
++    if ((sensorIndex >= 0) && (sensorIndex <= 1))
++    {
++        VCAM_COMPLAIN_IF_FAILED(greError, pCam->setParameter(VCAM_PARAM_SENSOR_SELECT, &sensorIndex, sizeof(sensorIndex)));
++    }
+     if (capmode == VCAM_STEREO_MODE)
+     {
+         VCAM_COMPLAIN_IF_FAILED(greError, pCam->setParameter(VCAM_PARAM_STEREO_INFO, &info, sizeof(info)));
+-- 
+1.7.0.4
+

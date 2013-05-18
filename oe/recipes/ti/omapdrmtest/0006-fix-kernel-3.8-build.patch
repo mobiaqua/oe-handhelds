@@ -1,0 +1,21 @@
+Index: omapdrmtest/configure.ac
+===================================================================
+--- omapdrmtest.orig/configure.ac	2013-03-25 18:14:42.000000000 +0000
++++ omapdrmtest/configure.ac	2013-03-25 18:15:07.000000000 +0000
+@@ -43,13 +43,13 @@
+ 	    [kernel_source="$with_kernel_source"],
+ 	    [kernel_source="/usr/src/linux-headers-$kversion"])
+ 
+-if test -r "$kernel_source/include/linux/videodev2.h"; then
+-    headers_cflags="$headers_cflags -I$kernel_source/include"
++if test -r "$kernel_source/include/uapi/linux/videodev2.h"; then
++    headers_cflags="$headers_cflags -I$kernel_source/include/uapi -I$kernel_source/include"
+ 
+     AC_SUBST(LIN_CFLAGS, [$headers_cflags])
+     AC_MSG_NOTICE([$kversion provides videodev2.h])
+ else
+-    AC_MSG_NOTICE([Could not find $kernel_source/include/linux/videodev2.h])
++    AC_MSG_NOTICE([Could not find $kernel_source/include/uapi/linux/videodev2.h])
+ fi
+ 
+ # Check for v4l2 dmabuf support:
