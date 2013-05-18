@@ -6,7 +6,7 @@ DESCRIPTION = "This package provides the wire protocol for the Direct \
 Rendering Ifnrastructure 2.  DIR is required for may hardware \
 accelerated OpenGL drivers."
 
-SRCREV = "383e42f03b11d42bd940c5781e87ef33e1b11331"
+SRCREV = "b5da0bed1002f7e06377a9da3e1b83dd12bd4c14"
 PV = "2.8+git${SRCPV}"
 PR = "r0"
 
