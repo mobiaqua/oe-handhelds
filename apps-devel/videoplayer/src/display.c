@@ -26,26 +26,24 @@
 #include "display.h"
 #include "display_fbdev_priv.h"
 
-display_t *display_get(const char *driver_name) {
-	display_t *display = NULL;
+static display_t display;
 
+display_t *display_get(const char *driver_name) {
 	if (driver_name == NULL)
 		return NULL;
 
 	if (strcmp(driver_name, "fbdev") == 0) {
-		display->init = &display_fbdev_init;
-		display->deinit = &display_fbdev_deinit;
-		display->configure = &display_fbdev_configure;
+		display.init = &display_fbdev_init;
+		display.deinit = &display_fbdev_deinit;
+		display.configure = &display_fbdev_configure;
 	} else
 		return NULL;
 
-	return display;
+	return &display;
 }
 
 void display_release() {
-	display_t *display = NULL;
-
-	display->init = NULL;
-	display->deinit = NULL;
-	display->configure = NULL;
+	display.init = NULL;
+	display.deinit = NULL;
+	display.configure = NULL;
 }

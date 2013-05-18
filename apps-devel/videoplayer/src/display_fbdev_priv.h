@@ -27,6 +27,7 @@
 #include "typedefs.h"
 
 typedef struct {
+	bool initialized;
 	int fd;
 	struct fb_var_screeninfo vinfo;
 	struct fb_fix_screeninfo finfo;

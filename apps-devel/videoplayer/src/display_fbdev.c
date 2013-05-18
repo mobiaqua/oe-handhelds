@@ -34,118 +34,107 @@
 #include "display_fbdev_priv.h"
 #include "logger.h"
 
-static display_t display;
+static display_fbdev_t device;
 
 static bool fbdev_init() {
-	display_fbdev_t *device = display.priv;
 
-	if (display.initialized == true)
-		return false;
+	memset(&device, 0, sizeof(display_t));
 
-	memset(&display, 0, sizeof(display_t));
-
-	device->fd = open("/dev/fb0", O_RDWR);
-	if (device->fd == -1) {
+	device.fd = open("/dev/fb0", O_RDWR);
+	if (device.fd == -1) {
 		logger_printf("fbdev_init(): Failed open /dev/fb0 %s\n", strerror(errno));
 		goto fail;
 	}
 
-	if (ioctl(device->fd, FBIOGET_VSCREENINFO, &device->vinfo) == -1) {
+	if (ioctl(device.fd, FBIOGET_VSCREENINFO, &device.vinfo) == -1) {
 		logger_printf("fbdev_init(): Failed FBIOGET_VSCREENINFO on /dev/fb0. %s\n", strerror(errno));
 		goto fail;
 	}
 
-	device->vinfo.xres_virtual = device->vinfo.xres;
-	device->vinfo.yres_virtual = device->vinfo.yres;
+	device.vinfo.xres_virtual = device.vinfo.xres;
+	device.vinfo.yres_virtual = device.vinfo.yres;
 
-	if (ioctl(device->fd, FBIOPUT_VSCREENINFO, &device->vinfo) == -1) {
+	if (ioctl(device.fd, FBIOPUT_VSCREENINFO, &device.vinfo) == -1) {
 		logger_printf("fbdev_init(): Failed FBIOPUT_VSCREENINFO on /dev/fb0. %s\n", strerror(errno));
 		goto fail;
 	}
 
-	if (device->vinfo.bits_per_pixel != 32) {
+	if (device.vinfo.bits_per_pixel != 32) {
 		logger_printf("fbdev_init(): Display buffer is not 32 bits per pixel!\n");
 		goto fail;
 	}
 
-	if (ioctl(device->fd, FBIOGET_FSCREENINFO, &device->finfo) == -1) {
+	if (ioctl(device.fd, FBIOGET_FSCREENINFO, &device.finfo) == -1) {
 		logger_printf("fbdev_init(): Failed FBIOGET_FSCREENINFO on /dev/fb0. %s\n", strerror(errno));
 		goto fail;
 	}
 
-	if (device->finfo.type != FB_TYPE_PACKED_PIXELS) {
+	if (device.finfo.type != FB_TYPE_PACKED_PIXELS) {
 		logger_printf("fbdev_init(): Only type FB_TYPE_PACKED_PIXELS is supported!\n");
 		goto fail;
 	}
 
-	if (device->finfo.visual != FB_VISUAL_TRUECOLOR) {
+	if (device.finfo.visual != FB_VISUAL_TRUECOLOR) {
 		logger_printf("fbdev_init(): Only FB_VISUAL_TRUECOLOR is supported!\n");
 		goto fail;
 	}
 
-	device->fb_size = device->finfo.smem_len;
-	device->fb_stride = device->finfo.line_length;
-	device->fb_width = device->vinfo.width;
-	device->fb_height = device->vinfo.height;
-	device->fb_ptr = (unsigned char *)mmap(0, device->fb_size, PROT_READ | PROT_WRITE, MAP_SHARED, device->fd, 0);
-	if (device->fb_ptr == (unsigned char *)-1) {
+	device.fb_size = device.finfo.smem_len;
+	device.fb_stride = device.finfo.line_length;
+	device.fb_width = device.vinfo.xres;
+	device.fb_height = device.vinfo.yres;
+	device.fb_ptr = (unsigned char *)mmap(0, device.fb_size, PROT_READ | PROT_WRITE, MAP_SHARED, device.fd, 0);
+	if (device.fb_ptr == (unsigned char *)-1) {
 		logger_printf("fbdev_init(): Failed get frame buffer! %s\n", strerror(errno));
 		goto fail;
 	}
 
-	display.initialized = true;
+	device.initialized = true;
 	return true;
 
 fail:
 
-	if (device->fd != -1)
-		close(device->fd);
+	if (device.fd != -1)
+		close(device.fd);
 
 	return false;
 }
 
 static void fbdev_deinit() {
-	display_fbdev_t *device = display.priv;
-
-	if (display.initialized == false)
+	if (device.initialized == false)
 		return;
 
-	if (device->fb_ptr)
-		munmap(device->fb_ptr, device->fb_size);
+	if (device.fb_ptr)
+		munmap(device.fb_ptr, device.fb_size);
 
-	if (device->fd != -1)
-		close(device->fd);
+	if (device.fd != -1)
+		close(device.fd);
 
-	display.initialized = false;
+	device.initialized = false;
 }
 
 bool display_fbdev_init() {
-	display.priv = malloc(sizeof(display_fbdev_t));
-	if (display.priv == NULL)
-		return true;
-	memset(display.priv, 0, sizeof(display_fbdev_t));
+	if (device.initialized == true)
+		return false;
+
+	memset(&device, 0, sizeof(display_fbdev_t));
 
 	if (fbdev_init() == false)
-		return true;
+		return false;
 
-	return false;
+	return true;
 }
 
 void display_fbdev_deinit() {
-	if (display.priv == NULL)
+	if (device.initialized == false)
 		return;
 
 	fbdev_deinit();
-
-	free(display.priv);
-	display.priv = NULL;
 }
 
-
 bool display_fbdev_configure(int width, int height) {
-	display_fbdev_t *device = display.priv;
 
-	if (device->vinfo.xres < width || device->vinfo.yres < height) {
+	if (device.vinfo.xres < width || device.vinfo.yres < height) {
 		logger_printf("display_fbdev_configure(): Given resulution is bigger than frame buffer resolution!\n");
 		goto fail;
 	}
