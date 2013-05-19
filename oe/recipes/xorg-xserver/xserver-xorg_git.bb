@@ -10,7 +10,7 @@ PR = "${INC_PR}.0"
 PV = "1.11.4+git${SRCPV}"
 
 DEFAULT_PREFERENCE = "1"
-SRCREV = "601ce0d17321a89ca5ccf0e8b7412580c443b3a2"
+SRCREV = "e58f26253de4f09b2688500c1ac8d20a520f9603"
 
 SRC_URI = "git://gitorious.org/ubuntu-omap/xserver.git;protocol=git \
            file://0001-add-dri2video.patch \
@@ -45,6 +45,7 @@ SRC_URI = "git://gitorious.org/ubuntu-omap/xserver.git;protocol=git \
            file://230_randr_catch_two_more_potential_unset_rrScrPriv_uses.patch \
            file://233-xf86events-valgrind.patch \
            file://235-composite-tracking.diff \
+           file://238-xrandr-fix-panning.patch \
 #           file://500_pointer_barrier_thresholds.diff \
            file://505_query_pointer_touchscreen.patch \
            file://506_touchscreen_pointer_emulation_checks.patch \
