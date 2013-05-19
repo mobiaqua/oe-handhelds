@@ -2,12 +2,12 @@ DEPENDS = "libdrm libgbm virtual/egl"
 
 inherit autotools
 
-PV = "1.0.0"
+PV = "0.0.1"
 PR = "r0"
 PR_append = "+gitr-${SRCREV}"
 
-SRCREV = "d04bbd4120a94560a3f74f7eea64f4fcafcebb15"
-SRC_URI = "git://github.com/robclark/kmscube.git;protocol=git \
+SRCREV = "5a03757c0aa52eff44fb0d8ac0529f8cc18b1da0"
+SRC_URI = "git://gitorious.org/ubuntu-omap/kmscube.git;protocol=git \
 "
 
 S = "${WORKDIR}/git"
