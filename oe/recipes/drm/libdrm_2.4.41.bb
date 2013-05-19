@@ -47,4 +47,4 @@ EXTRA_OECONF += "--disable-cairo-tests \
                  --enable-udev \
                  --enable-libkms \
                 "
-EXTRA_OECONF_append = " ${@base_contains('MACHINE_FEATURES', 'x86', '', '--disable-intel --disable-radeon',d)}"
+EXTRA_OECONF_append = " ${@base_contains('MACHINE_FEATURES', 'x86', '', '--disable-intel --disable-radeon --disable-nouveau',d)}"
