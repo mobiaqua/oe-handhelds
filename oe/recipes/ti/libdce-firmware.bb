@@ -19,8 +19,6 @@ do_install() {
 	install -d ${D}${base_libdir}/firmware
 
 	install -m 0644 ${S}/${DCE_DIR}/ti-firmware-ipu-dce.xem3 ${D}${base_libdir}/firmware/
-#	install -m 0644 ${S}/${DCE_DIR}/ti-firmware-ipu-dce.xem3.debug ${D}${base_libdir}/firmware/
-#	install -m 0644 ${S}/${DCE_DIR}/ti-firmware-ipu-dce.xem3.map ${D}${base_libdir}/firmware/
 	install -m 0644 ${S}/${DCE_DIR}/ti-firmware-ipu-dce.license.txt ${D}${base_libdir}/firmware/
 	ln -s ti-firmware-ipu-dce.xem3 ${D}${base_libdir}/firmware/ducati-m3-core0.xem3
 
