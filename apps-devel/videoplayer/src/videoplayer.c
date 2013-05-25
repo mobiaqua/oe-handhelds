@@ -25,7 +25,7 @@
 #include "logger.h"
 #include "display.h"
 
-static display_t *display;
+static display_t *display = NULL;
 
 int main(int argc, char *argv[]) {
 	int option;
@@ -60,8 +60,11 @@ int main(int argc, char *argv[]) {
 
 
 end:
-	display->deinit();
-	display_release();
+	if (display != NULL) {
+		display->deinit();
+		display_release(display);
+		display = NULL;
+	}
 
 	logger_deinit();
 

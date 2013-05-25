@@ -38,6 +38,6 @@ typedef struct {
 } display_t;
 
 display_t *display_get(const char *driver_name);
-void display_release();
+void display_release(display_t *display);
 
 #endif

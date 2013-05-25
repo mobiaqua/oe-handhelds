@@ -42,8 +42,8 @@ display_t *display_get(const char *driver_name) {
 	return &display;
 }
 
-void display_release() {
-	display.init = NULL;
-	display.deinit = NULL;
-	display.configure = NULL;
+void display_release(display_t *display) {
+	display->init = NULL;
+	display->deinit = NULL;
+	display->configure = NULL;
 }
