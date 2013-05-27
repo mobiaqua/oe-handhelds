@@ -20,6 +20,8 @@
  */
 
 #include <unistd.h>
+#include <stdlib.h>
+#include <string.h>
 
 #include "typedefs.h"
 #include "logger.h"
@@ -30,6 +32,10 @@ static display_t *display = NULL;
 int main(int argc, char *argv[]) {
 	int option;
 	char *filename;
+	unsigned char *fb;
+	unsigned char *fb_src[480];
+	int fb_stride[480];
+	int y;
 
 	logger_init();
 
@@ -57,7 +63,26 @@ int main(int argc, char *argv[]) {
 		goto end;
 	}
 
+	if (display->configure(640, 480) == false) {
+		logger_printf("Failed configure display!\n");
+		goto end;
+	}
 
+	fb = calloc(640 * 480, 4);
+	memset(fb, 0x55, 640*480*4);
+
+	for (y = 0; y < 480; y++) {
+		fb_stride[y] = 640 * 4;
+		fb_src[y] = fb + (fb_stride[y] * y);
+	}
+
+	if (display->putimage(fb_src, fb_stride, ARGB32) == false) {
+		logger_printf("Failed configure display!\n");
+	}
+
+	if (display->flip() == false) {
+		logger_printf("Failed flip display!\n");
+	}
 
 end:
 	if (display != NULL) {

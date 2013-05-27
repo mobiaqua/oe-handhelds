@@ -89,6 +89,8 @@ static bool fbdev_init() {
 		goto fail;
 	}
 
+	memset(device.fb_ptr, 0, device.fb_size);
+
 	device.initialized = true;
 	return true;
 
@@ -133,15 +135,47 @@ void display_fbdev_deinit() {
 }
 
 bool display_fbdev_configure(int width, int height) {
+	if (width <= 0 || height <= 0) {
+		logger_printf("display_fbdev_configure(): Bad arguments!\n");
+		goto fail;
+	}
 
 	if (device.vinfo.xres < width || device.vinfo.yres < height) {
 		logger_printf("display_fbdev_configure(): Given resulution is bigger than frame buffer resolution!\n");
 		goto fail;
 	}
 
+	device.dst_x = (device.vinfo.xres - width) / 2;
+	device.dst_y = (device.vinfo.yres - height) / 2;
+	device.dst_width = width;
+	device.dst_height = height;
 
 	return true;
 
 fail:
 	return false;
+}
+
+bool display_fbdev_putimage(unsigned char *src[], int src_stride[], FORMAT_VIDEO format) {
+	int y;
+
+	if (src[0] == NULL || src_stride[0] <= 0) {
+		logger_printf("display_fbdev_configure(): Bad arguments!\n");
+		goto fail;
+	}
+
+	for (y = 0; y < device.dst_height; y++) {
+		memcpy(device.fb_ptr + (device.fb_stride * (device.dst_y + y)) + device.dst_x * 4, src[y], src_stride[y]);
+	}
+
+	return true;
+
+fail:
+	return false;
+}
+
+bool display_fbdev_flip() {
+	// nothing
+
+	return true;
 }

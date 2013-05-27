@@ -36,10 +36,13 @@ typedef struct {
 	unsigned int fb_stride;
 	unsigned int fb_width;
 	unsigned int fb_height;
+	int dst_x, dst_y, dst_width, dst_height;
 } display_fbdev_t;
 
 bool display_fbdev_init();
 void display_fbdev_deinit();
 bool display_fbdev_configure(int width, int height);
+bool display_fbdev_putimage(unsigned char *src[], int src_stride[], FORMAT_VIDEO format);
+bool display_fbdev_flip();
 
 #endif

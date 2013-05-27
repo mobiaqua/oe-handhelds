@@ -36,6 +36,8 @@ display_t *display_get(const char *driver_name) {
 		display.init = &display_fbdev_init;
 		display.deinit = &display_fbdev_deinit;
 		display.configure = &display_fbdev_configure;
+		display.putimage = &display_fbdev_putimage;
+		display.flip = &display_fbdev_flip;
 	} else
 		return NULL;
 
@@ -46,4 +48,6 @@ void display_release(display_t *display) {
 	display->init = NULL;
 	display->deinit = NULL;
 	display->configure = NULL;
+	display->putimage = NULL;
+	display->flip = NULL;
 }
