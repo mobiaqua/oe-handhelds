@@ -4,4 +4,3 @@
 *.pyc
 *.pyo
 /build-*
-apps-devel/mplayer/src
