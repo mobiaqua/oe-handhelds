@@ -10,6 +10,8 @@ PR = "r0"
 
 INSTALL_PKGS += ""
 
+DEPENDS_append=" gdb-cross"
+
 RDEPENDS += ""
 RRECOMMENDS += ""
 
