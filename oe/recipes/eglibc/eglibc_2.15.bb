@@ -19,104 +19,101 @@ SRC_URI = "svn://www.eglibc.org/svn/branches;module=${EGLIBC_BRANCH};proto=http 
            file://local-atomic.diff \
            file://local-eabi-wchar.diff \
            file://local-ioperm.diff \
-file://local-lowlevellock.diff \
-file://local-sigaction.diff \
-file://unsubmitted-ldconfig-cache-abi.diff \
-file://unsubmitted-ldso-abi-check.diff \
-file://cvs-syscall-mcount.diff \
-file://cvs-makecontext.diff \
-file://unsubmitted-armhf-linker.diff \
-file://unsubmitted-soname-hack.diff \
-file://fedora-nss_dns-gethostbyname4-disable.diff \
-file://local-alias-UTF-8.diff \
-file://local-ldd.diff \
-file://local-nis-shadow.diff \
-file://local-asserth-decls.diff \
-file://local-bindresvport_blacklist.diff \
-file://local-allocalim-header.diff \
-file://local-fhs-linux-paths.diff \
-file://local-fhs-nscd.diff \
-file://local-ipv6-lookup.diff;striplevel=0 \
-file://local-ld-multiarch.diff \
-file://local-ldso-disable-hwcap.diff \
-file://local-ldconfig.diff \
-file://local-ldconfig-fsync.diff \
-file://local-linuxthreads-defines.diff \
-file://local-linuxthreads-fd.diff \
-file://local-linuxthreads-gscope.diff \
-file://local-linuxthreads-lowlevellock.diff \
-file://local-linuxthreads-fatalprepare.diff \
-file://local-linuxthreads-ptw.diff \
-file://local-linuxthreads-semaphore_h.diff \
-file://local-linuxthreads-signals.diff \
-file://local-linuxthreads-stacksize.diff \
-file://local-linuxthreads-tst-sighandler.diff \
-file://local-linuxthreads-unwind.diff \
-file://local-linuxthreads-weak.diff \
-file://local-localedef-fix-trampoline.diff \
-file://local-mktemp.diff \
-file://local-no-pagesize.diff \
-file://local-nss-upgrade.diff \
-file://local-o_cloexec.diff \
-file://local-rtld.diff \
-file://local-stubs_h.diff \
-file://local-stdio-lock.diff \
-file://local-tcsetaddr.diff \
-file://local-disable-test-tgmath2.diff \
-file://local-tst-mktime2.diff \
-file://submitted-nis-netgrp.diff \
-file://submitted-clock-settime.diff \
-file://submitted-longdouble.diff \
-file://local-disable-nscd-host-caching.diff \
-file://local-missing-linux_types.h.diff \
-file://local-nss-overflow.diff \
-file://submitted-popen.diff \
-file://local-linuxthreads-thread_self.diff \
-file://submitted-getaddrinfo-lo.diff \
-file://local-getaddrinfo-interface.diff \
-file://submitted-autotools.diff \
-file://submitted-accept4-hidden.diff \
-file://submitted-missing-etc-hosts.diff \
-file://submitted-bits-fcntl_h-at.diff \
-file://local-no-SOCK_NONBLOCK.diff \
-file://submitted-nptl-invalid-td.patch \
-file://cvs-gai-rfc3484.diff \
-file://local-dlfptr.diff \
-file://submitted-string2-strcmp.diff \
-file://submitted-ldsodefs_rtld_debug.diff \
-file://local-linuxthreads-deps.diff \
-file://local-ldconfig-multiarch.diff \
-file://submitted-fwrite-wur.diff \
-file://local-tst-writev.diff \
-file://submitted-resolv-assert.diff \
-file://submitted-resolv-init.diff \
-file://submitted-sys-uio-vector.diff \
-file://local-linuxthreads-XPG7.diff \
-file://cvs-fmtmsg-lock.diff \
-file://cvs-sort-relocations.diff \
-#file://cvs-revert-fseek-on-fclose.diff \
-file://submitted-resolv-first-query-failure.diff \
-file://cvs-htons-wconversion.diff \
-file://cvs-sscanf-alloca.diff \
-file://cvs-fpe-underflow.diff \
-file://cvs-wordsize-64-fixes.diff \
-file://local-linaro-cortex-strings.diff \
-file://local-rpc-export.diff \
-file://local-rpc-no-strict-aliasing.diff \
-file://local-leak-revert-crash.diff \
-file://local-nscd-NO_MAPPING.diff \
-file://local-altlocaledir.diff \
-file://no-sprintf-pre-truncate.diff \
-file://disable-ld_audit.diff \
-file://delete-header-pot.diff \
-file://lddebug-scopes.diff \
-file://local-CVE-2011-4609.patch \
-file://cvs-CVE-2012-0864.patch \
-file://revert-c5a0802a.diff \
-file://CVE-2012-3480.patch \
-file://CVE-2012-3406.patch \
-
-
+           file://local-lowlevellock.diff \
+           file://local-sigaction.diff \
+           file://unsubmitted-ldconfig-cache-abi.diff \
+           file://unsubmitted-ldso-abi-check.diff \
+           file://cvs-syscall-mcount.diff \
+           file://cvs-makecontext.diff \
+           file://unsubmitted-soname-hack.diff \
+           file://fedora-nss_dns-gethostbyname4-disable.diff \
+           file://local-alias-UTF-8.diff \
+           file://local-ldd.diff \
+           file://local-nis-shadow.diff \
+           file://local-asserth-decls.diff \
+           file://local-bindresvport_blacklist.diff \
+           file://local-allocalim-header.diff \
+           file://local-fhs-linux-paths.diff \
+           file://local-fhs-nscd.diff \
+           file://local-ipv6-lookup.diff;striplevel=0 \
+           file://local-ld-multiarch.diff \
+           file://local-ldso-disable-hwcap.diff \
+           file://local-ldconfig.diff \
+           file://local-ldconfig-fsync.diff \
+           file://local-linuxthreads-defines.diff \
+           file://local-linuxthreads-fd.diff \
+           file://local-linuxthreads-gscope.diff \
+           file://local-linuxthreads-lowlevellock.diff \
+           file://local-linuxthreads-fatalprepare.diff \
+           file://local-linuxthreads-ptw.diff \
+           file://local-linuxthreads-semaphore_h.diff \
+           file://local-linuxthreads-signals.diff \
+           file://local-linuxthreads-stacksize.diff \
+           file://local-linuxthreads-tst-sighandler.diff \
+           file://local-linuxthreads-unwind.diff \
+           file://local-linuxthreads-weak.diff \
+           file://local-localedef-fix-trampoline.diff \
+           file://local-mktemp.diff \
+           file://local-no-pagesize.diff \
+           file://local-nss-upgrade.diff \
+           file://local-o_cloexec.diff \
+           file://local-rtld.diff \
+           file://local-stubs_h.diff \
+           file://local-stdio-lock.diff \
+           file://local-tcsetaddr.diff \
+           file://local-disable-test-tgmath2.diff \
+           file://local-tst-mktime2.diff \
+           file://submitted-nis-netgrp.diff \
+           file://submitted-clock-settime.diff \
+           file://submitted-longdouble.diff \
+           file://local-disable-nscd-host-caching.diff \
+           file://local-missing-linux_types.h.diff \
+           file://local-nss-overflow.diff \
+           file://submitted-popen.diff \
+           file://local-linuxthreads-thread_self.diff \
+           file://submitted-getaddrinfo-lo.diff \
+           file://local-getaddrinfo-interface.diff \
+           file://submitted-autotools.diff \
+           file://submitted-accept4-hidden.diff \
+           file://submitted-missing-etc-hosts.diff \
+           file://submitted-bits-fcntl_h-at.diff \
+           file://local-no-SOCK_NONBLOCK.diff \
+           file://submitted-nptl-invalid-td.patch \
+           file://cvs-gai-rfc3484.diff \
+           file://local-dlfptr.diff \
+           file://submitted-string2-strcmp.diff \
+           file://submitted-ldsodefs_rtld_debug.diff \
+           file://local-linuxthreads-deps.diff \
+           file://local-ldconfig-multiarch.diff \
+           file://submitted-fwrite-wur.diff \
+           file://local-tst-writev.diff \
+           file://submitted-resolv-assert.diff \
+           file://submitted-resolv-init.diff \
+           file://submitted-sys-uio-vector.diff \
+           file://local-linuxthreads-XPG7.diff \
+           file://cvs-fmtmsg-lock.diff \
+           file://cvs-sort-relocations.diff \
+#           file://cvs-revert-fseek-on-fclose.diff \
+           file://submitted-resolv-first-query-failure.diff \
+           file://cvs-htons-wconversion.diff \
+           file://cvs-sscanf-alloca.diff \
+           file://cvs-fpe-underflow.diff \
+           file://cvs-wordsize-64-fixes.diff \
+           file://local-linaro-cortex-strings.diff \
+           file://local-rpc-export.diff \
+           file://local-rpc-no-strict-aliasing.diff \
+           file://local-leak-revert-crash.diff \
+           file://local-nscd-NO_MAPPING.diff \
+           file://local-altlocaledir.diff \
+           file://no-sprintf-pre-truncate.diff \
+           file://disable-ld_audit.diff \
+           file://delete-header-pot.diff \
+           file://lddebug-scopes.diff \
+           file://local-CVE-2011-4609.patch \
+           file://cvs-CVE-2012-0864.patch \
+           file://revert-c5a0802a.diff \
+           file://CVE-2012-3480.patch \
+           file://CVE-2012-3406.patch \
 #           file://eglibc-svn-arm-lowlevellock-include-tls.patch \
 #           file://IO-acquire-lock-fix.patch \
 #           file://mips-rld-map-check.patch \
