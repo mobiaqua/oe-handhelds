@@ -145,8 +145,11 @@ SRC_URI = "svn://www.eglibc.org/svn/branches;module=${EGLIBC_BRANCH};proto=http 
            file://fix-rpc.patch \
            file://fix-timezone.patch \
            file://disable-iconvdata.patch \
+           file://fix_armv4_eabi.patch \
            file://IO-acquire-lock-fix.patch \
           "
+
+SRC_URI_append_armv7a-hf = " file://unsubmitted-armhf-linker.diff"
 
 S = "${WORKDIR}/eglibc-2_15/libc"
 B = "${WORKDIR}/build-${TARGET_SYS}"
