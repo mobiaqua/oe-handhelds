@@ -16,7 +16,6 @@ INSTALL_PKGS = "\
 RRECOMMENDS += ""
 RDEPENDS += "ntpdate tzdata tzdata-europe nfs-utils-client"
 
-IMAGE_FSTYPES = "tar.gz"
 IMAGE_LINGUAS = ""
 IMAGE_INSTALL += "${INSTALL_PKGS} "
 
