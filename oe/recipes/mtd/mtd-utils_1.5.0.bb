@@ -2,7 +2,7 @@ DESCRIPTION = "Tools for managing memory technology devices."
 SECTION = "base"
 #MobiAqua: replaced to util-linux-ng; added native to remove util-linux-ng
 DEPENDS = "zlib lzo util-linux-ng"
-DEPENDS_virtclass-native = "zlib lzo"
+DEPENDS_virtclass-native = "zlib-native lzo-native"
 HOMEPAGE = "http://www.linux-mtd.infradead.org/"
 LICENSE = "GPLv2+"
 LIC_FILES_CHKSUM = "file://COPYING;md5=0636e73ff0215e8d672dc4c32c317bb3 \
@@ -25,7 +25,7 @@ do_install () {
 	oe_runmake install DESTDIR=${D} SBINDIR=${sbindir} MANDIR=${mandir} INCLUDEDIR=${includedir}
 }
 
-do_populate_sysroot () {
+do_stage_virtclass-native () {
 	oe_runmake install DESTDIR=${STAGING_DIR_NATIVE}
 }
 
