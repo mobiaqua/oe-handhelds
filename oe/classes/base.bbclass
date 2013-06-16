@@ -60,7 +60,6 @@ def base_deps(d):
 	# INHIBIT_DEFAULT_DEPS doesn't apply to the patch command.  Whether or  not
 	# we need that built is the responsibility of the patch function / class, not
 	# the application.
-
 	if not bb.data.getVar('INHIBIT_DEFAULT_DEPS', d):
 		if (bb.data.getVar('HOST_SYS', d, 1) !=
 		    bb.data.getVar('BUILD_SYS', d, 1)):
@@ -68,8 +67,7 @@ def base_deps(d):
 		elif bb.data.inherits_class('native', d) and \
 				bb.data.getVar('PN', d, True) not in \
 				("linux-libc-headers-native", "quilt-native",
-				 "unifdef-native", "shasum-native"
-				 ):
+				 "unifdef-native", "shasum-native"):
 			return "linux-libc-headers-native"
 	return ""
 

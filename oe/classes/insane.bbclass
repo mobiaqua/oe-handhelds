@@ -438,7 +438,7 @@ python do_package_qa () {
     if not packages:
         return
 
-    # MobiAqua: workaroun for omap4 firmware files
+    # MobiAqua: workaround for omap4 firmware files
     if bb.data.getVar('INSANE_SKIP', d, True):
         return
 
