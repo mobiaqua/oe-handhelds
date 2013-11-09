@@ -13,7 +13,7 @@ inherit kernel
 
 FILESPATHPKG =. "linux-omap4_3.4.0:"
 
-SRCREV = "ti-ubuntu-3.4.0-1490.25"
+SRCREV = "ti-ubuntu-3.4.0-1491.1"
 
 COMPATIBLE_HOST = "arm.*-linux"
 
