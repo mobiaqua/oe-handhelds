@@ -14,9 +14,9 @@ COMPATIBLE_MACHINE = "igep0030"
 inherit kernel
 
 PR = "r1"
-KV = "${PV}-5"
+KV = "${PV}-6"
 
-SRC_URI = "http://downloads.igep.es/sources/linux-omap-${KV}.tar.gz \
+SRC_URI = "http://downloads.isee.biz/pub/releases/linux_kernel/v${KV}/linux-omap-${KV}.tar.gz \
 	   file://fix_nonlinux_compile.patch \
 	   file://defconfig \
 	  "
