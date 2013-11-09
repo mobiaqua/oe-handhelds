@@ -3,11 +3,11 @@ Patch from Moblin to cache xkbcomp output for faster booting
 Signed-off-by: Bryce Harrington <bryce@canonical.com>
 ---
 
-Index: xorg-server/configure.ac
+Index: xorg-server-1.11.4/configure.ac
 ===================================================================
---- xorg-server.orig/configure.ac	2011-08-24 12:56:49.505650620 +0300
-+++ xorg-server/configure.ac	2011-08-24 12:57:47.895651453 +0300
-@@ -537,9 +537,9 @@
+--- xorg-server-1.11.4.orig/configure.ac	2013-10-16 07:23:04.356393176 -0400
++++ xorg-server-1.11.4/configure.ac	2013-10-16 07:23:04.352393176 -0400
+@@ -528,9 +528,9 @@
  AC_ARG_WITH(xkb-path,         AS_HELP_STRING([--with-xkb-path=PATH], [Path to XKB base dir (default: ${datadir}/X11/xkb)]),
  				[ XKBPATH="$withval" ],
  				[ XKBPATH="${datadir}/X11/xkb" ])
@@ -19,7 +19,7 @@ Index: xorg-server/configure.ac
  AC_ARG_WITH(default-xkb-rules, AS_HELP_STRING([--with-default-xkb-rules=RULES],
                                     [Keyboard ruleset (default: base/evdev)]),
                                  [ XKB_DFLT_RULES="$withval" ],
-@@ -1173,7 +1173,7 @@
+@@ -1179,7 +1179,7 @@
  dnl Make sure XKM_OUTPUT_DIR is an absolute path
  XKBOUTPUT_FIRSTCHAR=`echo $XKBOUTPUT | cut -b 1`
  if [[ x$XKBOUTPUT_FIRSTCHAR != x/ -a x$XKBOUTPUT_FIRSTCHAR != 'x$' ]] ; then
@@ -28,10 +28,10 @@ Index: xorg-server/configure.ac
  fi
  
  dnl XKM_OUTPUT_DIR (used in code) must end in / or file names get hosed
-Index: xorg-server/xkb/README.compiled
+Index: xorg-server-1.11.4/xkb/README.compiled
 ===================================================================
---- xorg-server.orig/xkb/README.compiled	2011-08-24 12:52:45.055647137 +0300
-+++ xorg-server/xkb/README.compiled	2011-08-24 12:56:49.705650623 +0300
+--- xorg-server-1.11.4.orig/xkb/README.compiled	2013-10-16 07:23:04.356393176 -0400
++++ xorg-server-1.11.4/xkb/README.compiled	2013-10-16 07:23:04.352393176 -0400
 @@ -4,10 +4,10 @@
  or some other tool might destroy or replace the files in this directory,
  so it is not a safe place to store compiled keymaps for long periods of
@@ -47,10 +47,10 @@ Index: xorg-server/xkb/README.compiled
  
  Unless the X server is modified, sharing this directory between servers on
  different hosts could cause problems.
-Index: xorg-server/xkb/ddxLoad.c
+Index: xorg-server-1.11.4/xkb/ddxLoad.c
 ===================================================================
---- xorg-server.orig/xkb/ddxLoad.c	2011-08-24 12:52:45.065647139 +0300
-+++ xorg-server/xkb/ddxLoad.c	2011-08-24 12:56:49.705650623 +0300
+--- xorg-server-1.11.4.orig/xkb/ddxLoad.c	2013-10-16 07:23:04.356393176 -0400
++++ xorg-server-1.11.4/xkb/ddxLoad.c	2013-10-16 07:28:25.292401394 -0400
 @@ -30,6 +30,12 @@
  
  #include <xkb-config.h>
@@ -86,10 +86,41 @@ Index: xorg-server/xkb/ddxLoad.c
  #define	PRE_ERROR_MSG "\"The XKEYBOARD keymap compiler (xkbcomp) reports:\""
  #define	ERROR_PREFIX	"\"> \""
  #define	POST_ERROR_MSG1 "\"Errors from xkbcomp are not fatal to the X server\""
-@@ -170,6 +165,47 @@
-     }
- }
- 
+@@ -149,37 +144,92 @@
+ static void
+ OutputDirectory(
+     char* outdir,
+-    size_t size)
++    size_t size,
++    Bool *is_private_directory)
+ {
+ #ifndef WIN32
+     /* Can we write an xkm and then open it too? */
+     if (access(XKM_OUTPUT_DIR, W_OK | X_OK) == 0 && (strlen(XKM_OUTPUT_DIR) < size))
+     {
+ 	(void) strcpy (outdir, XKM_OUTPUT_DIR);
++    if (is_private_directory)
++        *is_private_directory = TRUE;
++
+     } else
+ #else
+     if (strlen(Win32TempDir()) + 1 < size)
+     {
+ 	(void) strcpy(outdir, Win32TempDir());
+ 	(void) strcat(outdir, "\\");
++    if (is_private_directory)
++        *is_private_directory = FALSE;
++
+     } else 
+ #endif
+     if (strlen("/tmp/") < size)
+     {
+ 	(void) strcpy (outdir, "/tmp/");
++    if (is_private_directory)
++        *is_private_directory = FALSE;
++    }
++}
++
 +#ifndef SHA_DIGEST_LENGTH
 +#define SHA_DIGEST_LENGTH 20
 +#endif
@@ -111,7 +142,7 @@ Index: xorg-server/xkb/ddxLoad.c
 +	gcry_control(GCRYCTL_DISABLE_SECMEM, 0);
 +	gcry_control(GCRYCTL_INITIALIZATION_FINISHED, 0);
 +	init = 1;
-+    }
+     }
 +
 +    err = gcry_md_open(&h, GCRY_MD_SHA1, 0);
 +    if (err)
@@ -127,15 +158,19 @@ Index: xorg-server/xkb/ddxLoad.c
 +    }
 +
 +    return Success;
-+}
-+
+ }
+ 
 +/* call xkbcomp and compile XKB keymap, return xkm file name in
 +   nameRtrn */
  static Bool
  XkbDDXCompileKeymapByNames(	XkbDescPtr		xkb,
  				XkbComponentNamesPtr	names,
-@@ -179,7 +215,11 @@
- 				int			nameRtrnLen)
+ 				unsigned		want,
+ 				unsigned		need,
+ 				char *			nameRtrn,
+-				int			nameRtrnLen)
++				int			nameRtrnLen,
++				Bool *is_private_directory)
  {
      FILE *	out;
 -    char	*buf = NULL, keymap[PATH_MAX], xkm_output_dir[PATH_MAX];
@@ -147,7 +182,7 @@ Index: xorg-server/xkb/ddxLoad.c
  
      const char	*emptystring = "";
      char *xkbbasedirflag = NULL;
-@@ -190,14 +230,67 @@
+@@ -190,14 +240,67 @@
      /* WIN32 has no popen. The input must be stored in a file which is
         used as input for xkbcomp. xkbcomp does not read from stdin. */
      char tmpname[PATH_MAX];
@@ -156,9 +191,8 @@ Index: xorg-server/xkb/ddxLoad.c
  #else
 -    const char *xkmfile = "-";
 +    const char *xkbfile = "-";
- #endif
- 
--    snprintf(keymap, sizeof(keymap), "server-%s", display);
++#endif
++
 +    /* Write keymap source (xkbfile) to memory buffer `xkbKeyMapBuf',
 +       of which SHA1 is generated and used as result xkm file name  */
 +    memset(xkbKeyMapBuf, 0, sizeof(xkbKeyMapBuf));
@@ -178,12 +212,13 @@ Index: xorg-server/xkb/ddxLoad.c
 +       ErrorF("[xkb] XkbDDXCompileKeymapByNames compiling keymap:\n");
 +       fputs(xkbKeyMapBuf, stderr);
 +    }
-+#endif
+ #endif
 +    if (!ret) {
 +        ErrorF("[xkb] Generating XKB Keymap failed, giving up compiling keymap\n");
 +        return FALSE;
 +    }
-+
+ 
+-    snprintf(keymap, sizeof(keymap), "server-%s", display);
 +    DebugF("[xkb] computing SHA1 of keymap\n");
 +    if (Success == Sha1Asc(sha1Asc, xkbKeyMapBuf)) {
 +        snprintf(xkmfile, sizeof(xkmfile), "server-%s", sha1Asc);
@@ -193,18 +228,19 @@ Index: xorg-server/xkb/ddxLoad.c
 +               "using display name instead as xkm file name\n");
 +        snprintf(xkmfile, sizeof(xkmfile), "server-%s", display);
 +    }
- 
-     OutputDirectory(xkm_output_dir, sizeof(xkm_output_dir));
++
++    OutputDirectory(xkm_output_dir, sizeof(xkm_output_dir), is_private_directory);
 +    /* set nameRtrn, fail if it's too small */
 +    if ((strlen(xkmfile)+1 > nameRtrnLen) && nameRtrn) {
 +        ErrorF("[xkb] nameRtrn too small to hold xkmfile name\n");
 +        return FALSE;
 +    }
 +    strncpy(nameRtrn, xkmfile, nameRtrnLen);
-+
+ 
+-    OutputDirectory(xkm_output_dir, sizeof(xkm_output_dir));
 +    /* if the xkm file already exists, reuse it */
 +    canonicalXkmFileName = Xprintf("%s%s.xkm", xkm_output_dir, xkmfile);
-+    if (access(canonicalXkmFileName, R_OK) == 0) {
++    if ((*is_private_directory) && (access(canonicalXkmFileName, R_OK) == 0)) {
 +        /* yes, we can reuse the old xkm file */
 +        LogMessage(X_INFO, "XKB: reuse xkmfile %s\n", canonicalXkmFileName);
 +        result = TRUE;
@@ -218,7 +254,7 @@ Index: xorg-server/xkb/ddxLoad.c
  
  #ifdef WIN32
      strcpy(tmpname, Win32TempDir());
-@@ -222,15 +315,21 @@
+@@ -222,15 +325,21 @@
  	}
      }
  
@@ -243,7 +279,7 @@ Index: xorg-server/xkb/ddxLoad.c
  	buf = NULL;
  
      free(xkbbasedirflag);
-@@ -240,6 +339,11 @@
+@@ -240,6 +349,11 @@
          return FALSE;
      }
      
@@ -255,7 +291,7 @@ Index: xorg-server/xkb/ddxLoad.c
  #ifndef WIN32
      out= Popen(buf,"w");
  #else
-@@ -247,30 +351,42 @@
+@@ -247,30 +361,42 @@
  #endif
      
      if (out!=NULL) {
@@ -313,7 +349,7 @@ Index: xorg-server/xkb/ddxLoad.c
  #ifdef WIN32
          /* remove the temporary file */
          unlink(tmpname);
-@@ -285,8 +401,17 @@
+@@ -285,8 +411,17 @@
      }
      if (nameRtrn)
  	nameRtrn[0]= '\0';
@@ -333,11 +369,40 @@ Index: xorg-server/xkb/ddxLoad.c
  }
  
  static FILE *
-@@ -370,7 +495,6 @@
+@@ -297,7 +432,7 @@
+ 
+     buf[0]= '\0';
+     if (mapName!=NULL) {
+-	OutputDirectory(xkm_output_dir, sizeof(xkm_output_dir));
++	OutputDirectory(xkm_output_dir, sizeof(xkm_output_dir), NULL);
+ 	if ((XkbBaseDirectory!=NULL)&&(xkm_output_dir[0]!='/')
+ #ifdef WIN32
+                 &&(!isalpha(xkm_output_dir[0]) || xkm_output_dir[1]!=':')
+@@ -338,6 +473,7 @@
+ FILE	*	file;
+ char		fileName[PATH_MAX];
+ unsigned	missing;
++Bool is_private_directory;
+ 
+     *xkbRtrn = NULL;
+     if ((keybd==NULL)||(keybd->key==NULL)||(keybd->key->xkbInfo==NULL))
+@@ -351,7 +487,8 @@
+         return 0;
+     }
+     else if (!XkbDDXCompileKeymapByNames(xkb,names,want,need,
+-                                         nameRtrn,nameRtrnLen)){
++                                         nameRtrn,nameRtrnLen,
++                                         &is_private_directory)) {
+ 	LogMessage(X_ERROR, "XKB: Couldn't compile keymap\n");
+ 	return 0;
+     }
+@@ -371,7 +508,8 @@
  	DebugF("Loaded XKB keymap %s, defined=0x%x\n",fileName,(*xkbRtrn)->defined);
      }
      fclose(file);
 -    (void) unlink (fileName);
++    if (!is_private_directory)
++        (void) unlink(fileName);
      return (need|want)&(~missing);
  }
  

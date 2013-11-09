@@ -52,6 +52,8 @@ SRC_URI = "git://gitorious.org/ubuntu-omap/xserver.git;protocol=git \
            file://507_touchscreen_fixes.patch \
            file://516-dix-dont-emulate-scroll-events-for-non-existing-axes.patch \
            file://237-dix-set-the-device-transformation-matrix.patch \
+           file://CVE-2013-1940.patch \
+           file://CVE-2013-4396.patch \
            file://1001-xfree86-modes-Let-the-driver-handle-the-transform.patch \
            file://1002-xfree86-modes-Make-cursor-position-transform-a-helpe.patch \
            file://crosscompile.patch \
