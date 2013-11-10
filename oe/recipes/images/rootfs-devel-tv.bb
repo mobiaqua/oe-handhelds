@@ -12,6 +12,7 @@ INSTALL_PKGS += "u-boot-pandaboard libdce libdce-firmware libavcodec libavformat
 
 #INSTALL_PKGS += "${X11_PKGS} "
 
+DEPENDS_append=" gdb-cross"
 RDEPENDS += ""
 RRECOMMENDS += ""
 
