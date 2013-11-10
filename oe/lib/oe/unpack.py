@@ -70,11 +70,11 @@ def unpack_file(file, destdir, parameters, env=None):
     cmd = None
     if unpack:
         if file.endswith('.tar'):
-            cmd = 'tar x --no-same-owner -f %s' % file
+            cmd = 'deftar x --no-same-owner -f %s' % file
         elif file.endswith('.tgz') or file.endswith('.tar.gz') or file.endswith('.tar.Z'):
-            cmd = 'tar xz --no-same-owner -f %s' % file
+            cmd = 'deftar xz --no-same-owner -f %s' % file
         elif file.endswith('.tbz') or file.endswith('.tbz2') or file.endswith('.tar.bz2'):
-            cmd = 'bzip2 -dc %s | tar x --no-same-owner -f -' % file
+            cmd = 'bzip2 -dc %s | deftar x --no-same-owner -f -' % file
         elif file.endswith('.gz') or file.endswith('.Z') or file.endswith('.z'):
             root, ext = os.path.splitext(file)
             cmd = 'gzip -dc %s > %s' % (file, os.path.basename(root))
@@ -82,12 +82,12 @@ def unpack_file(file, destdir, parameters, env=None):
             root, ext = os.path.splitext(file)
             cmd = 'bzip2 -dc %s > %s' % (file, os.path.basename(root))
         elif file.endswith('.tar.xz'):
-            cmd = 'xz -dc %s | tar x --no-same-owner -f -' % file
+            cmd = 'xz -dc %s | deftar x --no-same-owner -f -' % file
         elif file.endswith('.xz'):
             root, ext = os.path.splitext(file)
             cmd = 'xz -dc %s > %s' % (file, os.path.basename(root))
         elif file.endswith('.tar.lz'):
-            cmd = 'lzip -dc %s | tar x --no-same-owner -f -' % file
+            cmd = 'lzip -dc %s | deftar x --no-same-owner -f -' % file
         elif file.endswith('.lz'):
             root, ext = os.path.splitext(file)
             cmd = 'lzip -dc %s > %s' % (file, os.path.basename(root))

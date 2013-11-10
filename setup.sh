@@ -11,6 +11,14 @@ error() {
 setup() {
 	export OE_BASE=`pwd -P`
 
+	if [ -e /bin/uname ]; then
+		os=`/bin/uname -s`
+	elif [ -e /usr/bin/uname ]; then
+		os=`/usr/bin/uname -s`
+	else
+		os=`uname -s`
+	fi
+        
 	if [ "$1" = "tv" ]; then
 		export DISTRO=mobiaqua-tv
 		export MACHINE=pandaboard
@@ -82,6 +90,37 @@ setup() {
 	BBF="\${OE_BASE}/oe/recipes/*/*.bb"
 
 	DL_DIR=${DL_DIR:="$HOME/sources"}
+
+	rm -f ${OE_BASE}/oe/bin/deftar
+	rm -f ${OE_BASE}/oe/bin/tar
+	rm -f ${OE_BASE}/oe/bin/sed
+	rm -f ${OE_BASE}/oe/bin/readlink
+	case $os in
+	Darwin)
+		if [ -e /opt/local/bin/gnutar ]; then
+			ln -s /opt/local/bin/gnutar ${OE_BASE}/oe/bin/tar
+		elif [ -e /sw/bin/gtar ]; then
+			ln -s /sw/bin/gtar ${OE_BASE}/oe/bin/tar
+		fi
+		if [ -e /usr/bin/tar ]; then
+			ln -s /usr/bin/tar ${OE_BASE}/oe/bin/deftar
+		fi
+		if [ -e /opt/local/bin/gsed ]; then
+			ln -s /opt/local/bin/gsed ${OE_BASE}/oe/bin/sed
+		elif [ -e /sw/bin/gsed ]; then
+			ln -s /sw/bin/gsed ${OE_BASE}/oe/bin/sed
+		fi
+		if [ -e /opt/local/bin/greadlink ]; then
+			ln -s /opt/local/bin/greadlink ${OE_BASE}/oe/bin/readlink
+		elif [ -e /sw/sbin/greadlink ]; then
+			ln -s /sw/sbin/greadlink ${OE_BASE}/oe/bin/readlink
+		fi
+		;;
+	Linux)
+		if [ -e /bin/tar ]; then
+			ln -s /bin/tar ${OE_BASE}/oe/bin/deftar
+		fi
+	esac
 
 	if [ ! -f ${OE_BASE}/build-${DISTRO}/conf/local.conf ] || [ ! -f ${OE_BASE}/build-${DISTRO}/env.source ] || [ "$1" = "--force" ]; then
 		PATH_TO_TOOLS="build-${DISTRO}/tmp/sysroots/`uname -m`-`uname -s | awk '{print tolower($0)}'`/usr"
