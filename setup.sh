@@ -19,10 +19,14 @@ setup() {
 		export DISTRO=mobiaqua-car
 		export MACHINE=igep0030
 		image=rootfs-devel-car
-	else
-		export DISTRO=mobiaqua
-		export MACHINE=${MACHINE:=h2200}
-		image=rootfs-devel-generic
+	elif [ "$1" = "pda-sa1110" ]; then
+		export DISTRO=mobiaqua-pda-sa1110
+		export MACHINE=pda-sa1110
+		image=rootfs-pda-sa1110
+	elif [ "$1" = "pda-pxa250" ]; then
+		export DISTRO=mobiaqua-pda-pxa250
+		export MACHINE=pda-pxa250
+		image=rootfs-pda-pxa250
 	fi
 
 	if [ -e ${HOME}/.mobiaqua/oe/${DISTRO}_defaults ]; then
@@ -69,9 +73,9 @@ setup() {
 		echo " -  target fstab file NOT found"
 	fi
 	if [ "${MA_ROOTFS_POSTPROCESS}" != "" ]; then
-		echo " -  rootfs postprocess commands is defined"
+		echo " -  rootfs postprocess commands are defined"
 	else
-		echo " -  rootfs postprocess commands is NOT defined"
+		echo " -  rootfs postprocess commands are NOT defined"
 	fi
 	mkdir -p ${OE_BASE}/build-${DISTRO}/conf
 
@@ -141,8 +145,10 @@ ERROR=
 
 [ "x$0" = "x./setup.sh" ] && error "Script must run via sourcing like '. setup.sh'"
 
-[ "$ERROR" != "1" ] && [ $EUID -eq 0 ] && error "Script running with superuser privileges ! Aborting."
+[ "$ERROR" != "1" ] && [ $EUID -eq 0 ] && error "Script running with superuser privileges! Aborting."
 
-[ "$ERROR" != 1 ] && [ -z "$BASH_VERSION" ] && error "Script NOT running in 'bash' shell"
+[ "$ERROR" != "1" ] && [ -z "$BASH_VERSION" ] && error "Script NOT running in 'bash' shell"
 
-[ "$ERROR" != 1 ] && setup $1
+[ "x$1" != "xtv" ] && [ "x$1" != "xcar" ] && [ "x$1" != "xpda-sa1110" ] && [ "x$1" != "xpda-pxa250" ] && error "Not supported target!"
+
+[ "$ERROR" != "1" ] && setup $1
