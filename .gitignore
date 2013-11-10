@@ -4,3 +4,6 @@
 *.pyc
 *.pyo
 /build-*
+oe/bin/sed
+oe/bin/tar
+oe/bin/readlink
