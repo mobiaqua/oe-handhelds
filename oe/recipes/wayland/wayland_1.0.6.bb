@@ -15,8 +15,8 @@ SRC_URI = "http://wayland.freedesktop.org/releases/${BPN}-${PV}.tar.xz"
 SRC_URI_virtclass-native = "http://wayland.freedesktop.org/releases/${BPN}-${PV}.tar.xz \
            file://just-scanner.patch"
 
-SRC_URI[md5sum] = "eebe23571fd4f9ceacc583238e5a8ae9"
-SRC_URI[sha256sum] = "f6be5ee11ba534baaa116350b5efb874bf9963bf3fb18bcf40130317e83a5913"
+SRC_URI[md5sum] = "936a2590aea69fa3c0cf234d54b9137c"
+SRC_URI[sha256sum] = "f52a012df699eff434b0f49e56000d6978b5f781048402ca8e0232242970fc49"
 
 inherit autotools pkgconfig
 
