@@ -15,7 +15,7 @@ SRC_URI = "http://dl.dropbox.com/u/12617418/linux26-2.6.21-hh20.tar.bz2 \
            http://www.rpsys.net/openzaurus/patches/archive/export_atags-r0a.patch;name=rppatch35 \
            file://0001-time-prevent-the-loop-in-timespec_add_ns-from-bei.patch \
            file://fix_nonlinux_compile.patch \
-	   file://defconfig"
+           file://defconfig"
 
 require linux-handhelds-2.6.inc
 
