@@ -13,7 +13,7 @@ Usage Information:
 		several handheld devices:
 		- iPAQ H3600
 
-	- "pda-pxa250" as "pda-pxa250_setup.sh"
+	- "pda-pxa25x" as "pda-pxa25x_setup.sh"
 		several handheld devices:
 		- iPAQ H2200
 
