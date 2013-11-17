@@ -94,13 +94,13 @@ diff -ur old/scripts/mod/sumversion.c new/scripts/mod/sumversion.c
   * Stolen form Cryptographic API.
   *
 diff -ur old/scripts/kconfig/lxdialog/check-lxdialog.sh new/scripts/kconfig/lxdialog/check-lxdialog.sh
---- old/scripts/kconfig/lxdialog/check-lxdialog.sh	2007-02-24 00:52:30.000000000 +0100
-+++ new/scripts/kconfig/lxdialog/check-lxdialog.sh	2010-06-14 09:31:55.000000000 +0200
+--- old/scripts/kconfig/lxdialog/check-lxdialog.sh	2006-04-12 20:07:47.000000000 +0200
++++ new/scripts/kconfig/lxdialog/check-lxdialog.sh	2013-11-17 14:27:15.000000000 +0100
 @@ -19,6 +19,12 @@
  		echo '-lcurses'
  		exit
  	fi
-+	#MobiAqua: compatible with Mac OS X
++	#MobiAqua: compatible with MacOS X
 +	$cc -print-file-name=libncurses.dylib | grep -q /
 +	if [ $? -eq 0 ]; then
 +		echo '-lncurses'
@@ -108,16 +108,4 @@ diff -ur old/scripts/kconfig/lxdialog/check-lxdialog.sh new/scripts/kconfig/lxdi
 +	fi
  	exit 1
  }
-diff -ur old/Makefile new/Makefile
---- old/Makefile        2012-02-09 17:15:53.000000000 +0100
-+++ new/Makefile        2012-02-09 17:10:49.000000000 +0100
-@@ -245,7 +245,7 @@
-
- HOSTCC       = gcc
- HOSTCXX      = g++
--HOSTCFLAGS   = -Wall -Wmissing-prototypes -Wstrict-prototypes -O2 -fomit-frame-pointer
-+HOSTCFLAGS   = -Wall -Wmissing-prototypes -Wstrict-prototypes -O2 -fomit-frame-pointer $(HOST_INC)
- HOSTCXXFLAGS = -O2
-
- # Decide whether to build built-in, modular, or both.
  
