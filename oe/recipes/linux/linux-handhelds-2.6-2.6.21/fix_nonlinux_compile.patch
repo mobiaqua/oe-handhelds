@@ -109,3 +109,15 @@ diff -ur old/scripts/kconfig/lxdialog/check-lxdialog.sh new/scripts/kconfig/lxdi
  	exit 1
  }
  
+diff -urp old/Makefile new/Makefile
+--- old/Makefile	2013-01-05 20:17:05.000000000 +0100
++++ new/Makefile	2013-01-05 20:26:47.000000000 +0100
+@@ -245,7 +245,7 @@ CONFIG_SHELL := $(shell if [ -x "$$BASH"
+ 
+ HOSTCC       = gcc
+ HOSTCXX      = g++
+-HOSTCFLAGS   = -Wall -Wstrict-prototypes -O2 -fomit-frame-pointer
++HOSTCFLAGS   = -Wall -Wstrict-prototypes -O2 -fomit-frame-pointer $(HOST_INC) -DKBUILD_NO_NLS
+ HOSTCXXFLAGS = -O2
+ 
+ # Decide whether to build built-in, modular, or both.
