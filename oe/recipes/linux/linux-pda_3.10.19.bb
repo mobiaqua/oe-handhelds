@@ -17,8 +17,8 @@ SRC_URI = "http://www.kernel.org/pub/linux/kernel/v3.x/linux-${PV}.tar.bz2 \
            file://defconfig \
           "
 
-SRC_URI[md5sum] = "4a3ffd2e9ade96909db94c598f9e0dc1"
-SRC_URI[sha256sum] = "d87130c9d4851d5714b6f630f74d86de3d1131e9ca0a111ee73759126b924147"
+SRC_URI[md5sum] = "0e5707ed9f83d92a7e49ac6b8d60c254"
+SRC_URI[sha256sum] = "d8104f752e25880da0d23e5c7c65c690c7cebdb81b4db63ff463f008b45fbf97"
 
 do_configure() {
 	install ${WORKDIR}/defconfig ${S}/.config
