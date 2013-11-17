@@ -9,13 +9,13 @@ DEPENDS = "coreutils-native elf-native"
 # we have per-kernel-release sets.
 FILESPATHPKG =. "linux-handhelds-2.6-2.6.21/${MACHINE}:linux-handhelds-2.6-2.6.21:"
 
-#SRC_URI = "${HANDHELDS_CVS};module=linux/kernel26;tag=${@'K' + bb.data.getVar('PV',d,1).replace('.', '-')} \
 SRC_URI = "http://dl.dropbox.com/u/12617418/linux26-2.6.21-hh20.tar.bz2 \
            file://linux-2.6.git-9d20fdd58e74d4d26dc5216efaaa0f800c23dd3a.patch \
            http://www.rpsys.net/openzaurus/patches/archive/export_atags-r0a.patch;name=rppatch35 \
            file://0001-time-prevent-the-loop-in-timespec_add_ns-from-bei.patch \
            file://fix_nonlinux_compile.patch \
-           file://defconfig"
+           file://defconfig \
+          "
 
 require linux-handhelds-2.6.inc
 

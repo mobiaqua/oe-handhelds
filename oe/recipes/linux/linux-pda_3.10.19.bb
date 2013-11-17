@@ -13,9 +13,9 @@ inherit kernel
 PR = "r1"
 
 SRC_URI = "http://www.kernel.org/pub/linux/kernel/v3.x/linux-${PV}.tar.bz2 \
-	   file://fix_nonlinux_compile.patch \
-	   file://defconfig \
-	  "
+           file://fix_nonlinux_compile.patch \
+           file://defconfig \
+          "
 
 SRC_URI[md5sum] = "4a3ffd2e9ade96909db94c598f9e0dc1"
 SRC_URI[sha256sum] = "d87130c9d4851d5714b6f630f74d86de3d1131e9ca0a111ee73759126b924147"
