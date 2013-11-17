@@ -39,3 +39,17 @@ diff -urN old/scripts/genksyms/parse.y new/scripts/genksyms/parse.y
  #include "genksyms.h"
  
  static int is_typedef;
+--- old/scripts/genksyms/parse.c_shipped	2007-02-24 00:52:30.000000000 +0100
++++ new/scripts/genksyms/parse.c_shipped	2010-06-19 05:56:06.000000000 +0200
+@@ -144,7 +144,11 @@
+ 
+ 
+ #include <assert.h>
++#ifdef __APPLE__
++#include <malloc/malloc.h>
++#else
+ #include <malloc.h>
++#endif
+ #include "genksyms.h"
+ 
+ static int is_typedef;
