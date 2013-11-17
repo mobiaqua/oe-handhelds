@@ -43,5 +43,5 @@ do_compile_kernelmodules() {
 	fi
 }
 
-S = "${WORKDIR}/linux-omap-${KV}"
+S = "${WORKDIR}/git"
 
