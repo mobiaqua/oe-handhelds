@@ -24,3 +24,18 @@ diff -urp old/scripts/mod/sumversion.c new/scripts/mod/sumversion.c
  /*
   * Stolen form Cryptographic API.
   *
+diff -urN old/scripts/genksyms/parse.y new/scripts/genksyms/parse.y
+--- old/scripts/genksyms/parse.y	2008-07-24 02:41:35.000000000 +0200
++++ new/scripts/genksyms/parse.y	2009-12-19 15:51:53.000000000 +0100
+@@ -24,7 +24,11 @@
+ %{
+ 
+ #include <assert.h>
++#ifdef __APPLE__
++#include <malloc/malloc.h>
++#else
+ #include <malloc.h>
++#endif
+ #include "genksyms.h"
+ 
+ static int is_typedef;
