@@ -1,6 +1,6 @@
-diff -urp old/libc/posix/Makefile new/libc/posix/Makefile
---- old/libc/posix/Makefile	2013-03-23 17:32:19.000000000 +0100
-+++ new/libc/posix/Makefile	2013-11-10 13:03:01.000000000 +0100
+diff -urp old/posix/Makefile new/posix/Makefile
+--- old/posix/Makefile	2013-03-23 17:32:19.000000000 +0100
++++ new/posix/Makefile	2013-11-10 13:03:01.000000000 +0100
 @@ -382,7 +382,7 @@ $(objpfx)cross-getconf.h: confstr.c
  cross-getconf-CFLAGS = -O -I$(objpfx)
  
