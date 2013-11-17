@@ -20,6 +20,7 @@ SRCREV = "604f384abe8e3533e440eb07e00df313865405da"
 SRC_URI = "git://git.isee.biz/pub/scm/linux-omap-2.6.git;protocol=git;branch=linux-2.6.37.y \
            file://tidspbridge_fix.patch \
            file://fix_nonlinux_compile.patch \
+           file://patch_2.6.37.6.patch \
            file://defconfig \
           "
 
