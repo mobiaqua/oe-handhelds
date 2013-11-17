@@ -1,4 +1,4 @@
-DESCRIPTION = "2.6 Linux Kernel for IGEP based platforms"
+DESCRIPTION = "Linux Kernel for IGEP based platforms"
 SECTION = "kernel"
 LICENSE = "GPL"
 
@@ -14,12 +14,12 @@ COMPATIBLE_MACHINE = "igep0030"
 inherit kernel
 
 PR = "r1"
-KV = "${PV}-6"
 
-SRC_URI = "http://downloads.isee.biz/pub/releases/linux_kernel/v${KV}/linux-omap-${KV}.tar.gz \
-	   file://fix_nonlinux_compile.patch \
-	   file://defconfig \
-	  "
+SRCREV = "604f384abe8e3533e440eb07e00df313865405da"
+
+SRC_URI = "git://git.isee.biz/pub/scm/linux-omap-2.6.git;protocol=git;branch=linux-2.6.37.y \
+           file://defconfig \
+          "
 
 do_configure() {
 	install ${WORKDIR}/defconfig ${S}/.config

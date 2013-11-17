@@ -10,14 +10,11 @@ COMPATIBLE_MACHINE = "igep0030"
 PARALLEL_MAKE=""
 PACKAGE_ARCH = "${MACHINE_ARCH}"
 
-SRCREV = "release-2.2.0-1"
+SRCREV = "release-2.5.0-2"
 
-SRC_URI = "git://git.igep.es/pub/scm/igep-x-loader.git;protocol=git \
-	  file://igep.ini \
-	  "
-
-SRC_URI[md5sum] = "77e06d7dbae12c3951422dc966c773cf"
-SRC_URI[sha256sum] = "c44efbc94ae419f24d418a1af3afaa3b208f21cf9300e0a5bbc530120c7da2a5"
+SRC_URI = "git://git.isee.biz/pub/scm/igep-x-loader.git;protocol=git \
+           file://igep.ini \
+          "
 
 S = "${WORKDIR}/git"
 

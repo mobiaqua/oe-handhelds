@@ -8,7 +8,7 @@ require rootfs-tools.inc
 #not buildable on mac os x for now
 #INSTALL_PKGS += "libgles-omap3 ti-codecs-omap3530"
 
-RDEPENDS += "
+RDEPENDS += ""
 RRECOMMENDS += ""
 
 IMAGE_BASENAME = "rootfs-devel-car"

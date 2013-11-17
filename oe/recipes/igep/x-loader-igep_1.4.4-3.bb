@@ -6,18 +6,17 @@ DEFAULT_PREFERENCE = "-1"
 DEFAULT_PREFERENCE_igep0030 = "1"
 
 DEPENDS = "signgp-native"
-PROVIDES += "x-load"
+PROVIDES += "x-loader"
 COMPATIBLE_MACHINE = "igep0030"
 PARALLEL_MAKE=""
 PACKAGE_ARCH = "${MACHINE_ARCH}"
 
-SRC_URI = "http://downloads.igep.es/sources/x-loader-${PV}.tar.gz \
-	  "
+SRCREV = "7a999c47f6bf629cd98c8722620e08c4f43d4fec"
 
-SRC_URI[md5sum] = "77e06d7dbae12c3951422dc966c773cf"
-SRC_URI[sha256sum] = "c44efbc94ae419f24d418a1af3afaa3b208f21cf9300e0a5bbc530120c7da2a5"
+SRC_URI = "git://git.isee.biz/pub/scm/x-loader.git;protocol=git \
+          "
 
-S = "${WORKDIR}/x-loader-${PV}"
+S = "${WORKDIR}/git"
 
 XLOAD_MACHINE = "igep0030-sdcard_config"
 

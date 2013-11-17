@@ -6,7 +6,7 @@ DESCRIPTION = "<description>"
 PV = "1.0.0"
 PR = "r0"
 
-INSTALL_PKGS += "x-load-igep-mlo"
+INSTALL_PKGS += "x-loader-igep-mlo"
 
 RDEPENDS += "kernel-module-mailbox kernel-module-bridgedriver"
 RRECOMMENDS += ""
