@@ -13,6 +13,7 @@ PACKAGE_ARCH = "${MACHINE_ARCH}"
 SRCREV = "release-2.5.0-2"
 
 SRC_URI = "git://git.isee.biz/pub/scm/igep-x-loader.git;protocol=git \
+           file://fix_sign.patch \
            file://igep.ini \
           "
 
