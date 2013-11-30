@@ -19,6 +19,8 @@ inherit autotools native
 # guess the symlink is created before the actual content is there
 EXTRA_AUTORECONF = "-s"
 
+EXTRA_OECONF = "--enable-jedec-exp"
+
 do_install () {
         oe_runmake DESTDIR=${D} MKINSTALLDIRS="${S}/tools/mkinstalldirs" install
 }
