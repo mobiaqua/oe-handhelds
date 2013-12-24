@@ -62,7 +62,7 @@ FILES_libavfilter-dbg += "${libdir}/.debug/libavfilter*"
 DEPENDS_i586 += "yasm-native"
 DEPENDS_i686 += "yasm-native"
 
-SRCREV = "fdaacc5932a813c1974e4bd61b5b499b070a610a"
+SRCREV = "10d982480f9acf83b2059797794ca8a0f300b615"
 
 PV = "0.10+${PR}+gitr${SRCPV}"
 PR = "r1"
@@ -72,7 +72,7 @@ SRC_URI = "git://git.libav.org/libav.git;protocol=git"
 S = "${WORKDIR}/git"
 B = "${S}/build.${HOST_SYS}.${TARGET_SYS}"
 
-FULL_OPTIMIZATION_armv7a = "-fexpensive-optimizations  -fno-tree-vectorize -fomit-frame-pointer -O4 -ffast-math"
+FULL_OPTIMIZATION_armv7a = "-fexpensive-optimizations -fno-tree-vectorize -fomit-frame-pointer -O4 -ffast-math"
 BUILD_OPTIMIZATION = "${FULL_OPTIMIZATION}"
 
 EXTRA_FFCONF_pandaboard = "--cpu=cortex-a9"
@@ -95,14 +95,14 @@ EXTRA_OECONF = " \
         --enable-swscale \
         --enable-protocol=file \
         --enable-outdev=alsa \
-        --enable-bsf=mov2textsub,h264_mp4toannexb,mp3_header_decompress \
+        --enable-bsf=mov2textsub,h264_mp4toannexb \
         --enable-demuxer=aac,ac3,eac3,flac,matroska,mov,mp3,ogg,wav,truehd,srt,mpegps,mpegts,\
-asf,avi,dts,dv,h264,h263,h261,m4v,mpegvideo,pcm_s16be,pcm_s16le,pcm_s24be,pcm_s24le,pcm_s32be,\
+asf,avi,dts,dv,h264,h263,h261,hevc,m4v,mpegvideo,pcm_s16be,pcm_s16le,pcm_s24be,pcm_s24le,pcm_s32be,\
 pcm_s32le,pcm_s8,pcm_u16be,pcm_u16le,pcm_u24be,pcm_u24le,pcm_u32be,pcm_u32le,pcm_u8,rl2,rm,rtp,\
 rtsp,spdif,swf,truehd,vc1,vc1t \
-        --enable-decoder=aac,ac3,eac3,dca,flac,flv,h261,h263,h263i,h264,mp1,mp1float,mp2,mp2float,\
+        --enable-decoder=aac,ac3,aic,eac3,dca,flac,flv,h261,h263,h263i,h264,hevc,mp1,mp1float,mp2,mp2float,\
 mp3,mp3adu,mp3adufloat,mp3float,mp3on4,mp3on4float,mpc7,mpc8,mpeg4,msmpeg4v1,msmpeg4v2,msmpeg4v3,\
-ralf,rv10,rv20,rv30,rv40,svq1,truehd,vorbis,vp3,vp5,vp6,vp8,wmapro,wmav1,wmav2,wmv1,wmv2,alac,\
+ralf,rv10,rv20,rv30,rv40,svq1,truehd,vorbis,vp3,vp5,vp6,vp8,vp9,webp,wmapro,wmav1,wmav2,wmv1,wmv2,alac,\
 pcm_s8,pcm_u8,pcm_u16le,pcm_u24le,pcm_u32le,ra_144,ra_288,dvvideo,ffv1,pcm_bluray,pcm_dvd,pcm_s16le,\
 pcm_s24le,pcm_s32le,vp6a,vp6f,wmalossless,pcm_u16be,pcm_u24be,pcm_u32be,pcm_s16be,pcm_s24be,pcm_s32be \
         --arch=${TARGET_ARCH} \
