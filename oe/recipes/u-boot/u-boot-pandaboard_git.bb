@@ -17,8 +17,6 @@ PV = "2012.04.01+${PR}+gitr${SRCREV}"
 PE = "1"
 
 SRC_URI = "git://git.linaro.org/boot/u-boot-linaro-stable.git;protocol=git \
-#	   file://fix-break-caused-by-new-binutils.patch \
-#	   file://no_getline.patch \
 	   file://panda_no_delay.patch \
 	   file://fix_older_cards.patch \
 	   file://boot-panda-label.script \
