@@ -1,1 +1,1 @@
-DEPENDS="u-boot_2014.01-h2200"
+DEPENDS="u-boot_2014.01-h3600"
