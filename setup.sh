@@ -73,10 +73,10 @@ setup() {
 		export DISTRO=mobiaqua-pda-sa1110
 		export MACHINE=pda-sa1110
 		image=rootfs-pda-sa1110
-	elif [ "$1" = "pda-pxa25x" ]; then
-		export DISTRO=mobiaqua-pda-pxa25x
-		export MACHINE=pda-pxa25x
-		image=rootfs-pda-pxa25x
+	elif [ "$1" = "pda-pxa250" ]; then
+		export DISTRO=mobiaqua-pda-pxa250
+		export MACHINE=pda-pxa250
+		image=rootfs-pda-pxa250
 	fi
 
 	if [ -e ${HOME}/.mobiaqua/oe/${DISTRO}_defaults ]; then
@@ -199,7 +199,7 @@ ERROR=
 
 [ "$ERROR" != "1" ] && [ -z "$BASH_VERSION" ] && error "Script NOT running in 'bash' shell"
 
-[ "$ERROR" != "1" ] && [ "x$1" != "xtv" ] && [ "x$1" != "xcar" ] && [ "x$1" != "xpda-sa1110" ] && [ "x$1" != "xpda-pxa25x" ] && error "Not supported target!"
+[ "$ERROR" != "1" ] && [ "x$1" != "xtv" ] && [ "x$1" != "xcar" ] && [ "x$1" != "xpda-sa1110" ] && [ "x$1" != "xpda-pxa250" ] && error "Not supported target!"
 
 [ "$ERROR" != "1" ] && $(python_v3_check) && [ "$?" != "0" ] && error "Python v3 is not compatible please install v2"
 

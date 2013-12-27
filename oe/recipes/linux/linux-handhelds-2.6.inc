@@ -3,7 +3,7 @@ DESCRIPTION = "handhelds.org Linux kernel 2.6 for PocketPCs and other consumer h
 LICENSE = "GPLv2"
 
 COMPATIBLE_HOST = "arm.*-linux"
-COMPATIBLE_MACHINE ?= "(pda-sa1110|pda-pxa25x)"
+COMPATIBLE_MACHINE ?= "(pda-sa1110|pda-pxa250)"
 
 # SRC_URI *must* be overriden in includer, but this is a good reference
 SRC_URI ?= "${HANDHELDS_CVS};module=linux/kernel26;tag=${@'K' + bb.data.getVar('PV',d,1).replace('.', '-')} \
