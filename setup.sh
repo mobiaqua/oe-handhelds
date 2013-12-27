@@ -65,18 +65,22 @@ setup() {
 		export DISTRO=mobiaqua-tv
 		export MACHINE=pandaboard
 		image=rootfs-devel-tv
+		ARMDIR=armv7a-hf
 	elif [ "$1" = "car" ]; then
 		export DISTRO=mobiaqua-car
 		export MACHINE=igep0030
 		image=rootfs-devel-car
+		ARMDIR=armv7a-hf
 	elif [ "$1" = "pda-sa1110" ]; then
 		export DISTRO=mobiaqua-pda-sa1110
 		export MACHINE=pda-sa1110
 		image=rootfs-pda-sa1110
+		ARMDIR=armv4
 	elif [ "$1" = "pda-pxa250" ]; then
 		export DISTRO=mobiaqua-pda-pxa250
 		export MACHINE=pda-pxa250
 		image=rootfs-pda-pxa250
+		ARMDIR=armv5te
 	fi
 
 	if [ -e ${HOME}/.mobiaqua/oe/${DISTRO}_defaults ]; then
@@ -97,8 +101,10 @@ setup() {
 	export MA_DROPBEAR_KEY_FILE="$HOME/.mobiaqua/oe/${DISTRO}_dropbear_rsa_host_key"
 	export MA_FSTAB_FILE="$HOME/.mobiaqua/oe/${DISTRO}_fstab"
 	export MA_ROOTFS_POSTPROCESS=${MA_ROOTFS_POSTPROCESS:="echo"}
-	export BB_ENV_EXTRAWHITE="MA_TARGET_IP MA_TARGET_MAC MA_DNS_IP MA_NFS_IP MA_NFS_PATH MA_ROOT_PASSWORD MA_DROPBEAR_KEY_FILE \
-				MA_FSTAB_FILE MA_ROOTFS_POSTPROCESS"
+	export MA_JTAG_ADAPTER=${MA_JTAG_ADAPTER:=""}
+	export BB_ENV_EXTRAWHITE="MA_TARGET_IP MA_TARGET_MAC MA_DNS_IP MA_NFS_IP MA_NFS_PATH \
+			MA_ROOT_PASSWORD MA_DROPBEAR_KEY_FILE MA_FSTAB_FILE MA_ROOTFS_POSTPROCESS \
+			MA_JTAG_ADAPTER"
 
 	echo "--- Settings:"
 	echo " -  sources:    ${MA_DL_DIR}"
@@ -126,6 +132,11 @@ setup() {
 		echo " -  rootfs postprocess commands are defined"
 	else
 		echo " -  rootfs postprocess commands are NOT defined"
+	fi
+	if [ "${MA_JTAG_ADAPTER}" != "" ]; then
+		echo " -  JTAG adapter: ${MA_JTAG_ADAPTER}"
+	else
+		echo " -  JTAG adapter is NOT defined"
 	fi
 	mkdir -p ${OE_BASE}/build-${DISTRO}/conf
 
@@ -162,13 +173,14 @@ export PYTHONPATH=${OE_BASE}/bb/lib
 export LANG=C
 unset TERMINFO
 unset GCONF_SCHEMA_INSTALL_SOURCE
+export MA_JTAG_ADAPTER=${MA_JTAG_ADAPTER}
 " > ${OE_BASE}/build-${DISTRO}/env.source
 
 
 
 		echo "source ${OE_BASE}/build-${DISTRO}/env.source
-if [ ! \`echo \${PATH} | grep arm/bin\` ]; then
-	export PATH=${OE_BASE}/${PATH_TO_TOOLS}/arm/bin:${OE_BASE}/${PATH_TO_TOOLS}/bin:\${PATH}
+if [ ! \`echo \${PATH} | grep ${ARMDIR}/bin\` ]; then
+	export PATH=${OE_BASE}/${PATH_TO_TOOLS}/${ARMDIR}/bin:${OE_BASE}/${PATH_TO_TOOLS}/bin:\${PATH}
 fi
 " > ${OE_BASE}/build-${DISTRO}/crosstools-setup
 

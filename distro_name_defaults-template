@@ -34,3 +34,7 @@
 
 ## Set rootfs postprocess commands
 #MA_ROOTFS_POSTPROCESS=
+
+
+## Set JTAG adapter
+#MA_JTAG_ADAPTER=
