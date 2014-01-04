@@ -165,7 +165,7 @@ BB_NUMBER_THREADS = \"2\"
 		echo "OE_BASE=\"${OE_BASE}\"
 export BBPATH=\"\${OE_BASE}/oe/:\${OE_BASE}/bb/:\${OE_BASE}/build-${DISTRO}/\"
 if [ ! \`echo \${PATH} | grep \${OE_BASE}/bb/bin\` ]; then
-	export PATH=\${OE_BASE}/bb/bin:\${PATH}
+	export PATH=\${OE_BASE}/bb/bin:\${OE_BASE}/oe/bin:\${PATH}
 fi
 unset LD_LIBRARY_PATH
 export LD_LIBRARY_PATH=
