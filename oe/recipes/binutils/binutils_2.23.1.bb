@@ -9,6 +9,7 @@ SRC_URI = "${GNU_MIRROR}/binutils/binutils-${PV}.tar.bz2 \
      file://binutils-x86_64_i386_biarch.patch \
      file://binutils-poison.patch \
      file://binutils-armv5e.patch \
+     file://tex_fixes.patch \
      ${BACKPORT} \
      "
 
