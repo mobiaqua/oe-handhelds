@@ -44,6 +44,7 @@ SRC_URI = "svn://gcc.gnu.org/svn/gcc/branches;module=${BRANCH};proto=http \
            file://pr47551.patch \
            file://gcc-arm-set-cost.patch \
            file://GPLUSPLUS_INCLUDE_DIR_with_sysroot.patch \
+           file://tex_fixes.patch \
 "
 
 # Language Overrides
