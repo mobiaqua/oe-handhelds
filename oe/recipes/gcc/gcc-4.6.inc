@@ -53,10 +53,6 @@ JAVA = ""
 
 S = "${WORKDIR}/${BRANCH}"
 
-EXTRA_OECONF_BASE = " --enable-lto \
-		      --enable-libssp \
-		      --disable-bootstrap --disable-libgomp \
-		      --disable-libmudflap"
-
+EXTRA_OECONF_BASE = " --enable-lto --enable-libssp --disable-bootstrap --disable-libgomp --disable-libmudflap"
 EXTRA_OECONF_INITIAL = "--disable-libmudflap --disable-libgomp --disable-libssp --enable-decimal-float=no --disable-libquadmath"
 EXTRA_OECONF_INTERMEDIATE = "--disable-libmudflap --disable-libgomp --disable-libssp --disable-libquadmath"
