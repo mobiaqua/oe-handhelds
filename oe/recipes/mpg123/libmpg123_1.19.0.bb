@@ -17,8 +17,10 @@ EXTRA_OECONF += "--with-optimization=4"
 
 inherit autotools
 
-SRC_URI[md5sum] = "169cfc32b32b5cae99212fe8e4347215"
-SRC_URI[sha256sum] = "f00f72e385b522b8f05c9b1ed371abad438362620e6eb8164e2a99b79bb3f6d3"
+SRC_URI[md5sum] = "87731f1437cfd8c50537a606d81130e4"
+SRC_URI[sha256sum] = "869024e01d7cb4dae1aea2f2a10420d4be7e1ac02a9c434d06d727599169b01b"
+#SRC_URI[md5sum] = "169cfc32b32b5cae99212fe8e4347215"
+#SRC_URI[sha256sum] = "f00f72e385b522b8f05c9b1ed371abad438362620e6eb8164e2a99b79bb3f6d3"
 
 S = "${WORKDIR}/mpg123-${PV}"
 
