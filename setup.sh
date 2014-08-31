@@ -52,6 +52,11 @@ setup() {
 		elif [ -e /sw/sbin/greadlink ]; then
 			ln -s /sw/sbin/greadlink ${OE_BASE}/oe/bin/readlink
 		fi
+		if [ -e /opt/local/bin/gnutar ]; then
+			ln -s /opt/local/bin/gnutar ${OE_BASE}/oe/bin/tar
+		elif [ -e /sw/bin/tar ]; then
+			ln -s /sw/bin/tar ${OE_BASE}/oe/bin/tar
+		fi
 		;;
 	Linux)
 		if [ -e /bin/tar ]; then
@@ -155,7 +160,7 @@ DISTRO = \"${DISTRO}\"
 INHERIT = \"rm_work\"
 IMAGE_KEEPROOTFS = \"1\"
 CACHE = \"${OE_BASE}/build-${DISTRO}/cache/oe-cache.\${USER}\"
-ASSUME_PROVIDED += \" git-native desktop-file-utils-native linux-libc-headers-native glib-2.0-native intltool-native \"
+ASSUME_PROVIDED += \" git-native perl-native python-native desktop-file-utils-native linux-libc-headers-native glib-2.0-native intltool-native \"
 PARALLEL_MAKE = \"-j 2\"
 BB_NUMBER_THREADS = \"2\"
 " > ${OE_BASE}/build-${DISTRO}/conf/local.conf
