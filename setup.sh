@@ -52,11 +52,6 @@ setup() {
 		elif [ -e /sw/sbin/greadlink ]; then
 			ln -s /sw/sbin/greadlink ${OE_BASE}/oe/bin/readlink
 		fi
-		if [ -e /opt/local/bin/gnutar ]; then
-			ln -s /opt/local/bin/gnutar ${OE_BASE}/oe/bin/tar
-		elif [ -e /sw/bin/tar ]; then
-			ln -s /sw/bin/tar ${OE_BASE}/oe/bin/tar
-		fi
 		;;
 	Linux)
 		if [ -e /bin/tar ]; then
