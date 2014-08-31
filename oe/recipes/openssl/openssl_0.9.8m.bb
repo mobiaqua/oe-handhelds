@@ -12,8 +12,13 @@ SRC_URI += "file://configure-targets.patch \
             file://shared-libs.patch \
             file://debian.patch \
             file://oe-ldflags.patch \
-            file://no-docs.patch"
+            file://no-docs.patch \
+            file://find.pl"
 
 SRC_URI_append_nios2 += "file://Configure-nios2.patch"
 
 PARALLEL_MAKE = ""
+
+do_configure_prepend() {
+	cp ${WORKDIR}/find.pl ${S}/util/find.pl
+}
