@@ -41,7 +41,7 @@ do_configure_prepend_darwin () {
 
 do_configure () {
 	#MobiAqua: set PERL env
-	export PERL=${STAGING_BINDIR_NATIVE}/perl
+	#export PERL=${STAGING_BINDIR_NATIVE}/perl
 	cd util
 	perl perlpath.pl ${bindir}
 	cd ..
