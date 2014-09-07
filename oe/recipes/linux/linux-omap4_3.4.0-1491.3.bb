@@ -22,6 +22,7 @@ export OS = "Linux"
 
 SRC_URI = "git://dev.omapzoom.org/pub/scm/integration/kernel-ubuntu.git;protocol=git;branch=ti-ubuntu-3.4-stable \
            file://fix_nonlinux_compile.patch \
+           file://patch-3.4.103.patch \
            file://defconfig"
 
 S = "${WORKDIR}/git"
