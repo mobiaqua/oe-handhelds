@@ -19,6 +19,8 @@ SRC_URI = "http://dl.dropbox.com/u/12617418/linux26-2.6.21-hh20.tar.bz2 \
 
 require linux-handhelds-2.6.inc
 
+DEFAULT_PREFERENCE = "-1"
+
 do_compile() {
 	HOST_INC=-I${STAGING_INCDIR_NATIVE}
 	unset CFLAGS CPPFLAGS CXXFLAGS LDFLAGS MACHINE
