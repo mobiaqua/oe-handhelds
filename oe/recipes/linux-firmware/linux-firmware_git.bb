@@ -1,7 +1,7 @@
 DESCRIPTION = "Firmware files for use with Linux kernel"
 SECTION = "kernel"
 
-SRCREV = "7d0c7a8cfd78388d90cc784a185b19dcbdbce824"
+SRCREV = "38e5405c96d10bb42b629b45210c46166461fc21"
 
 PV = "0.0+git${SRCREV}"
 
