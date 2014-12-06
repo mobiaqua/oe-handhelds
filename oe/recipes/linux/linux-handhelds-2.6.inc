@@ -71,8 +71,8 @@ do_deploy_append() {
 	#reflash.ctl is required to reflash using bootldr
 	# format:
 	# name file md5sumfile destination
-	echo "${MACHINE}-kernel-${DATETIME} ${KERNEL_IMAGE_BASE_NAME} - kernel" >> ${DEPLOY_DIR_IMAGE}/reflash.ctl
-	gen_haret_startup
+	#echo "${MACHINE}-kernel-${DATETIME} ${KERNEL_IMAGE_BASE_NAME} - kernel" >> ${DEPLOY_DIR_IMAGE}/reflash.ctl
+	#gen_haret_startup
 
 	if [ -n "${KERNEL_INITRAMFS_PATH}" -a "${ANGSTROMLIBC}" = "glibc" ]; then
 		cp ${DEPLOY_DIR_IMAGE}/${KERNEL_IMAGE_BASE_NAME}.bin ${DEPLOY_DIR_IMAGE}/${KERNEL_IMAGETYPE}-$(basename ${KERNEL_INITRAMFS_PATH} | awk -F. '{print $1}')-${PV}-${PR}-${MACHINE}.bin 
