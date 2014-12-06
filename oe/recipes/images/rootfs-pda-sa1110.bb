@@ -9,6 +9,7 @@ PR = "r0"
 
 INSTALL_PKGS += ""
 
+DEPENDS +="gdb-cross"
 RDEPENDS += "kernel-image"
 RRECOMMENDS += ""
 
