@@ -3,7 +3,7 @@ IGEP-technology based boards"
 HOMEPAGE = "http://www.isee.biz"
 LICENSE = "GPLv2"
 
-SRCREV = "6f677f57c4b38c38e95a382d09d9f76a7d94ef3e"
+SRCREV = "b0ae09d57a2573941b9bb83f1f5d6ea2879ca6c1"
 
 PV = "1.1"
 PR = "r1"
