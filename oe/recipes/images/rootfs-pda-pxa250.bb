@@ -1,5 +1,6 @@
 
 require rootfs-base.inc
+require rootfs-tools.inc
 
 DESCRIPTION = "<description>"
 
@@ -13,3 +14,5 @@ RRECOMMENDS += ""
 
 IMAGE_BASENAME = "rootfs-pda-pxa250"
 IMAGE_INSTALL += "${INSTALL_PKGS} "
+
+ROOTFS_POSTPROCESS_COMMAND += "rm -f ${IMAGE_ROOTFS}/boot/*;${MA_ROOTFS_POSTPROCESS};"
