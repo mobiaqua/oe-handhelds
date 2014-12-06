@@ -11,7 +11,8 @@ DEFAULT_PREFERENCE = "0"
 PROVIDES += "virtual/${TARGET_PREFIX}depmod virtual/${TARGET_PREFIX}depmod-2.6 virtual/${TARGET_PREFIX}depmod-3.0 \
 	virtual/${TARGET_PREFIX}depmod-3.1 virtual/${TARGET_PREFIX}depmod-3.2 virtual/${TARGET_PREFIX}depmod-3.4 \
 	virtual/${TARGET_PREFIX}depmod-3.5 virtual/${TARGET_PREFIX}depmod-3.6 virtual/${TARGET_PREFIX}depmod-3.7 \
-	virtual/${TARGET_PREFIX}depmod-3.8 virtual/${TARGET_PREFIX}depmod-3.9 virtual/${TARGET_PREFIX}depmod-3.10 \
+	virtual/${TARGET_PREFIX}depmod-3.8 virtual/${TARGET_PREFIX}depmod-3.9 virtual/${TARGET_PREFIX}depmod-3.16 \
+	virtual/${TARGET_PREFIX}depmod-3.8 virtual/${TARGET_PREFIX}depmod-3.9 virtual/${TARGET_PREFIX}depmod-3.17 \
 "
 
 # Remove the RDEPENDS_${PN} we picked up from the "require";
@@ -25,7 +26,8 @@ do_install_append () {
         cp ${D}${bindir}/${TARGET_PREFIX}depmod ${D}${bindir}/${TARGET_PREFIX}depmod-3.0
         cp ${D}${bindir}/${TARGET_PREFIX}depmod ${D}${bindir}/${TARGET_PREFIX}depmod-3.4
         cp ${D}${bindir}/${TARGET_PREFIX}depmod ${D}${bindir}/${TARGET_PREFIX}depmod-3.7
-        cp ${D}${bindir}/${TARGET_PREFIX}depmod ${D}${bindir}/${TARGET_PREFIX}depmod-3.10
+        cp ${D}${bindir}/${TARGET_PREFIX}depmod ${D}${bindir}/${TARGET_PREFIX}depmod-3.16
+        cp ${D}${bindir}/${TARGET_PREFIX}depmod ${D}${bindir}/${TARGET_PREFIX}depmod-3.17
 }
 
 do_configure_prepend() {
