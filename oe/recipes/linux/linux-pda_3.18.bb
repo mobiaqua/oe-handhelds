@@ -6,7 +6,7 @@ LICENSE = "GPL"
 
 DEPENDS = "coreutils-native elf-native"
 
-FILESPATHPKG =. "linux-pda-3.17.4:"
+FILESPATHPKG =. "linux-pda-3.18:"
 
 inherit kernel
 
@@ -14,13 +14,12 @@ PR = "r1"
 
 SRC_URI = "http://www.kernel.org/pub/linux/kernel/v3.x/linux-${PV}.tar.xz \
            file://fix_nonlinux_compile.patch \
-           file://0001-ARM-sa1100-add-Micro-ASIC-platform-device.patch \
            file://0002-input-driver-for-microcontroller-keys-on-the-iPaq-h3.patch \
            file://defconfig \
           "
 
-SRC_URI[md5sum] = "ce49828adecf8908eb3a9ffc5b860d44"
-SRC_URI[sha256sum] = "4a55419c946a45c62a96b0313eff574c38650a3a270b2acd8168ec888a4fd02b"
+SRC_URI[md5sum] = "9e854df51ca3fef8bfe566dbd7b89241"
+SRC_URI[sha256sum] = "becc413cc9e6d7f5cc52a3ce66d65c3725bc1d1cc1001f4ce6c32b69eb188cbd"
 
 do_configure() {
 	install ${WORKDIR}/defconfig ${S}/.config

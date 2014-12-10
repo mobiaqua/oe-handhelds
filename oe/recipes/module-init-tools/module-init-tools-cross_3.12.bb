@@ -8,11 +8,10 @@ EXTRA_OECONF += "--disable-builddir"
 #DEPENDS += "docbook-utils-native"
 
 DEFAULT_PREFERENCE = "0"
-PROVIDES += "virtual/${TARGET_PREFIX}depmod virtual/${TARGET_PREFIX}depmod-2.6 virtual/${TARGET_PREFIX}depmod-3.0 \
-	virtual/${TARGET_PREFIX}depmod-3.1 virtual/${TARGET_PREFIX}depmod-3.2 virtual/${TARGET_PREFIX}depmod-3.4 \
-	virtual/${TARGET_PREFIX}depmod-3.5 virtual/${TARGET_PREFIX}depmod-3.6 virtual/${TARGET_PREFIX}depmod-3.7 \
-	virtual/${TARGET_PREFIX}depmod-3.8 virtual/${TARGET_PREFIX}depmod-3.9 virtual/${TARGET_PREFIX}depmod-3.16 \
-	virtual/${TARGET_PREFIX}depmod-3.8 virtual/${TARGET_PREFIX}depmod-3.9 virtual/${TARGET_PREFIX}depmod-3.17 \
+PROVIDES += "virtual/${TARGET_PREFIX}depmod \
+             virtual/${TARGET_PREFIX}depmod-2.6 \
+             virtual/${TARGET_PREFIX}depmod-3.4 \
+             virtual/${TARGET_PREFIX}depmod-3.18 \
 "
 
 # Remove the RDEPENDS_${PN} we picked up from the "require";
@@ -23,11 +22,8 @@ EXTRA_OECONF_append = " --program-prefix=${TARGET_PREFIX}"
 
 do_install_append () {
         cp ${D}${bindir}/${TARGET_PREFIX}depmod ${D}${bindir}/${TARGET_PREFIX}depmod-2.6
-        cp ${D}${bindir}/${TARGET_PREFIX}depmod ${D}${bindir}/${TARGET_PREFIX}depmod-3.0
         cp ${D}${bindir}/${TARGET_PREFIX}depmod ${D}${bindir}/${TARGET_PREFIX}depmod-3.4
-        cp ${D}${bindir}/${TARGET_PREFIX}depmod ${D}${bindir}/${TARGET_PREFIX}depmod-3.7
-        cp ${D}${bindir}/${TARGET_PREFIX}depmod ${D}${bindir}/${TARGET_PREFIX}depmod-3.16
-        cp ${D}${bindir}/${TARGET_PREFIX}depmod ${D}${bindir}/${TARGET_PREFIX}depmod-3.17
+        cp ${D}${bindir}/${TARGET_PREFIX}depmod ${D}${bindir}/${TARGET_PREFIX}depmod-3.18
 }
 
 do_configure_prepend() {
