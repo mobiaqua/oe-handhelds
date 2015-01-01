@@ -16,6 +16,7 @@ SRC_URI = "http://www.kernel.org/pub/linux/kernel/v3.x/linux-${PV}.tar.xz \
            file://fix_nonlinux_compile.patch \
            file://0002-input-driver-for-microcontroller-keys-on-the-iPaq-h3.patch \
            file://h3600-fix-micro-port-mod.patch \
+           file://h3600-fix-mtd-part.patch \
            file://defconfig \
           "
 
