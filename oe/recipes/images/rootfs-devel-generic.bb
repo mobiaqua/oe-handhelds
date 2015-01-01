@@ -8,7 +8,7 @@ DESCRIPTION = "<description>"
 PV = "1.0.0"
 PR = "r0"
 
-INSTALL_PKGS += ""
+INSTALL_PKGS += "mc"
 
 DEPENDS_append=" gdb-cross"
 
