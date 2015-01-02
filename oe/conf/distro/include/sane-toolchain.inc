@@ -20,8 +20,8 @@ LIBTOOL_HAS_SYSROOT                  = "yes"
 # Prefer glibc 2.6 and uclibc 0.9.30, these have had the most testing.
 PREFERRED_VERSION_glibc              ?= "${PREFERRED_GLIBC_VERSION}"
 PREFERRED_VERSION_glibc-initial      ?= "${PREFERRED_GLIBC_VERSION}"
-PREFERRED_VERSION_eglibc             ?= "${PREFERRED_EGLIBC_VERSION}"
-PREFERRED_VERSION_eglibc-initial     ?= "${PREFERRED_EGLIBC_VERSION}"
+PREFERRED_VERSION_glibc             ?= "${PREFERRED_GLIBC_VERSION}"
+PREFERRED_VERSION_glibc-initial     ?= "${PREFERRED_GLIBC_VERSION}"
 
 # Some systems need a special gcc version
 PREFERRED_GCC_VERSION_486sx          ?= "4.3.2"
@@ -127,8 +127,7 @@ TARGET_CC_ARCH_pn-cairo_armv5te = "-march=armv4t"
 # C LIBRARY SETTINGS
 #############################################################################
 
-# Can be "glibc", "eglibc" or "uclibc"
-LIBC ?= "eglibc"
+LIBC ?= "glibc"
 require conf/distro/include/${LIBC}-${TOOLCHAIN_TYPE}.inc
 PSTAGE_EXTRAPATH = "${LIBC}"
 require conf/distro/include/sane-toolchain-${LIBC}.inc
@@ -172,7 +171,7 @@ def compute_os_portion_of_target_triplet (d):
 	
 	if bb.data.getVar('TARGET_ARCH',d,1) in ['bfin']:
 		if libc_suffix is not "uclibc":
-			bb.fatal("bfin is not supported on glibc/eglibc. Please choose uclibc")
+			bb.fatal("bfin is not supported on glibc. Please choose uclibc")
 		else:
 			os_suffix = "uclinux"
 	else:
