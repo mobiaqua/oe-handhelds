@@ -8,12 +8,6 @@ EXTRA_OECONF_PATHS = "--with-sysroot=${STAGING_DIR_TARGET} \
                       --with-build-time-tools=${STAGING_BINDIR_CROSS}"
 
 do_configure_prepend () {
-	#MobiAqua: on mac os x with llvm compiler use clang instead
-	if gcc --version | grep llvm-gcc > /dev/null ; then
-		export CC="clang"
-	else
-		export CC="${BUILD_CC}"
-	fi
 	export AR_FOR_TARGET="${TARGET_SYS}-ar"
 	export AS_FOR_TARGET="${TARGET_SYS}-as"
 	export RANLIB_FOR_TARGET="${TARGET_SYS}-ranlib"

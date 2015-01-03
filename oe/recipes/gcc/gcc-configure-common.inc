@@ -82,6 +82,9 @@ do_configure () {
 	export CXX_FOR_BUILD="${BUILD_CXX}"
 	export CFLAGS_FOR_BUILD="${BUILD_CFLAGS}"
 	export CPPFLAGS_FOR_BUILD="${BUILD_CPPFLAGS}"
+	if gcc --version | grep clang > /dev/null ; then
+		export CXXFLAGS="${CXXFLAGS} -fbracket-depth=512"
+	fi
 	export CXXFLAGS_FOR_BUILD="${BUILD_CXXFLAGS}"
 	export LDFLAGS_FOR_BUILD="${BUILD_LDFLAGS}"
 	export ARCH_FLAGS_FOR_TARGET="${ARCH_FLAGS_FOR_TARGET}"
