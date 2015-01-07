@@ -2,6 +2,7 @@
 require rootfs-base.inc
 require rootfs-release-tv.bb
 require rootfs-tools.inc
+require rootfs-tools-addons.inc
 
 X11_PKGS = "xserver-xorg-extension-glx xserver-xorg-extension-dri2 \
 		xserver-xorg openbox openbox-theme-clearlooks xf86-video-omap xserver-nodm-init xhost xf86-input-evdev libgl \
@@ -12,7 +13,7 @@ INSTALL_PKGS += "u-boot-pandaboard libdce libdce-firmware libavcodec libavformat
 
 #INSTALL_PKGS += "${X11_PKGS} "
 
-DEPENDS_append=" gdb-cross"
+DEPENDS += "gdb-cross"
 RDEPENDS += ""
 RRECOMMENDS += ""
 
