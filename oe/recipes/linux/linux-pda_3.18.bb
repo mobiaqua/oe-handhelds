@@ -18,6 +18,7 @@ SRC_URI = "http://www.kernel.org/pub/linux/kernel/v3.x/linux-${PV}.tar.xz \
            file://h3600-fix-micro-port-mod.patch \
            file://h3600-fix-mtd-part.patch \
            file://h3600-fix-micro-keys.patch \
+           file://fix-blocking-irq0.patch \
            file://defconfig \
           "
 
