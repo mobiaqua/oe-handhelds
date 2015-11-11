@@ -12,6 +12,7 @@ PROVIDES += "virtual/${TARGET_PREFIX}depmod \
              virtual/${TARGET_PREFIX}depmod-2.6 \
              virtual/${TARGET_PREFIX}depmod-3.4 \
              virtual/${TARGET_PREFIX}depmod-3.18 \
+             virtual/${TARGET_PREFIX}depmod-4.2 \
 "
 
 # Remove the RDEPENDS_${PN} we picked up from the "require";
