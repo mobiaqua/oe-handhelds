@@ -17,22 +17,26 @@ python_v3_check() {
 	fi
 }
 
-setup() {
-	export OE_BASE=`pwd -P`
-
+get_os() {
 	if [ -e /bin/uname ]; then
-		os=`/bin/uname -s`
+		OS=`/bin/uname -s`
 	elif [ -e /usr/bin/uname ]; then
-		os=`/usr/bin/uname -s`
+		OS=`/usr/bin/uname -s`
 	else
-		os=`uname -s`
+		OS=`uname -s`
 	fi
+	export $OS
+}
 
+prepare_tools() {
+	OE_BASE=`pwd -P`
 	rm -f ${OE_BASE}/oe/bin/deftar
 	rm -f ${OE_BASE}/oe/bin/tar
 	rm -f ${OE_BASE}/oe/bin/sed
 	rm -f ${OE_BASE}/oe/bin/readlink
-	case $os in
+
+	get_os
+	case $OS in
 	Darwin)
 		if [ -e /opt/local/bin/gnutar ]; then
 			ln -s /opt/local/bin/gnutar ${OE_BASE}/oe/bin/tar
@@ -52,6 +56,19 @@ setup() {
 		elif [ -e /sw/sbin/greadlink ]; then
 			ln -s /sw/sbin/greadlink ${OE_BASE}/oe/bin/readlink
 		fi
+
+		if [ ! -e ${OE_BASE}/oe/bin/tar ]; then
+			echo "* ERROR *  Missing GNU tar!"
+			return 1
+		fi
+		if [ ! -e ${OE_BASE}/oe/bin/sed ]; then
+			echo "* ERROR *  Missing GNU sed!"
+			return 1
+		fi
+		if [ ! -e ${OE_BASE}/oe/bin/readlink ]; then
+			echo "* ERROR *  Missing GNU readlink!"
+			return 1
+		fi
 		;;
 	Linux)
 		if [ -e /bin/tar ]; then
@@ -59,8 +76,12 @@ setup() {
 		fi
 	esac
 
-	OE_BASE=`${OE_BASE}/oe/bin/readlink -f "$OE_BASE"`
-        
+	return 0
+}
+
+setup() {
+	export OE_BASE=`${OE_BASE}/oe/bin/readlink -f "$OE_BASE"`
+
 	if [ "$1" = "tv" ]; then
 		export DISTRO=mobiaqua-tv
 		export MACHINE=pandaboard
@@ -204,7 +225,6 @@ bitbake() {
 }
 
 ERROR=
-
 [ "x$0" = "x./setup.sh" ] && error "Script must run via sourcing like '. setup.sh'"
 
 [ "$ERROR" != "1" ] && [ $EUID -eq 0 ] && error "Script running with superuser privileges! Aborting."
@@ -213,6 +233,8 @@ ERROR=
 
 [ "$ERROR" != "1" ] && [ "x$1" != "xtv" ] && [ "x$1" != "xcar" ] && [ "x$1" != "xpda-sa1110" ] && [ "x$1" != "xpda-pxa250" ] && error "Not supported target!"
 
-[ "$ERROR" != "1" ] && $(python_v3_check) && [ "$?" != "0" ] && error "Python v3 is not compatible please install v2"
+[ "$ERROR" != "1" ] && python_v3_check; [ "$?" != "0" ] && error "Python v3 is not compatible please install v2"
+
+[ "$ERROR" != "1" ] && prepare_tools; [ "$?" != "0" ] && error "Please install missing tools"
 
 [ "$ERROR" != "1" ] && setup $1
