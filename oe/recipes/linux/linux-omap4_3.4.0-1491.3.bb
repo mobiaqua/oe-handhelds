@@ -25,6 +25,11 @@ SRC_URI = "git://dev.omapzoom.org/pub/scm/integration/kernel-ubuntu.git;protocol
            file://patch-3.4.103.patch \
            file://patch-3.4.103-104.patch \
            file://patch-3.4.104-105.patch \
+           file://patch-3.4.105-106.patch \
+           file://patch-3.4.106-107.patch \
+           file://patch-3.4.107-108.patch \
+           file://patch-3.4.108-109.patch \
+           file://patch-3.4.109-110.patch \
            file://defconfig"
 
 S = "${WORKDIR}/git"
