@@ -1,6 +1,6 @@
 require module-init-tools.inc
 inherit cross
-#MobiAqua: added fix_build_native_nonlinux.patch
+#MobiAqua: added fix_build_native_nonlinux.patch. Added more depmod-X.X entries.
 SRC_URI = "${KERNELORG_MIRROR}/pub/linux/utils/kernel/module-init-tools/module-init-tools-${PV}.tar.bz2 \
 	   file://fix_build_native_nonlinux.patch \
 	  "
@@ -12,7 +12,7 @@ PROVIDES += "virtual/${TARGET_PREFIX}depmod \
              virtual/${TARGET_PREFIX}depmod-2.6 \
              virtual/${TARGET_PREFIX}depmod-3.4 \
              virtual/${TARGET_PREFIX}depmod-3.18 \
-             virtual/${TARGET_PREFIX}depmod-4.3 \
+             virtual/${TARGET_PREFIX}depmod-4.4 \
 "
 
 # Remove the RDEPENDS_${PN} we picked up from the "require";
@@ -25,7 +25,7 @@ do_install_append () {
         cp ${D}${bindir}/${TARGET_PREFIX}depmod ${D}${bindir}/${TARGET_PREFIX}depmod-2.6
         cp ${D}${bindir}/${TARGET_PREFIX}depmod ${D}${bindir}/${TARGET_PREFIX}depmod-3.4
         cp ${D}${bindir}/${TARGET_PREFIX}depmod ${D}${bindir}/${TARGET_PREFIX}depmod-3.18
-        cp ${D}${bindir}/${TARGET_PREFIX}depmod ${D}${bindir}/${TARGET_PREFIX}depmod-4.3
+        cp ${D}${bindir}/${TARGET_PREFIX}depmod ${D}${bindir}/${TARGET_PREFIX}depmod-4.4
 }
 
 do_configure_prepend() {
