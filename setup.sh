@@ -203,6 +203,7 @@ export MA_JTAG_ADAPTER=${MA_JTAG_ADAPTER}
 if [ ! \`echo \${PATH} | grep ${ARMDIR}/bin\` ]; then
 	export PATH=${OE_BASE}/${PATH_TO_TOOLS}/${ARMDIR}/bin:${OE_BASE}/${PATH_TO_TOOLS}/bin:\${PATH}
 fi
+export CROSS_COMPILE=arm-linux-gnueabi-
 " > ${OE_BASE}/build-${DISTRO}/crosstools-setup
 
 
