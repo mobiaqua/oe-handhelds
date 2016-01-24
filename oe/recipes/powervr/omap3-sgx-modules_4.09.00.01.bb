@@ -8,7 +8,7 @@ DEFAULT_PREFERENCE = "-1"
 # see libgles-omap3.inc for detailed installation instructions
 
 TI_BIN_UNPK_CMDS="Y: qY:workdir:Y"
-require ../ti/ti-eula-unpack.inc
+require ti-eula-unpack.inc
 
 SGXPV = "4_09_00_01"
 IMGPV = "1.6.16.4117"

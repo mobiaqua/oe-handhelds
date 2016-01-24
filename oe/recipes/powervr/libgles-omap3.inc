@@ -17,7 +17,7 @@ S = "${WORKDIR}/OMAP35x_Graphics_SDK_${SGXPV}"
 
 # Logic to unpack installjammer file
 TI_BIN_UNPK_CMDS="Y: qY:workdir:Y"
-require ../ti/ti-eula-unpack.inc
+require ti-eula-unpack.inc
 
 BINLOCATION ?= "${S}/gfx_rel"
 ES2LOCATION ?= "${S}/gfx_rel_es2.x"
