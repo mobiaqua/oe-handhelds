@@ -3,14 +3,10 @@ LICENSE = "TI"
 PV = "1.00"
 PR = "r0"
 
-#SRC_URI = "http://launchpadlibrarian.net/125118254/ti-firmware-ipu-dce_1.6+121207+151913+git17438c0.tar.gz \
 SRC_URI = "file://ducati-m3-ipu.xem3 \
            file://ducati-m3-ipu.xem3.license.txt \
            file://remote_proc_dce.sh \
 "
-
-SRC_URI[md5sum] = "d0309bfe18d70f95a48e15f5cb6c1c3a"
-SRC_URI[sha256sum] = "36e1523e9c6b3cd9db60ec35e1307053f72e357b1033795e016bad6e1bdf2ac3"
 
 S = "${WORKDIR}"
 DCE_DIR = "ducati-dce-ee4f5fd145de23fb00ee61a4f98dc4f8ae7d812e"
