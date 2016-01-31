@@ -7,7 +7,7 @@ PR_append = "+gitr-${SRCREV}"
 
 SRCREV = "4df1d8556cf3b4a6d5f2bc156e8730714c294c28"
 
-SRC_URI = "https://gitorious.org/ubuntu-omap/pvr-omap4.git;protocol=git \
+SRC_URI = "https://github.com/mobiaqua/pvr-omap4.git;protocol=git \
 	   file://LICENSE.txt \
 	   file://video_raw_update.patch \
 	   "

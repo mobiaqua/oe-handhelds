@@ -16,7 +16,7 @@ PV = "2.4.41+git${SRCREV}"
 
 FILESPATHPKG =. "libdrm-2.4.41:"
 
-SRC_URI = "https://gitorious.org/ubuntu-omap/libdrm.git;protocol=git \
+SRC_URI = "git://github.com/mobiaqua/libdrm.git;protocol=git \
            file://01_default_perms.diff \
            file://03_build_against_librt.diff \
            file://04_libdrm-2.4.37-nouveau-1.diff \
