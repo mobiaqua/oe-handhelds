@@ -9,15 +9,12 @@ SRC_URI = "file://ducati-m3-ipu.xem3 \
 "
 
 S = "${WORKDIR}"
-DCE_DIR = "ducati-dce-ee4f5fd145de23fb00ee61a4f98dc4f8ae7d812e"
 
 INITSCRIPT_NAME = "remote_proc_dce.sh"
 
 do_install() {
 	install -d ${D}${base_libdir}/firmware
 
-	#install -m 0644 ${S}/${DCE_DIR}/ti-firmware-ipu-dce.xem3 ${D}${base_libdir}/firmware/
-	#install -m 0644 ${S}/${DCE_DIR}/ti-firmware-ipu-dce.license.txt ${D}${base_libdir}/firmware/
 	install -m 0644 ${S}/ducati-m3-ipu.xem3 ${D}${base_libdir}/firmware/
 	install -m 0644 ${S}/ducati-m3-ipu.xem3.license.txt ${D}${base_libdir}/firmware/
 	ln -s ducati-m3-ipu.xem3 ${D}${base_libdir}/firmware/ducati-m3-core0.xem3
