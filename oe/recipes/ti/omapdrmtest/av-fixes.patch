@@ -31,8 +31,8 @@ diff -urp old/util/demux.c new/util/demux.c
  	AVBitStreamFilterContext *bsf = NULL;
  	struct demux *demux;
  
--	if (cc->codec_id != CODEC_ID_H264) {
-+	if (cc->codec_id != AV_CODEC_ID_H264) {
+-	if ((cc->codec_id != CODEC_ID_H264) &&  (cc->codec_id != CODEC_ID_MPEG2VIDEO) && ( cc->codec_id !=  CODEC_ID_MPEG4)){
++	if ((cc->codec_id != AV_CODEC_ID_H264) && (cc->codec_id != AV_CODEC_ID_MPEG2VIDEO) && (cc->codec_id != AV_CODEC_ID_MPEG4)) {
  		ERROR("could not open '%s': unsupported codec %d", filename, cc->codec_id);
  		return NULL;
  	}
@@ -45,3 +45,15 @@ diff -urp old/util/demux.c new/util/demux.c
  	if (demux->bsf)
  		av_bitstream_filter_close(demux->bsf);
  	free(demux);
+diff -ur old/util/demux.c new/util/demux.c
+--- old/util/demux.c	2016-01-31 08:32:50.000000000 +0100
++++ new/util/demux.c	2016-01-31 08:35:23.000000000 +0100
+@@ -119,7 +119,7 @@
+ 	av_register_all();
+ 	avcodec_register_all();
+ 	demux = open_stream(filename, width, height);
+-	if ((demux != NULL) && (demux->cc->codec_id ==  CODEC_ID_MPEG4)) {
++	if ((demux != NULL) && (demux->cc->codec_id == AV_CODEC_ID_MPEG4)) {
+ 		if(get_esds_offset(filename, demux))
+ 			return NULL;
+ 	}
