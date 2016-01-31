@@ -1,22 +1,14 @@
-#MobiAqua: changed depends to libdce-firmware. update to new git revision
 DEPENDS = "libdce-firmware libdrm"
 
-LICENSE = "TI"
+LICENSE = "BSD"
 
 inherit autotools lib_package
 
-PV = "1.7.0.2"
+PV = "1.0"
 PR = "r0"
 PR_append = "+gitr-${SRCREV}"
 
-SRCREV = "33bde2904debedbf33819a445da7c9baa1149a97"
-SRC_URI = "git://git.ti.com/glsdk/dce.git;protocol=git \
-           file://update-from-glsdk.patch \
-           file://disable-wayland-x11.patch \
-          "
+SRCREV = "f65ff5c36e470e1d306380cb3ee7c3102e78bd38"
+SRC_URI = "git://github.com/mobiaqua/libdce.git;protocol=git"
 
 S = "${WORKDIR}/git"
-
-do_install_append() {
-	install -m 0644 ${S}/dce.h ${D}/${includedir}/dce/libdce.h
-}
