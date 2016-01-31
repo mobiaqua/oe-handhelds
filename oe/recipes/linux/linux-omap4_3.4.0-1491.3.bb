@@ -61,23 +61,11 @@ do_install_append() {
 	oe_runmake headers_install INSTALL_HDR_PATH=${D}${exec_prefix}/src/linux-${KERNEL_VERSION} ARCH=$ARCH
 	install -d ${D}${exec_prefix}/include/linux
 
-	# hack:
-	mkdir -p ${STAGING_KERNEL_DIR}/include/linux
-	rm -f ${STAGING_KERNEL_DIR}/include/linux/omap_drm.h
-	rm -f ${STAGING_KERNEL_DIR}/include/linux/omap_drv.h
-	if [ -f ${S}/include/linux/omap_drm.h ]; then
-		cp -L ${S}/include/linux/omap_drm.h ${STAGING_KERNEL_DIR}/include/linux
-		cp -L ${S}/include/linux/omap_drv.h ${STAGING_KERNEL_DIR}/include/linux
-	fi
-}
-
-staging_helper_append() {
-	rm -f ${STAGING_KERNEL_DIR}/include/linux/omap_drm.h
-	rm -f ${STAGING_KERNEL_DIR}/include/linux/omap_drv.h
-	if [ -f ${S}/include/linux/omap_drm.h ]; then
-		cp -L ${S}/include/linux/omap_drm.h ${STAGING_KERNEL_DIR}/include/linux
-		cp -L ${S}/include/linux/omap_drv.h ${STAGING_KERNEL_DIR}/include/linux
-	fi
+	install -d ${STAGING_DIR_TARGET}/${includedir}/linux
+	cp -L ${S}/drivers/staging/omapdrm/omap_drm.h ${STAGING_DIR_TARGET}/${includedir}/linux
+	cp -L ${S}/drivers/staging/omapdrm/omap_drv.h ${STAGING_DIR_TARGET}/${includedir}/linux
+	cp -L ${S}/drivers/staging/omapdce/omap_dce.h ${STAGING_DIR_TARGET}/${includedir}/linux
+	cp -L ${S}/drivers/staging/omapdce/dce_rpc.h ${STAGING_DIR_TARGET}/${includedir}/linux
 }
 
 PACKAGES =+ "kernel-headers"
