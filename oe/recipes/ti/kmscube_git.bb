@@ -6,8 +6,8 @@ PV = "0.0.1"
 PR = "r0"
 PR_append = "+gitr-${SRCREV}"
 
-SRCREV = "5a03757c0aa52eff44fb0d8ac0529f8cc18b1da0"
-SRC_URI = "git://gitorious.org/ubuntu-omap/kmscube.git;protocol=git \
+SRCREV = "1c8a0d26c5b1918432fd94d2ac9894b3dcdb2814"
+SRC_URI = "git://git.ti.com/glsdk/kmscube.git;protocol=git \
 "
 
 S = "${WORKDIR}/git"
