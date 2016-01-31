@@ -16,3 +16,7 @@ SRC_URI = "git://git.ti.com/glsdk/dce.git;protocol=git \
           "
 
 S = "${WORKDIR}/git"
+
+do_install_append() {
+	install -m 0644 ${S}/dce.h ${D}/${includedir}/dce/libdce.h
+}
