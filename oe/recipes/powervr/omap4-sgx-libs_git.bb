@@ -7,25 +7,31 @@ PR_append = "+gitr-${SRCREV}"
 
 SRCREV = "4df1d8556cf3b4a6d5f2bc156e8730714c294c28"
 
-SRC_URI = "https://github.com/mobiaqua/pvr-omap4.git;protocol=git \
+SRC_URI = "git://github.com/mobiaqua/pvr-omap4.git;protocol=git \
 	   file://LICENSE.txt \
 	   file://video_raw_update.patch \
+	   file://wayland-dummy.c \
 	   "
 
 COMPATIBLE_MACHINE = "pandaboard"
-DEPENDS = "omap4-sgx-modules libdrm wayland"
+DEPENDS = "omap4-sgx-modules libdrm"
 PROVIDES += "virtual/egl"
 
 DEFAULT_PREFERENCE = "10"
 
 S = "${WORKDIR}/git"
 
+do_install_virtclass-native() {
+        install -d ${D}${bindir}/
+        install -m 0755 ${S}/makedevs ${D}${bindir}/
+}
+
 do_configure() {
-	:
+	install -m 0644 ${WORKDIR}/wayland-dummy.c ${S}/
 }
 
 do_compile() {
-	:
+	${CC} ${CFLAGS} ${LDFLAGS} ${S}/wayland-dummy.c -shared -o ${S}${libdir}/libwayland-server.so.0
 }
 
 do_install() {
