@@ -62,12 +62,14 @@ FILES_libavfilter-dbg += "${libdir}/.debug/libavfilter*"
 DEPENDS_i586 += "yasm-native"
 DEPENDS_i686 += "yasm-native"
 
-SRCREV = "8692e6284f5169257a537c8fc25addf32fc67c87"
+SRCREV = "77a44f577b644a328dcf90cde11d2ecae69eda05"
 
 PV = "git+master+r${SRCPV}"
 PR = "r1"
 
-SRC_URI = "git://git.libav.org/libav.git;protocol=git"
+SRC_URI = "git://git.libav.org/libav.git;protocol=git \
+           file://mpeg4_bsf.patch \
+          "
 
 S = "${WORKDIR}/git"
 B = "${S}/build.${HOST_SYS}.${TARGET_SYS}"
@@ -95,7 +97,7 @@ EXTRA_OECONF = " \
         --enable-swscale \
         --enable-protocol=file \
         --enable-outdev=alsa \
-        --enable-bsf=mov2textsub,h264_mp4toannexb \
+        --enable-bsf=mov2textsub,h264_mp4toannexb,hevc_mp4toannexb,mpeg4_unpack_bframes \
         --enable-demuxer=matroska,mov,flac,mp3,ogg,wav,mpegps,mpegts,avi,m4v,mpegvideo,asf,flv,ogg,rm,rtmp,swf,srt,ass \
         --enable-decoder=aac,ac3,aic,eac3,dca,alac,als,flac,flv,h261,h263,h263i,h264,hevc,mp1,mp1float,mp2,mp2float,\
 mp3,mp3adu,mp3adufloat,mp3float,mp3on4,mp3on4float,mpeg4,msmpeg4v1,msmpeg4v2,msmpeg4v3,mjpeg,ogg,ffv1,dvvideo\
