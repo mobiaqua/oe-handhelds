@@ -9,7 +9,7 @@ diff -urp old/viddec3test.c new/viddec3test.c
 -#include <xf86drm.h>
 -#include <omap_drm.h>
 -#include <omap_drmif.h>
-+#include <dce.h>
++#include <libdce.h>
 +
 +#include <xdc/std.h>
 +#include <ti/xdais/xdas.h>
