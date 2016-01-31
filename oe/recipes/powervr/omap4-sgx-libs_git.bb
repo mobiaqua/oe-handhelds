@@ -36,7 +36,7 @@ do_compile() {
 
 do_install() {
 	install -d ${D}${bindir}
-	cp -pR ${S}${bindir}/* ${D}${bindir}/
+	cp -pR ${S}${bindir}/pvrsrvinit ${D}${bindir}/
 
 	install -d ${D}${includedir}
 	cp -pR ${S}${includedir}/* ${D}${includedir}/
@@ -44,6 +44,11 @@ do_install() {
 	install -d ${D}${libdir}
 	cp -pR ${S}${libdir}/* ${D}${libdir}/
 	rm -rf ${D}${libdir}/debug
+	rm -rf ${D}${libdir}/xorg
+	rm -f ${D}${libdir}/libpvrws_OMAPDRI2*
+	rm -f ${D}${libdir}/libpvrws_WAYLAND*
+	rm -f ${D}${libdir}/libwayland-egl.so*
+	rm -f ${D}${libdir}/libpvr_wlegl*
 
 	install -d ${D}/usr/share/doc/${PN}
 	install -m 0666 ${WORKDIR}/LICENSE.txt ${D}/usr/share/doc/${PN}
