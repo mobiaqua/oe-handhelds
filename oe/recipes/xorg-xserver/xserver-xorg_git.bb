@@ -12,7 +12,7 @@ PV = "1.11.4+git${SRCPV}"
 DEFAULT_PREFERENCE = "1"
 SRCREV = "e58f26253de4f09b2688500c1ac8d20a520f9603"
 
-SRC_URI = "git://gitorious.org/ubuntu-omap/xserver.git;protocol=git \
+SRC_URI = "https://gitorious.org/ubuntu-omap/xserver.git;protocol=git \
            file://0001-add-dri2video.patch \
            file://001_fedora_extramodes.patch \
            file://02_Add-libnettle-as-option-for-sha1.diff \

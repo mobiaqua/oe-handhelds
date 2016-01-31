@@ -28,7 +28,7 @@ SRCREV = "4a3b091c4615b8ce6bdfb7ffb3a531f737a8ee95"
 PR = "${INC_PR}.3"
 PV = "0.4.2+gitr${SRCPV}"
 
-SRC_URI = "git://gitorious.org/ubuntu-omap/xf86-video-omap.git;protocol=git \
+SRC_URI = "https://gitorious.org/ubuntu-omap/xf86-video-omap.git;protocol=git \
            file://configure.patch \
            file://0000-UBUNTU-Add-Headers-for-dev-package.patch \
            file://0001-dri2-fix-some-leaks.patch \
