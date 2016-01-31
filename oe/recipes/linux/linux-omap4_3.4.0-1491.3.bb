@@ -62,10 +62,9 @@ do_install_append() {
 	install -d ${D}${exec_prefix}/include/linux
 
 	install -d ${STAGING_DIR_TARGET}/${includedir}/linux
-	cp -L ${S}/drivers/staging/omapdrm/omap_drm.h ${STAGING_DIR_TARGET}/${includedir}/linux
-	cp -L ${S}/drivers/staging/omapdrm/omap_drv.h ${STAGING_DIR_TARGET}/${includedir}/linux
-	cp -L ${S}/drivers/staging/omapdce/omap_dce.h ${STAGING_DIR_TARGET}/${includedir}/linux
-	cp -L ${S}/drivers/staging/omapdce/dce_rpc.h ${STAGING_DIR_TARGET}/${includedir}/linux
+	cp -L ${S}/drivers/staging/omapdrm/omap_drv.h ${STAGING_DIR_TARGET}/${includedir}/omap
+	cp -L ${S}/drivers/staging/omapdce/omap_dce.h ${STAGING_DIR_TARGET}/${includedir}/omap
+	cp -L ${S}/drivers/staging/omapdce/dce_rpc.h ${STAGING_DIR_TARGET}/${includedir}/omap
 }
 
 PACKAGES =+ "kernel-headers"
