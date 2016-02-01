@@ -8,6 +8,8 @@ ARM_INSTRUCTION_SET = "arm"
 
 inherit autotools pkgconfig
 
+DEPENDS = "alsa-lib"
+
 LEAD_SONAME = "libavcodec.so"
 
 PACKAGES += "${PN}-vhook-dbg ${PN}-vhook"
