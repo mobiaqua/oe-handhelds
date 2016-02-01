@@ -28,6 +28,7 @@ SRC_URI = "git://sourceware.org/git/glibc.git;protocol=git;branch=release/${PV}/
            ${CVEPATCHES} \
            file://fix-compile-fs-noncase.patch \
            file://fix-rpc.patch \
+           file://skip-broken-locales.patch \
           "
 
 EGLIBCPATCHES = "\
