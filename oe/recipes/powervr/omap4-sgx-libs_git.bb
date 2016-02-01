@@ -14,7 +14,7 @@ SRC_URI = "git://github.com/mobiaqua/pvr-omap4.git;protocol=git \
 	   "
 
 COMPATIBLE_MACHINE = "pandaboard"
-DEPENDS = "omap4-sgx-modules libdrm"
+DEPENDS = "omap4-sgx-modules"
 PROVIDES += "virtual/egl"
 
 DEFAULT_PREFERENCE = "10"

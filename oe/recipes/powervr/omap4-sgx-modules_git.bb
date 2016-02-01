@@ -8,7 +8,7 @@ PR = "r0"
 PV = "1.9.0.8.1.1"
 PR_append = "+gitr-${SRCREV}"
 
-DEPENDS = "linux-omap4"
+DEPENDS = "libdrm linux-omap4"
 
 SRCREV = "1b9a0badb65efd7f5112798b26ecbdbbc00ca5bb"
 
