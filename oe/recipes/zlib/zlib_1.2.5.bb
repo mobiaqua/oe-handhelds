@@ -4,7 +4,7 @@ PR = "${INC_PR}.0"
 
 SRC_URI += "file://0001-autotools.patch "
 
-SRC_URI[md5sum] = "be1e89810e66150f5b0327984d8625a0"
-SRC_URI[sha256sum] = "239aead2f22f16bfcfa6a6a5150dcbd6d6f2e4d1eaa8727b5769ea014120b307"
+SRC_URI[md5sum] = "c735eab2d659a96e5a594c9e8541ad63"
+SRC_URI[sha256sum] = "6064e52e513facb0fbb7998c6413406cf253cfb986063d68f4771c2bf7a3f958"
 
 DEFAULT_PREFERENCE = "-1"

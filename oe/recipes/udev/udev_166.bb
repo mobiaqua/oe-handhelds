@@ -11,13 +11,13 @@ PR = "r7"
 DEPENDS = "gperf-native usbutils acl glib-2.0 mtd-utils"
 RDEPENDS_${PN} += "module-init-tools-depmod udev-utils"
 
-SRC_URI = "http://www.mirrorservice.org/sites/ftp.kernel.org/pub/linux/utils/kernel/hotplug/udev-${PV}.tar.gz \
+SRC_URI = "http://pkgs.fedoraproject.org/repo/pkgs/udev/udev-166.tar.bz2/4db27d73fdbe94f47fd89fdd105c2dfb/udev-166.tar.bz2 \
 	   file://mount.blacklist \
 	   file://run.rules \
 	   "
 
-SRC_URI[md5sum] = "a5a896b3d945e0ab804667ff0096eaf7"
-SRC_URI[sha256sum] = "76fe334ad21d88476371b835352f494ca56d271f6212eb402e5b17e37351a48e"
+SRC_URI[md5sum] = "4db27d73fdbe94f47fd89fdd105c2dfb"
+SRC_URI[sha256sum] = "f5d27381a16ad56ed76e472fc05a7116f7ffede0898b4ccbaf501fe2384354d7"
 
 #MobiAqua: remove devfs.rules, added symlink into udev.rules
 SRC_URI += " \

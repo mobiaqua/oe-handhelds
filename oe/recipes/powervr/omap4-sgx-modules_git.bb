@@ -10,7 +10,7 @@ PR_append = "+gitr-${SRCREV}"
 
 SRCREV = "1b9a0badb65efd7f5112798b26ecbdbbc00ca5bb"
 
-SRC_URI = "https://github.com/mobiaqua/pvr-omap4-dkms.git;protocol=git \
+SRC_URI = "git://github.com/mobiaqua/pvr-omap4-dkms.git;protocol=git \
            file://rc.pvr \
            file://0001-core-mk-fix.patch;striplevel=2 \
            file://0001-Revert-SGX-KM-HACK-Disable-burst-combiner.patch;striplevel=2 \

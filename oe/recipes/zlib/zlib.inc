@@ -15,6 +15,6 @@ CFLAGS_EXTRA_virtclass-sdk = ""
 
 BBCLASSEXTEND = "native sdk"
 
-SRC_URI = "http://www.zlib.net/zlib-${PV}.tar.bz2"
+SRC_URI = "http://zlib.net/fossils/zlib-${PV}.tar.gz"
 
 inherit autotools
