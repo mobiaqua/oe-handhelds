@@ -2,7 +2,7 @@ DESCRIPTION = "Linux Kernel for PDA based platforms"
 SECTION = "kernel"
 LICENSE = "GPL"
 
-#DEFAULT_PREFERENCE = "-1"
+DEFAULT_PREFERENCE = "-1"
 
 DEPENDS = "coreutils-native elf-native"
 
