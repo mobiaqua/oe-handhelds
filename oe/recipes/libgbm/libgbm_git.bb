@@ -12,6 +12,7 @@ SRC_URI = "git://github.com/mobiaqua/libgbm.git;protocol=git \
            file://0001-update-pkgconfig-file.patch \
            file://0002-Update-to-libudev.pc-name.patch \
            file://0003-Makefile.am-add-version-info.patch \
+           file://remove-not-used-backends.patch \
 "
 
 S = "${WORKDIR}/git"
