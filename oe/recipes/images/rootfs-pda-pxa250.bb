@@ -9,7 +9,7 @@ PR = "r0"
 
 INSTALL_PKGS += ""
 
-DEPENDS += "gdb-cross"
+DEPENDS += "gdb-cross u-boot-pda-h2200"
 RDEPENDS += "kernel-image"
 RRECOMMENDS += ""
 
