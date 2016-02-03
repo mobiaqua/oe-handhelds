@@ -2,7 +2,7 @@ DESCRIPTION = "Linux Kernel for PDA based platforms"
 SECTION = "kernel"
 LICENSE = "GPL"
 
-DEFAULT_PREFERENCE = "-1"
+#DEFAULT_PREFERENCE = "-1"
 
 DEPENDS = "coreutils-native elf-native"
 
@@ -14,7 +14,6 @@ PR = "r1"
 
 SRC_URI = "http://www.kernel.org/pub/linux/kernel/v4.x/linux-${PV}.tar.xz \
            file://fix_nonlinux_compile.patch \
-           file://0002-input-driver-for-microcontroller-keys-on-the-iPaq-h3.patch \
            file://h3600-fix-micro-port-mod.patch \
            file://h3600-fix-mtd-part.patch \
            file://h3600-fix-micro-keys.patch \

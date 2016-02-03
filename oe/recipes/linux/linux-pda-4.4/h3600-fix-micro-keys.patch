@@ -4,7 +4,7 @@ diff -ur old/drivers/input/keyboard/ipaq-micro-keys.c new/drivers/input/keyboard
 @@ -50,7 +50,7 @@
  	int key, down;
  
- 	down = (0x80 & msg[0]) ? 1 : 0;
+ 	down = 0x80 & msg[0];
 -	key  = 0x7f & msg[0];
 +	key  = (0x7f & msg[0]) - 1;
  
