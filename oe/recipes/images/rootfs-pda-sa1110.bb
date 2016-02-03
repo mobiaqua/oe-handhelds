@@ -9,7 +9,7 @@ PR = "r0"
 
 INSTALL_PKGS += ""
 
-DEPENDS +="gdb-cross u-boot-pda-h3600"
+DEPENDS +="gdb-cross urjtag-mini-native u-boot-pda-h3600"
 RDEPENDS += "kernel-image"
 RRECOMMENDS += ""
 

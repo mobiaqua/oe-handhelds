@@ -9,7 +9,7 @@ PR = "r0"
 
 INSTALL_PKGS += ""
 
-DEPENDS += "gdb-cross u-boot-pda-h2200"
+DEPENDS += "gdb-cross urjtag-mini-native u-boot-pda-h2200"
 RDEPENDS += "kernel-image"
 RRECOMMENDS += ""
 
