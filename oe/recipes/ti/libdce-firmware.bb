@@ -4,7 +4,7 @@ PV = "1.00"
 PR = "r0"
 
 SRC_URI = "file://ducati-m3-ipu.xem3 \
-           file://ducati-m3-ipu.xem3.license.txt \
+           file://ducati-m3-ipu.xem3.license.pdf \
            file://remote_proc_dce.sh \
 "
 
