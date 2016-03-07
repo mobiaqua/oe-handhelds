@@ -1,6 +1,6 @@
 require gdb-cross.inc
 
-SRC_URI += "file://sim-install-6.6.patch"
+SRC_URI += "file://0001-make-man-install-relative-to-DESTDIR.patch"
 
 PR = "${INC_PR}.0"
 

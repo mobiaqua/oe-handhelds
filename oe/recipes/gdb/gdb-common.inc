@@ -15,8 +15,6 @@ inherit autotools
 SRC_URI = "${GNU_MIRROR}/gdb/gdb-${PV}.tar.gz \
           "
 
-SRC_URI[md5sum] = "45b07b53d81832d32ccd4829465d4886"
-SRC_URI[sha256sum] = "eefadb9831e3695d1eaef34e98b8f1fb441df6fe5071317ea49c6bd6ba213eff"
 
 export CC_FOR_BUILD = "${BUILD_CC}"
 export CXX_FOR_BUILD = "${BUILD_CXX}"
@@ -33,9 +31,14 @@ EXPAT = "--with-expat --with-libexpat-prefix=${STAGING_DIR_HOST}"
 
 EXTRA_OECONF = "--disable-gdbtk --disable-tui --disable-x --disable-werror \
                 --with-curses --disable-multilib --with-system-readline --disable-sim \
+                --without-lzma --without-guile \
                 ${GDBPROPREFIX} ${EXPAT} \
                 ${@base_contains('DISTRO_FEATURES', 'multiarch', '--enable-64-bit-bfd', '', d)} \
+                --disable-rpath \
                "
+
+SRC_URI[md5sum] = "f3b97de919a9dba84490b2e076ec4cb0"
+SRC_URI[sha256sum] = "4994ad986726ac4128a6f1bd8020cd672e9a92aa76b80736563ef992992764ef"
 
 GDBPROPREFIX = "--program-prefix=''"
 
