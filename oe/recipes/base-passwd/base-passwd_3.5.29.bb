@@ -4,8 +4,6 @@ SECTION = "base"
 LICENSE = "GPLv2+"
 LIC_FILES_CHKSUM = "file://COPYING;md5=eb723b61539feef013de476e68b5c50a"
 
-RECIPE_NO_UPDATE_REASON = "Version 3.5.38 requires cdebconf for update-passwd utility"
-
 SRC_URI = "https://launchpad.net/debian/+archive/primary/+files/${BPN}_${PV}.tar.gz \
            file://add_shutdown.patch \
            file://nobash.patch \
@@ -19,8 +17,6 @@ SRC_URI[sha256sum] = "f0b66388b2c8e49c15692439d2bee63bcdd4bbbf7a782c7f64accc5598
 
 inherit autotools
 
-SSTATEPOSTINSTFUNCS += "base_passwd_sstate_postinst"
-
 do_install () {
 	install -d -m 755 ${D}${sbindir}
 	install -p -m 755 ${B}/update-passwd ${D}${sbindir}/
@@ -30,24 +26,7 @@ do_install () {
 	install -p -m 644 ${S}/group.master ${D}${datadir}/base-passwd/
 	#MobiAqua: added defined custom root passwd
 	sed -i -e s,root::0:0:root:,root:${MA_ROOT_PASSWORD}:0:0:root:, ${D}${datadir}/base-passwd/passwd.master
+	install -d -m 755 ${D}${sysconfdir}
+	install -p -m 644 ${D}${datadir}/base-passwd/passwd.master ${D}${sysconfdir}/passwd
+	install -p -m 644 ${D}${datadir}/base-passwd/group.master ${D}${sysconfdir}/group
 }
-
-pkg_postinst () {
-	set -e
-
-	if [ ! -e $D${sysconfdir}/passwd ] ; then
-		cp $D${datadir}/base-passwd/passwd.master $D${sysconfdir}/passwd
-	fi
-
-	if [ ! -e $D${sysconfdir}/group ] ; then
-		cp $D${datadir}/base-passwd/group.master $D${sysconfdir}/group
-	fi
-	exit 0
-}
-
-addtask do_package after do_populate_sysroot
-
-ALLOW_EMPTY_${PN} = "1"
-
-PACKAGES =+ "${PN}-update"
-FILES_${PN}-update = "${sbindir}/* ${datadir}/${PN}"
