@@ -1,16 +1,22 @@
-DESCRIPTION = "Miscellaneous files for the base system."
+SUMMARY = "Miscellaneous files for the base system"
+DESCRIPTION = "The base-files package creates the basic system directory structure and provides a small set of key configuration files for the system."
 SECTION = "base"
-PRIORITY = "required"
-PR = "r103"
-LICENSE = "GPL"
+PR = "r89"
+LICENSE = "GPLv2"
+LIC_FILES_CHKSUM = "file://licenses/GPL-2;md5=94d55d512a9ba36caa9b7df079bae19f"
+# Removed all license related tasks in this recipe as license.bbclass 
+# now deals with this. In order to get accurate licensing on to the image:
+# Set COPY_LIC_MANIFEST to just copy just the license.manifest to the image
+# For the manifest and the license text for each package:
+# Set COPY_LIC_MANIFEST and COPY_LIC_DIRS
 
-SRC_URI = " \
+SRC_URI = "file://rotation \
            file://nsswitch.conf \
            file://motd \
            file://inputrc \
            file://host.conf \
            file://profile \
-           file://profile.d \
+           file://shells \
            file://fstab \
            file://filesystems \
            file://issue.net \
@@ -18,59 +24,75 @@ SRC_URI = " \
            file://usbd \
            file://share/dot.bashrc \
            file://share/dot.profile \
-           file://licenses/BSD \
            file://licenses/GPL-2 \
-           file://licenses/GPL-3 \
-           file://licenses/LGPL-2 \
-           file://licenses/LGPL-2.1 \
-           file://licenses/LGPL-3 \
-           file://licenses/GFDL-1.2 \
-           file://licenses/Artistic "
+           "
 S = "${WORKDIR}"
 
+INHIBIT_DEFAULT_DEPS = "1"
+
 docdir_append = "/${P}"
-dirs1777 = "/tmp ${localstatedir}/volatile/lock ${localstatedir}/volatile/tmp"
-dirs2775 = "/home ${prefix}/src ${localstatedir}/local"
+dirs1777 = "/tmp ${localstatedir}/volatile/tmp"
+dirs2775 = ""
 dirs755 = "/bin /boot /dev ${sysconfdir} ${sysconfdir}/default \
-	   ${sysconfdir}/skel /lib /mnt /proc /home/root /sbin \
-	   ${prefix} ${bindir} ${docdir} /usr/games ${includedir} \
-	   ${libdir} ${sbindir} ${datadir} \
-	   ${datadir}/common-licenses ${datadir}/dict ${infodir} \
-	   ${mandir} ${datadir}/misc ${localstatedir} \
-	   ${localstatedir}/backups ${localstatedir}/lib \
-	   /sys ${localstatedir}/lib/misc ${localstatedir}/spool \
-	   ${localstatedir}/volatile ${localstatedir}/volatile/cache \
-	   ${localstatedir}/volatile/lock/subsys \
-	   ${localstatedir}/volatile/log \
-	   ${localstatedir}/volatile/run \
-	   /mnt /media /media/card /media/cf /media/net /media/ram \
-	   /media/union /media/realroot /media/hdd \
-	   /media/mmc1"
+           ${sysconfdir}/skel /lib /mnt /proc ${ROOT_HOME} /run /sbin \
+           ${prefix} ${bindir} ${docdir} /usr/games ${includedir} \
+           ${libdir} ${sbindir} ${datadir} \
+           ${datadir}/common-licenses ${datadir}/dict ${infodir} \
+           ${mandir} ${datadir}/misc ${localstatedir} \
+           ${localstatedir}/backups ${localstatedir}/lib \
+           /sys ${localstatedir}/lib/misc ${localstatedir}/spool \
+           ${localstatedir}/volatile \
+           ${localstatedir}/volatile/log \
+           /home ${prefix}/src ${localstatedir}/local \
+           /media"
 
-dirs755_micro = "/dev /proc /sys ${sysconfdir}"
-dirs2775_micro = ""
-dirs1777_micro = "/tmp"
+dirs755-lsb = "/srv  \
+               ${prefix}/local ${prefix}/local/bin ${prefix}/local/games \
+               ${prefix}/local/include ${prefix}/local/lib ${prefix}/local/sbin \
+               ${prefix}/local/share ${prefix}/local/src \
+               ${prefix}/lib/locale"
+dirs2775-lsb = "/var/mail"
 
-media = "card cf net ram"
-media_micro = ""
-
-volatiles = "cache run log lock tmp"
+volatiles = "log tmp"
 conffiles = "${sysconfdir}/debian_version ${sysconfdir}/host.conf \
-	     ${sysconfdir}/inputrc ${sysconfdir}/issue /${sysconfdir}/issue.net \
-	     ${sysconfdir}/nsswitch.conf ${sysconfdir}/profile \
-	     ${sysconfdir}/default"
+             ${sysconfdir}/inputrc ${sysconfdir}/issue /${sysconfdir}/issue.net \
+             ${sysconfdir}/nsswitch.conf ${sysconfdir}/profile \
+             ${sysconfdir}/default"
 
+# By default the hostname is the machine name. If the hostname is unset then a
+# /etc/hostname file isn't written, suitable for environments with dynamic
+# hostnames.
 #
-# set standard hostname, might be a candidate for a DISTRO variable? :M:
-#
-hostname = "openembedded"
-#MobiAqua: added custom hostnames for pandaboard and igep0030
+# The hostname can be changed outside of this recipe by using
+# hostname_pn-base-files = "my-host-name".
+hostname = "${MACHINE}"
 hostname_pandaboard = "panda"
 hostname_igep0030 = "igep"
-hostname_slugos = "nslu2"
-hostname_mnci = "MNCI"
-hostname_rt3000 = "MNRT"
-hostname_jlime = "JLime"
+
+BASEFILESISSUEINSTALL ?= "do_install_basefilesissue"
+
+# In previous versions of base-files, /run was a softlink to /var/run and the
+# directory was located in /var/volatlie/run.  Also, /var/lock was a softlink
+# to /var/volatile/lock which is where the real directory was located.  Now,
+# /run and /run/lock are the real directories.  If we are upgrading, we may
+# need to remove the symbolic links first before we create the directories.
+# Otherwise the directory creation will fail and we will have circular symbolic
+# links.
+# 
+pkg_preinst_${PN} () {
+    #!/bin/sh -e
+    if [ x"$D" = "x" ]; then
+        if [ -h "/var/lock" ]; then
+            # Remove the symbolic link
+            rm -f /var/lock
+        fi
+
+        if [ -h "/run" ]; then
+            # Remove the symbolic link
+            rm -f /run
+        fi
+    fi     
+}
 
 do_install () {
 	for d in ${dirs755}; do
@@ -80,136 +102,105 @@ do_install () {
 		install -m 1777 -d ${D}$d
 	done
 	for d in ${dirs2775}; do
-		install -m 2755 -d ${D}$d
+		install -m 2775 -d ${D}$d
 	done
 	for d in ${volatiles}; do
-                if [ -d ${D}${localstatedir}/volatile/$d ]; then
-                        ln -sf volatile/$d ${D}/${localstatedir}/$d
-                fi
-	done
-	for d in ${media}; do
-		ln -sf /media/$d ${D}/mnt/$d
+		ln -sf volatile/$d ${D}${localstatedir}/$d
 	done
 
-	if [ -n "${MACHINE}" -a "${hostname}" = "openembedded" ]; then
-		echo ${MACHINE} > ${D}${sysconfdir}/hostname
+	ln -snf ../run ${D}${localstatedir}/run
+	ln -snf ../run/lock ${D}${localstatedir}/lock
+
+	${BASEFILESISSUEINSTALL}
+
+	rotation=`cat ${WORKDIR}/rotation`
+	if [ "$rotation" != "0" ]; then
+ 		install -m 0644 ${WORKDIR}/rotation ${D}${sysconfdir}/rotation
+	fi
+
+	#MobiAqua: added handle custom fstab file
+	if [ -f ${MA_FSTAB_FILE} ]; then
+	    install -m 0644 ${MA_FSTAB_FILE} ${D}${sysconfdir}/fstab
 	else
+	    install -m 0644 ${WORKDIR}/fstab ${D}${sysconfdir}/fstab
+	fi
+	install -m 0644 ${WORKDIR}/filesystems ${D}${sysconfdir}/filesystems
+	install -m 0644 ${WORKDIR}/usbd ${D}${sysconfdir}/default/usbd
+	install -m 0644 ${WORKDIR}/profile ${D}${sysconfdir}/profile
+	sed -i 's#ROOTHOME#${ROOT_HOME}#' ${D}${sysconfdir}/profile
+	install -m 0644 ${WORKDIR}/shells ${D}${sysconfdir}/shells
+	install -m 0755 ${WORKDIR}/share/dot.profile ${D}${sysconfdir}/skel/.profile
+	install -m 0755 ${WORKDIR}/share/dot.bashrc ${D}${sysconfdir}/skel/.bashrc
+	install -m 0644 ${WORKDIR}/inputrc ${D}${sysconfdir}/inputrc
+	install -m 0644 ${WORKDIR}/nsswitch.conf ${D}${sysconfdir}/nsswitch.conf
+	install -m 0644 ${WORKDIR}/host.conf ${D}${sysconfdir}/host.conf
+	install -m 0644 ${WORKDIR}/motd ${D}${sysconfdir}/motd
+
+	if [ "/usr/bin" != "${bindir}" ]; then
+		sed -i "s,/usr/bin/resize,${bindir}/resize," ${D}${sysconfdir}/profile
+	fi
+
+	ln -sf /proc/mounts ${D}${sysconfdir}/mtab
+}
+
+DISTRO_VERSION[vardepsexclude] += "DATE"
+do_install_basefilesissue () {
+	if [ "${hostname}" ]; then
 		echo ${hostname} > ${D}${sysconfdir}/hostname
 	fi
 
-        if [ "${DISTRO}" != "micro" -a "${DISTRO}" != "micro-uclibc" ]; then
-                install -m 644 ${WORKDIR}/issue*  ${D}${sysconfdir}  
-
-                if [ -n "${DISTRO_NAME}" ]; then
-        		#MobiAqua: replace echo -n with printf
-        		printf "${DISTRO_NAME} " >> ${D}${sysconfdir}/issue
-        		printf "${DISTRO_NAME} " >> ${D}${sysconfdir}/issue.net
-        		if [ -n "${DISTRO_VERSION}" ]; then
-        			#MobiAqua: replace usage echo -n with printf
-        			printf "${DISTRO_VERSION} " >> ${D}${sysconfdir}/issue
-        			printf "${DISTRO_VERSION} " >> ${D}${sysconfdir}/issue.net
-        		fi
-        		echo "\n \l" >> ${D}${sysconfdir}/issue
-        		echo >> ${D}${sysconfdir}/issue
-        		echo "%h"    >> ${D}${sysconfdir}/issue.net
-        		echo >> ${D}${sysconfdir}/issue.net
-        	else
- 	                install -m 0644 ${WORKDIR}/issue ${D}${sysconfdir}/issue
-                        install -m 0644 ${WORKDIR}/issue.net ${D}${sysconfdir}/issue.net
-                fi
-
-		#MobiAqua: added handle custom fstab file
-		if [ -f ${MA_FSTAB_FILE} ]; then
-			install -m 0644 ${MA_FSTAB_FILE} ${D}${sysconfdir}/fstab
-		else
-			install -m 0644 ${WORKDIR}/fstab ${D}${sysconfdir}/fstab
+	if [ -n "${DISTRO_NAME}" ]; then
+		#MobiAqua: replace echo -n with printf
+		printf "${DISTRO_NAME} " >> ${D}${sysconfdir}/issue
+		printf "${DISTRO_NAME} " >> ${D}${sysconfdir}/issue.net
+		if [ -n "${DISTRO_VERSION}" ]; then
+			#MobiAqua: replace usage echo -n with printf
+			printf "${DISTRO_VERSION} " >> ${D}${sysconfdir}/issue
+			printf "${DISTRO_VERSION} " >> ${D}${sysconfdir}/issue.net
 		fi
-        	install -m 0644 ${WORKDIR}/filesystems ${D}${sysconfdir}/filesystems
-        	install -m 0644 ${WORKDIR}/usbd ${D}${sysconfdir}/default/usbd
-        	install -m 0644 ${WORKDIR}/profile ${D}${sysconfdir}/profile
-        	install -d 0755 ${D}${sysconfdir}/profile.d
-        	install -m 0755 ${WORKDIR}/profile.d/* ${D}${sysconfdir}/profile.d/
-        	install -m 0755 ${WORKDIR}/share/dot.profile ${D}${sysconfdir}/skel/.profile
-        	install -m 0755 ${WORKDIR}/share/dot.bashrc ${D}${sysconfdir}/skel/.bashrc
-        	install -m 0644 ${WORKDIR}/inputrc ${D}${sysconfdir}/inputrc
-        	install -m 0644 ${WORKDIR}/motd ${D}${sysconfdir}/motd
-        	for license in BSD GPL-2 LGPL-2 LGPL-2.1 Artistic GPL-3 LGPL-3 GFDL-1.2; do
-	        	install -m 0644 ${WORKDIR}/licenses/$license ${D}${datadir}/common-licenses/
-        	done
+		echo "\n \l" >> ${D}${sysconfdir}/issue
+		echo >> ${D}${sysconfdir}/issue
+		echo "%h"    >> ${D}${sysconfdir}/issue.net
+		echo >> ${D}${sysconfdir}/issue.net
+	else
+		install -m 644 ${WORKDIR}/issue*  ${D}${sysconfdir}
+	fi
+}
 
-	        ln -sf /proc/mounts ${D}${sysconfdir}/mtab
-        	install -m 0644 ${WORKDIR}/host.conf ${D}${sysconfdir}/host.conf
-        fi
+do_install_append_linuxstdbase() {
+	for d in ${dirs755-lsb}; do
+                install -m 0755 -d ${D}$d
+        done
 
-	install -m 0644 ${WORKDIR}/nsswitch.conf ${D}${sysconfdir}/nsswitch.conf
+	for d in ${dirs2775-lsb}; do
+                install -m 2775 -d ${D}$d
+        done
 }
 
 do_install_append_mobiaqua() {
 	if [ ${MA_DNS_IP} ]; then
-		printf "nameserver ${MA_DNS_IP}" >${D}${sysconfdir}/resolv.conf
+		printf "nameserver ${MA_DNS_IP}" > ${D}${sysconfdir}/resolv.conf
 	fi
 }
 
 do_install_append_mobiaqua-tv() {
 	if [ ${MA_DNS_IP} ]; then
-		printf "nameserver ${MA_DNS_IP}" >${D}${sysconfdir}/resolv.conf
+		printf "nameserver ${MA_DNS_IP}" > ${D}${sysconfdir}/resolv.conf
 	fi
 }
 
 do_install_append_mobiaqua-car() {
 	if [ ${MA_DNS_IP} ]; then
-		printf "nameserver ${MA_DNS_IP}" >${D}${sysconfdir}/resolv.conf
+		printf "nameserver ${MA_DNS_IP}" > ${D}${sysconfdir}/resolv.conf
 	fi
 }
 
-do_install_append_mnci () {
-	rmdir ${D}/tmp
-	ln -s var/tmp ${D}/tmp
-}
-
-do_install_append_nylon() {
-	printf "" "" >${D}${sysconfdir}/resolv.conf
-	rm -r ${D}/mnt/*
-	rm -r ${D}/media
-	rm -rf ${D}/tmp
-	ln -sf /var/tmp ${D}/tmp
-}
-
-do_install_append_slugos() {
-	printf "" "" >${D}${sysconfdir}/resolv.conf
-	rm -r ${D}/mnt/*
-	rmdir ${D}/home/root
-	install -m 0755 -d ${D}/root
-	ln -s ../root ${D}/home/root
-}
-
-do_install_append_netbook-pro () {
-	mkdir -p ${D}/initrd
-}
-
-do_install_append_tb5200l() {
-	rmdir ${D}/tmp
-	ln -s var/tmp ${D}/tmp
-}
-
-do_install_append_visstrim_m10() {
-	mkdir -p ${D}/opt
-	mkdir -p ${D}/mnt/jffs2
-	mkdir -p ${D}/mnt/defaults/etc
-}
-
-PACKAGES = "${PN}-dbg ${PN}-doc ${PN}"
-FILES_${PN} = "/*"
+PACKAGES = "${PN}-doc ${PN} ${PN}-dev ${PN}-dbg"
+FILES_${PN} = "/"
 FILES_${PN}-doc = "${docdir} ${datadir}/common-licenses"
-
-# M&N specific packaging
-PACKAGE_ARCH_mnci = "mnci"
-PACKAGE_ARCH_rt3000 = "rt3000"
 
 PACKAGE_ARCH = "${MACHINE_ARCH}"
 
-CONFFILES_${PN} = "${sysconfdir}/fstab ${sysconfdir}/hostname"
-CONFFILES_${PN}_micro = ""
-CONFFILES_${PN}_nylon = "${sysconfdir}/resolv.conf ${sysconfdir}/fstab ${sysconfdir}/hostname"
-CONFFILES_${PN}_slugos = "${sysconfdir}/resolv.conf ${sysconfdir}/fstab ${sysconfdir}/hostname"
+CONFFILES_${PN} = "${sysconfdir}/fstab ${@['', '${sysconfdir}/hostname'][(d.getVar('hostname', True) != '')]} ${sysconfdir}/shells"
+CONFFILES_${PN} += "${sysconfdir}/motd ${sysconfdir}/nsswitch.conf ${sysconfdir}/profile"
 
