@@ -15,7 +15,7 @@ inherit kernel
 
 PR = "r1"
 
-SRCREV = "a9673378bab87c5a2ffec5f213cf19053c96595e"
+SRCREV = "c9aac4fd20f833099f658a654257f2295c5303bb"
 
 SRC_URI = "git://git.isee.biz/pub/scm/linux-omap-2.6.git;protocol=git;branch=linux-2.6.37.y \
            file://tidspbridge_fix.patch \
