@@ -2,15 +2,14 @@ DESCRIPTION = "libjpeg-turbo is a derivative of libjpeg that uses SIMD instructi
 HOMEPAGE = "http://libjpeg-turbo.org/"
 
 LICENSE = "BSD-3-Clause"
-LIC_FILES_CHKSUM = "file://cdjpeg.h;endline=12;md5=78fa8dbac547bb5b2a0e6457a6cfe21d \
-                    file://jpeglib.h;endline=14;md5=a08bb0a80f782a9f8da313cc4015ed6f \
-                    file://djpeg.c;endline=13;md5=03db065044529233c296324be85530ab \
-"
-PV = "8d+1.3.0"
-SRCREV = "988"
-SRC_URI = "svn://svn.code.sf.net/p/libjpeg-turbo/code;protocol=svn;module=trunk"
 
-S = "${WORKDIR}/trunk"
+PV = "8d+git${SRCREV}"
+
+SRCREV = "e5f280c4c4821d50012de3429a67971cdd72bd7d"
+
+SRC_URI = "git://github.com/libjpeg-turbo/libjpeg-turbo.git;protocol=git"
+
+S = "${WORKDIR}/git"
 
 # Drop-in replacement for jpeg
 PROVIDES = "jpeg"
