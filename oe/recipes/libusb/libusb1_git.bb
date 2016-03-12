@@ -10,20 +10,19 @@ BBCLASSEXTEND = "native nativesdk"
 
 PR = "r1"
 
-SRC_URI = "${SOURCEFORGE_MIRROR}/libusb/libusb-${PV}.tar.bz2 \
-           file://obsolete_automake_macros.patch \
+SRCREV = "0dcc646bb536c293f6e53c802d85c6bdd416867a"
+
+SRC_URI = "git://github.com/libusb/libusb.git;protocol=git \
+           file://patch-libusb_os_darwin_usb.h.devel.diff \
           "
 
-SRC_URI[md5sum] = "7f5a02375ad960d4e33a6dae7d63cfcb"
-SRC_URI[sha256sum] = "e920eedc2d06b09606611c99ec7304413c6784cba6e33928e78243d323195f9b"
-
-S = "${WORKDIR}/libusb-${PV}"
+S = "${WORKDIR}/git"
 
 inherit autotools pkgconfig
 
 PROVIDES = "virtual/libusb1"
 
-EXTRA_OECONF = "--libdir=${base_libdir}"
+EXTRA_OECONF = "--libdir=${base_libdir} --disable-udev"
 
 do_install_append() {
 	install -d ${D}${libdir}

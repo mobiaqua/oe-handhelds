@@ -11,8 +11,8 @@ SRC_URI = "http://www.intra2net.com/en/developer/libftdi/download/libftdi1-${PV}
            file://autotools.patch \
           "
 
-SRC_URI[md5sum] = "e02dd77ee10b82b5edfbb8c199185bbf"
-SRC_URI[sha256sum] = "7290fd38208d8c00d25ed13ce172aaa0403b37148080e4a33a99837022d2b321"
+SRC_URI[md5sum] = "89dff802d89c4c0d55d8b4665fd52d0b"
+SRC_URI[sha256sum] = "a6ea795c829219015eb372b03008351cee3fb39f684bff3bf8a4620b558488d6"
 
 inherit autotools binconfig pkgconfig
 
