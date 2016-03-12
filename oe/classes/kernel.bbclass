@@ -2,7 +2,7 @@ inherit linux-kernel-base module_strip
 
 PROVIDES += "virtual/kernel virtual/kernel-${PV}"
 #MobiAqua: chnage depmod on specific kernel version
-DEPENDS += "virtual/${TARGET_PREFIX}gcc virtual/${TARGET_PREFIX}depmod virtual/${TARGET_PREFIX}gcc${KERNEL_CCSUFFIX} update-modules bluez-dtl1-workaround"
+DEPENDS += "virtual/${TARGET_PREFIX}gcc virtual/${TARGET_PREFIX}depmod virtual/${TARGET_PREFIX}gcc${KERNEL_CCSUFFIX} update-modules"
 
 # we include gcc above, we dont need virtual/libc
 INHIBIT_DEFAULT_DEPS = "1"
@@ -274,10 +274,6 @@ PKG_kernel-base = "kernel-${@legitimize_package_name('${KERNEL_VERSION}')}"
 ALLOW_EMPTY_kernel = "1"
 ALLOW_EMPTY_kernel-base = "1"
 ALLOW_EMPTY_kernel-image = "1"
-
-# Userspace workarounds for kernel modules issues
-# This is shame, fix the kernel instead!
-RDEPENDS_kernel-module-dtl1-cs = "bluez-dtl1-workaround"
 
 # renamed modules
 RPROVIDES_kernel-module-aes-generic = "kernel-module-aes"
