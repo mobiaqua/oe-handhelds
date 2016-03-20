@@ -1,5 +1,5 @@
 INSTALL_PKGS += "\
-	mc gdbserver gdb \
+	mc gdbserver gdb valgrind \
 "
 
 RRECOMMENDS += ""
