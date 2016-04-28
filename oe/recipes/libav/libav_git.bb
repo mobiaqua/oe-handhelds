@@ -1,8 +1,17 @@
-DESCRIPTION = "Libav is a complete, cross-platform solution to record, convert and stream audio and video."
-HOMEPAGE = "http://libav.org/"
+SUMMARY = "A complete, cross-platform solution to record, convert and stream audio and video."
+DESCRIPTION = "FFmpeg is the leading multimedia framework, able to decode, encode, transcode, \
+               mux, demux, stream, filter and play pretty much anything that humans and machines \
+               have created. It supports the most obscure ancient formats up to the cutting edge."
+HOMEPAGE = "https://www.ffmpeg.org/"
 SECTION = "libs"
-PRIORITY = "optional"
+
 LICENSE = "GPLv2+"
+LICENSE_FLAGS = "commercial"
+
+LIC_FILES_CHKSUM = "file://COPYING.GPLv2;md5=b234ee4d69f5fce4486a80fdaf4a4263 \
+                    file://COPYING.GPLv3;md5=d32239bcb673463ab874e80d47fae504 \
+                    file://COPYING.LGPLv2.1;md5=bd7a443320af8c812e4c18d1b79df004 \
+                    file://COPYING.LGPLv3;md5=e6a600fd5e1d9cbde2d983680233ad02"
 
 ARM_INSTRUCTION_SET = "arm"
 
@@ -64,13 +73,12 @@ FILES_libavfilter-dbg += "${libdir}/.debug/libavfilter*"
 DEPENDS_i586 += "yasm-native"
 DEPENDS_i686 += "yasm-native"
 
-SRCREV = "77a44f577b644a328dcf90cde11d2ecae69eda05"
+SRCREV = "3cb3dddeb49003cd7c1503889b60ce652aafd912"
 
 PV = "git+master+r${SRCPV}"
 PR = "r1"
 
-SRC_URI = "git://git.libav.org/libav.git;protocol=git \
-           file://mpeg4_bsf.patch \
+SRC_URI = "git://source.ffmpeg.org/ffmpeg.git;protocol=git \
           "
 
 S = "${WORKDIR}/git"
@@ -97,8 +105,8 @@ EXTRA_OECONF = " \
         --enable-avformat \
         --enable-avutil \
         --enable-swscale \
+        --enable-avresample \
         --enable-protocol=file \
-        --enable-outdev=alsa \
         --enable-bsf=mov2textsub,h264_mp4toannexb,hevc_mp4toannexb,mpeg4_unpack_bframes \
         --enable-demuxer=matroska,mov,flac,mp3,wav,mpegps,mpegts,avi,m4v,mpegvideo,asf,flv,rm,rtmp,swf,srt,ass \
         --enable-decoder=aac,ac3,aic,eac3,dca,alac,als,flac,flv,h261,h263,h263i,h264,hevc,mp1,mp1float,mp2,mp2float,\
