@@ -17,8 +17,6 @@ ARM_INSTRUCTION_SET = "arm"
 
 inherit autotools pkgconfig
 
-DEPENDS = "alsa-lib"
-
 LEAD_SONAME = "libavcodec.so"
 
 PACKAGES += "${PN}-vhook-dbg ${PN}-vhook"
@@ -109,7 +107,7 @@ EXTRA_OECONF = " \
         --enable-protocol=file \
         --enable-bsf=mov2textsub,h264_mp4toannexb,hevc_mp4toannexb,mpeg4_unpack_bframes \
         --enable-demuxer=matroska,mov,flac,mp3,wav,mpegps,mpegts,avi,m4v,mpegvideo,asf,flv,rm,rtmp,swf,srt,ass \
-        --enable-decoder=aac,ac3,aic,eac3,dca,alac,als,flac,flv,h261,h263,h263i,h264,hevc,mp1,mp1float,mp2,mp2float,\
+        --enable-decoder=aac,ac3,aic,eac3,dca,alac,als,flac,flv,h261,h263,h263i,h264,hevc,mlp,mp1,mp1float,mp2,mp2float,\
 mp3,mp3adu,mp3adufloat,mp3float,mp3on4,mp3on4float,mpeg4,msmpeg4v1,msmpeg4v2,msmpeg4v3,mjpeg,ffv1,dvvideo\
 ralf,rv10,rv20,rv30,rv40,svq1,sqv3,truehd,vp3,vp5,vp6,vp6a,vp6f,vp7,vp8,vp9,webp,wmapro,wmav1,wmav2,\
 wmalossless,wmv1,wmv2,theora,ra_144,ra_288,pcm_u16le,pcm_u16be,pcm_s16le,pcm_s16be,pcm_u24le,pcm_u24be,pcm_s24le,\
