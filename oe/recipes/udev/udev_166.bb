@@ -37,23 +37,6 @@ SRC_URI += " \
 SRC_URI_append_h2200 = " file://50-hostap_cs.rules "
 PACKAGE_ARCH_h2200 = "h2200"
 
-#buglabs's bug device
-SRC_URI_append_bug = " \
-       file://30-BUG.rules \
-       file://10-mx31.rules \
-       file://bmi_eventpipe.sh "
-PACKAGE_ARCH_bug = "bug"
-
-SRC_URI_append_nokia900 = " \
-       file://10-cmt_speech.rules \
-       file://70-persistent-net.rules \
-       file://udev-rules-nokia-n900-hacks.rules \
-       file://udev-rules-nokia-n900-snd.rules \
-       file://nokia-n900-mac-hack.sh \
-"
-PACKAGE_ARCH_nokia900 = "nokia900"
-
-
 inherit update-rc.d autotools
 
 EXTRA_OECONF += " --with-udev-prefix= \
@@ -116,12 +99,9 @@ do_install () {
 	install -m 0644 ${WORKDIR}/mount.blacklist     ${D}${sysconfdir}/udev/
 	install -m 0644 ${WORKDIR}/local.rules         ${D}${sysconfdir}/udev/rules.d/local.rules
 	install -m 0644 ${WORKDIR}/permissions.rules   ${D}${sysconfdir}/udev/rules.d/permissions.rules
-	install -m 0644 ${WORKDIR}/run.rules          ${D}${sysconfdir}/udev/rules.d/run.rules
+	install -m 0644 ${WORKDIR}/run.rules           ${D}${sysconfdir}/udev/rules.d/run.rules
 	install -m 0644 ${WORKDIR}/udev.rules          ${D}${sysconfdir}/udev/rules.d/udev.rules
 	install -m 0644 ${WORKDIR}/links.conf          ${D}${sysconfdir}/udev/links.conf
-	if [ "${UDEV_DEVFS_RULES}" = "1" ]; then
-		install -m 0644 ${WORKDIR}/devfs-udev.rules ${D}${sysconfdir}/udev/rules.d/devfs-udev.rules
-	fi
 
 	touch ${D}${sysconfdir}/udev/saved.uname
 	touch ${D}${sysconfdir}/udev/saved.cmdline
@@ -132,24 +112,6 @@ do_install () {
 
 	install -m 0755 ${WORKDIR}/mount.sh ${D}${sysconfdir}/udev/scripts/mount.sh
 	install -m 0755 ${WORKDIR}/network.sh ${D}${sysconfdir}/udev/scripts
-}
-
-do_install_append_h2200() {
-	install -m 0644 ${WORKDIR}/50-hostap_cs.rules         ${D}${sysconfdir}/udev/rules.d/50-hostap_cs.rules
-}
-
-do_install_append_bug() {
-	install -m 0644 ${WORKDIR}/30-BUG.rules ${D}${sysconfdir}/udev/rules.d/30-BUG.rules
-	install -m 0644 ${WORKDIR}/10-mx31.rules ${D}${sysconfdir}/udev/rules.d/10-mx31.rules
-	install -m 0644 ${WORKDIR}/bmi_eventpipe.sh ${D}${sysconfdir}/udev/scripts/bmi_eventpipe.sh
-}
-
-do_install_append_nokia900() {
-	install -m 0644 ${WORKDIR}/10-cmt_speech.rules ${D}${sysconfdir}/udev/rules.d/10-cmt_speech.rules
-	install -m 0644 ${WORKDIR}/70-persistent-net.rules ${D}${sysconfdir}/udev/rules.d/70-persistent-net.rules
-	install -m 0644 ${WORKDIR}/udev-rules-nokia-n900-hacks.rules ${D}${sysconfdir}/udev/rules.d/udev-rules-nokia-n900-hacks.rules
-	install -m 0644 ${WORKDIR}/udev-rules-nokia-n900-snd.rules ${D}${sysconfdir}/udev/rules.d/udev-rules-nokia-n900-snd.rules
-	install -m 0755 ${WORKDIR}/nokia-n900-mac-hack.sh ${D}${sysconfdir}/udev/scripts/nokia-n900-mac-hack.sh
 }
 
 # Create the cache after checkroot has run
