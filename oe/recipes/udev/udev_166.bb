@@ -29,13 +29,9 @@ SRC_URI += " \
        file://local.rules \
        file://default \
        file://init \
-       file://cache \
        file://udev-compat-wrapper-patch \
        file://udev-166-v4l1-1.patch \
 "
-
-SRC_URI_append_h2200 = " file://50-hostap_cs.rules "
-PACKAGE_ARCH_h2200 = "h2200"
 
 inherit update-rc.d autotools
 
@@ -89,7 +85,6 @@ do_install () {
 	oe_runmake 'DESTDIR=${D}' INSTALL=install install
 	install -d ${D}${sysconfdir}/init.d
 	install -m 0755 ${WORKDIR}/init ${D}${sysconfdir}/init.d/udev
-	install -m 0755 ${WORKDIR}/cache ${D}${sysconfdir}/init.d/udev-cache
 
 	install -d ${D}${sysconfdir}/default
 	install -m 0755 ${WORKDIR}/default ${D}${sysconfdir}/default/udev
@@ -112,14 +107,4 @@ do_install () {
 
 	install -m 0755 ${WORKDIR}/mount.sh ${D}${sysconfdir}/udev/scripts/mount.sh
 	install -m 0755 ${WORKDIR}/network.sh ${D}${sysconfdir}/udev/scripts
-}
-
-# Create the cache after checkroot has run
-pkg_postinst_udev_append() {
-	if test "x$D" != "x"; then
-		OPT="-r $D"
-	else
-		OPT="-s"
-	fi
-	update-rc.d $OPT udev-cache start 36 S .
 }
