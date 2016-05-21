@@ -10,7 +10,7 @@ COMPATIBLE_MACHINE = "igep0030"
 PARALLEL_MAKE=""
 PACKAGE_ARCH = "${MACHINE_ARCH}"
 
-SRCREV = "release-2.6.0-2"
+SRCREV = "4bb2ebd99d5b86522d786ac5b074066e9841799c"
 
 SRC_URI = "git://git.isee.biz/pub/scm/igep-x-loader.git;protocol=git \
            file://fix_sign.patch \
