@@ -6,7 +6,7 @@ LICENSE = "GPL"
 
 DEPENDS = "coreutils-native elf-native"
 
-FILESPATHPKG =. "linux-pda-4.5:"
+FILESPATHPKG =. "linux-pda-4.6:"
 
 inherit kernel
 
@@ -21,8 +21,8 @@ SRC_URI = "http://www.kernel.org/pub/linux/kernel/v4.x/linux-${PV}.tar.xz \
            file://defconfig \
           "
 
-SRC_URI[md5sum] = "a60d48eee08ec0536d5efb17ca819aef"
-SRC_URI[sha256sum] = "a40defb401e01b37d6b8c8ad5c1bbab665be6ac6310cdeed59950c96b31a519c"
+SRC_URI[md5sum] = "d2927020e24a76da4ab482a8bc3e9ef3"
+SRC_URI[sha256sum] = "a93771cd5a8ad27798f22e9240538dfea48d3a2bf2a6a6ab415de3f02d25d866"
 
 S = "${WORKDIR}/linux-${PV}"
 
