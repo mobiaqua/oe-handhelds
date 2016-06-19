@@ -71,7 +71,7 @@ FILES_libavfilter-dbg += "${libdir}/.debug/libavfilter*"
 DEPENDS_i586 += "yasm-native"
 DEPENDS_i686 += "yasm-native"
 
-SRCREV = "3cb3dddeb49003cd7c1503889b60ce652aafd912"
+SRCREV = "63adb3602d3b35c5d1df14cf1e477bc458f96b7b"
 
 PV = "git+master+r${SRCPV}"
 PR = "r1"
