@@ -71,12 +71,13 @@ FILES_libavfilter-dbg += "${libdir}/.debug/libavfilter*"
 DEPENDS_i586 += "yasm-native"
 DEPENDS_i686 += "yasm-native"
 
-SRCREV = "63adb3602d3b35c5d1df14cf1e477bc458f96b7b"
+SRCREV = "12320c08221f0eecf6d9af3a6f12f42e656f0674"
+SRCPV = "3.1"
 
-PV = "git+master+r${SRCPV}"
+PV = "git+stable+r${SRCPV}"
 PR = "r1"
 
-SRC_URI = "git://source.ffmpeg.org/ffmpeg.git;protocol=git \
+SRC_URI = "git://source.ffmpeg.org/ffmpeg.git;protocol=git;branch=release/${SRCPV} \
           "
 
 S = "${WORKDIR}/git"
