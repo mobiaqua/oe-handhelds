@@ -3,9 +3,9 @@ IGEP-technology based boards"
 HOMEPAGE = "http://www.isee.biz"
 LICENSE = "GPLv2"
 
-SRCREV = "02ab9127fe195beba7b8568736d4001361db322c"
+SRCREV = "bc6a5915ef8a09aabd60456a5fffc20848b73ee4"
 
-PV = "1.2"
+PV = "1.3"
 PR = "r1"
 
 inherit update-rc.d
