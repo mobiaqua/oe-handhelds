@@ -10,13 +10,13 @@ DEFAULT_PREFERENCE_pda-pxa250 = "10"
 
 COMPATIBLE_MACHINE = "(pda-sa1110|pda-pxa250)"
 
-SRCREV = "4411bbbdade9c8d06c08178cd39847a9462bd8bf"
+SRCREV = "2a5cc3662461b7b890855b769037ebf24dadea68"
 
-PV = "v2014.01+git${SRCPV}"
+PV = "v2016.05+git${SRCPV}"
 
 SRC_URI = "git://github.com/mobiaqua/bootloader.git;branch=master;protocol=git"
 
-S = "${WORKDIR}/git/u-boot"
+S = "${WORKDIR}/git/u-boot-pda"
 
 PACKAGE_ARCH = "${MACHINE_ARCH}"
 
