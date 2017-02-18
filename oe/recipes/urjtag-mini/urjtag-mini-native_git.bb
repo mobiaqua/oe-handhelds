@@ -3,7 +3,7 @@ HOMEPAGE = "http://urjtag.org/"
 LICENSE = "GPLv2"
 DEPENDS = "libftdi1-native libusb1-native gettext-native readline-native"
 
-SRCREV = "38c7eef6a45e2519cf82e134c6aadec7b94e5340"
+SRCREV = "497e094721970f1dd566b2593694726a4884d229"
 
 PV = "0.10"
 PR = "r1"
