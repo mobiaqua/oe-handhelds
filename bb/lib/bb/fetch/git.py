@@ -110,7 +110,7 @@ class Git(Fetch):
             runfetchcmd("%s fetch %s://%s%s%s %s" % (ud.basecmd, ud.proto, username, ud.host, ud.path, ud.branch), d)
             runfetchcmd("%s fetch --tags %s://%s%s%s" % (ud.basecmd, ud.proto, username, ud.host, ud.path), d)
             runfetchcmd("%s prune-packed" % ud.basecmd, d)
-            runfetchcmd("%s pack-redundant --all | xargs -r rm" % ud.basecmd, d)
+            runfetchcmd("%s pack-redundant --all | xargs rm -r" % ud.basecmd, d)
 
         os.chdir(ud.clonedir)
         mirror_tarballs = data.getVar("BB_GENERATE_MIRROR_TARBALLS", d, True)
