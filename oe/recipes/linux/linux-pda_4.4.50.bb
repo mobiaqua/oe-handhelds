@@ -12,7 +12,7 @@ inherit kernel
 
 PR = "r1"
 
-SRC_URI = "http://www.kernel.org/pub/linux/kernel/v4.x/linux-${PV}.tar.xz \
+SRC_URI = "https://www.kernel.org/pub/linux/kernel/v4.x/linux-${PV}.tar.xz \
            file://fix_nonlinux_compile.patch \
            file://h3600-fix-micro-port-mod.patch \
            file://h3600-fix-mtd-part.patch \
@@ -21,8 +21,8 @@ SRC_URI = "http://www.kernel.org/pub/linux/kernel/v4.x/linux-${PV}.tar.xz \
            file://defconfig \
           "
 
-SRC_URI[md5sum] = "9a78fa2eb6c68ca5a40ed5af08142599"
-SRC_URI[sha256sum] = "401d7c8fef594999a460d10c72c5a94e9c2e1022f16795ec51746b0d165418b2"
+SRC_URI[md5sum] = "6f7f4cb7ceaac770eadf0c7a18ef5225"
+SRC_URI[sha256sum] = "e4944ca5bb0bdf63a7e97dc7fbdd38bcc820d8b3b57c4a3a7b3bf9c8a48216b7"
 
 S = "${WORKDIR}/linux-${PV}"
 
