@@ -7,9 +7,9 @@ LICENSE = "GPLv2"
 PROVIDES += "u-boot x-load"
 
 DEFAULT_PREFERENCE = "-1"
-DEFAULT_PREFERENCE_pandaboard = "10"
+DEFAULT_PREFERENCE_board-tv = "10"
 
-COMPATIBLE_MACHINE = "pandaboard"
+COMPATIBLE_MACHINE = "board-tv"
 
 SRCREV = "dc80e007bc12f30e087891873332ddb3c710c6f3"
 

@@ -13,7 +13,7 @@ SRC_URI = "git://github.com/mobiaqua/pvr-omap4.git;protocol=git \
 	   file://wayland-dummy.c \
 	   "
 
-COMPATIBLE_MACHINE = "pandaboard"
+COMPATIBLE_MACHINE = "board-tv"
 DEPENDS = "omap4-sgx-modules"
 PROVIDES += "virtual/egl"
 

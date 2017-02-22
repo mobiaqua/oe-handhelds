@@ -2,7 +2,7 @@ DESCRIPTION = "Kernel drivers for the PowerVR SGX chipset found in the omap4 SoC
 LICENSE = "GPLv2"
 
 #MobiAqua: custom package
-COMPATIBLE_MACHINE = "pandaboard"
+COMPATIBLE_MACHINE = "board-tv"
 
 PR = "r0"
 PV = "1.9.0.8.1.1"

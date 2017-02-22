@@ -2,10 +2,10 @@ SECTION = "kernel"
 DESCRIPTION = "Linux kernel for OMAP4 kernel"
 LICENSE = "GPLv2"
 KERNEL_IMAGETYPE = "uImage"
-COMPATIBLE_MACHINE = "pandaboard"
+COMPATIBLE_MACHINE = "board-tv"
 
 DEFAULT_PREFERENCE = "-1"
-DEFAULT_PREFERENCE_pandaboard = "10"
+DEFAULT_PREFERENCE_board-tv = "10"
 
 DEPENDS = "coreutils-native elf-native"
 

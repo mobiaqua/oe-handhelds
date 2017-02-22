@@ -66,7 +66,7 @@ conffiles = "${sysconfdir}/debian_version ${sysconfdir}/host.conf \
 # The hostname can be changed outside of this recipe by using
 # hostname_pn-base-files = "my-host-name".
 hostname = "${MACHINE}"
-hostname_pandaboard = "panda"
+hostname_board-tv = "board-tv"
 hostname_igep0030 = "igep"
 
 BASEFILESISSUEINSTALL ?= "do_install_basefilesissue"

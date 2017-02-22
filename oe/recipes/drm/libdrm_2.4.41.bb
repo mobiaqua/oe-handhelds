@@ -9,7 +9,7 @@ LICENSE = "MIT"
 PROVIDES = "drm"
 DEPENDS = "libpthread-stubs udev"
 
-DEFAULT_PREFERENCE_pandaboard = "10"
+DEFAULT_PREFERENCE_board-tv = "10"
 
 SRCREV = "90296021f8a70c9fab015eaf297438d8b2d64acd"
 PV = "2.4.41+git${SRCREV}"

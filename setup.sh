@@ -84,7 +84,7 @@ setup() {
 
 	if [ "$1" = "tv" ]; then
 		export DISTRO=mobiaqua-tv
-		export MACHINE=pandaboard
+		export MACHINE=board-tv
 		image=rootfs-devel-tv
 		ARMDIR=armv7a-hf
 	elif [ "$1" = "car" ]; then
