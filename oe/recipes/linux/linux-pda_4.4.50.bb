@@ -6,7 +6,7 @@ LICENSE = "GPL"
 
 DEPENDS = "coreutils-native elf-native"
 
-FILESPATHPKG =. "linux-pda-4.4:"
+FILESPATHPKG =. "linux-pda:"
 
 inherit kernel
 

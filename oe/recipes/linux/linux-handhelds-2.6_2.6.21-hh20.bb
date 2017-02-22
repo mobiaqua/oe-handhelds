@@ -7,7 +7,7 @@ DEPENDS = "coreutils-native elf-native"
 
 # Override where to look for defconfigs and patches,
 # we have per-kernel-release sets.
-FILESPATHPKG =. "linux-handhelds-2.6-2.6.21/${MACHINE}:linux-handhelds-2.6-2.6.21:"
+FILESPATHPKG =. "linux-handhelds/${MACHINE}:linux-handhelds:"
 
 SRC_URI = "http://dl.dropbox.com/u/12617418/linux26-2.6.21-hh20.tar.bz2 \
            file://linux-2.6.git-9d20fdd58e74d4d26dc5216efaaa0f800c23dd3a.patch \

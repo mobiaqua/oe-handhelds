@@ -7,7 +7,7 @@ DEFAULT_PREFERENCE_igep0030 = "1"
 
 DEPENDS = "coreutils-native elf-native"
 
-FILESPATHPKG =. "linux-igep-2.6.37:linux-2.6.37:"
+FILESPATHPKG =. "linux-omap3:"
 
 COMPATIBLE_MACHINE = "igep0030"
 

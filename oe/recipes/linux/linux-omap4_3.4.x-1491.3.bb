@@ -11,7 +11,7 @@ DEPENDS = "coreutils-native elf-native"
 
 inherit kernel
 
-FILESPATHPKG =. "linux-omap4_3.4.0:"
+FILESPATHPKG =. "linux-omap4:"
 
 SRCREV = "ti-ubuntu-3.4.0-1491.3"
 
