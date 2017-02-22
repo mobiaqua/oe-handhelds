@@ -3,7 +3,7 @@ TARGET_ARCH = "arm"
 
 #MobiAqua: omap4 is a9 not a8
 require conf/machine/include/tune-cortexa9.inc
-PREFERRED_PROVIDER_virtual/kernel = "linux-omap"
+PREFERRED_PROVIDER_virtual/kernel = "linux-omap4"
 
 KERNEL_IMAGETYPE = "uImage"
 
