@@ -16,6 +16,8 @@ SRCREV = "dc80e007bc12f30e087891873332ddb3c710c6f3"
 PV = "2012.04.01+${PR}+gitr${SRCREV}"
 PE = "1"
 
+FILESPATHPKG =. "files/pandaboard:files:"
+
 SRC_URI = "git://git.linaro.org/boot/u-boot-linaro-stable.git;protocol=git \
 	   file://panda_no_delay.patch \
 	   file://fix_older_cards.patch \
