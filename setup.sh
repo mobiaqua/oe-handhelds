@@ -82,17 +82,7 @@ prepare_tools() {
 setup() {
 	export OE_BASE=`${OE_BASE}/oe/bin/readlink -f "$OE_BASE"`
 
-	if [ "$1" = "tv" ]; then
-		export DISTRO=mobiaqua-tv
-		export MACHINE=board-tv
-		image=rootfs-devel-tv
-		ARMDIR=armv7a-hf
-	elif [ "$1" = "car" ]; then
-		export DISTRO=mobiaqua-car
-		export MACHINE=igep0030
-		image=rootfs-devel-car
-		ARMDIR=armv7a-hf
-	elif [ "$1" = "pda-sa1110" ]; then
+	if [ "$1" = "pda-sa1110" ]; then
 		export DISTRO=mobiaqua-pda-sa1110
 		export MACHINE=pda-sa1110
 		image=rootfs-pda-sa1110
@@ -176,7 +166,7 @@ DISTRO = \"${DISTRO}\"
 INHERIT = \"rm_work\"
 IMAGE_KEEPROOTFS = \"1\"
 CACHE = \"${OE_BASE}/build-${DISTRO}/cache/oe-cache.\${USER}\"
-ASSUME_PROVIDED += \" git-native perl-native python-native desktop-file-utils-native linux-libc-headers-native glib-2.0-native intltool-native \"
+ASSUME_PROVIDED += \" git-native perl-native python-native desktop-file-utils-native linux-libc-headers-native glib-2.0-native intltool-native xz-native\"
 PARALLEL_MAKE = \"-j 4\"
 BB_NUMBER_THREADS = \"3\"
 " > ${OE_BASE}/build-${DISTRO}/conf/local.conf
@@ -232,7 +222,7 @@ ERROR=
 
 [ "$ERROR" != "1" ] && [ -z "$BASH_VERSION" ] && error "Script NOT running in 'bash' shell"
 
-[ "$ERROR" != "1" ] && [ "x$1" != "xtv" ] && [ "x$1" != "xcar" ] && [ "x$1" != "xpda-sa1110" ] && [ "x$1" != "xpda-pxa250" ] && error "Not supported target!"
+[ "$ERROR" != "1" ] && [ "x$1" != "xpda-sa1110" ] && [ "x$1" != "xpda-pxa250" ] && error "Not supported target!"
 
 [ "$ERROR" != "1" ] && python_v3_check; [ "$?" != "0" ] && error "Python v3 is not compatible please install v2"
 

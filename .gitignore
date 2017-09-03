@@ -8,3 +8,5 @@ oe/bin/sed
 oe/bin/deftar
 oe/bin/tar
 oe/bin/readlink
+oe/bin/stat
+oe/bin/install

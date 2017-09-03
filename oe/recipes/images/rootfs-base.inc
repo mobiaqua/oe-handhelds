@@ -8,13 +8,13 @@ DEPENDS_append=" virtual/kernel"
 
 INSTALL_PKGS = "\
 	base-files base-passwd busybox kernel-modules sysvinit sysvinit-pidof netbase modutils-initscripts \
-	tinylogin initscripts tinylogin update-alternatives alsa-utils alsa-state alsa-utils-alsamixer \
-	glibc-gconv-ibm850 module-init-tools-depmod ifupdown modutils-collateral dropbear nfs-utils-client \
+	tinylogin initscripts update-alternatives alsa-utils alsa-state alsa-utils-alsamixer \
+	glibc-gconv-ibm850 module-init-tools-depmod ifupdown modutils-collateral dropbear \
 	util-linux-ng libstdc++ libgcc \
 "
 
 RRECOMMENDS += ""
-RDEPENDS += "ntpdate tzdata tzdata-europe nfs-utils-client"
+RDEPENDS += "tzdata tzdata-europe"
 
 IMAGE_LINGUAS = ""
 IMAGE_INSTALL += "${INSTALL_PKGS} "
