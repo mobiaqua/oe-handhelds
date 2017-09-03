@@ -85,7 +85,7 @@ def check_sanity(e):
 		missing = missing + "C++ Compiler (${BUILD_PREFIX}g++),"
 
 	#MobiAqua: added: wget, intltoolize, python, perl; removed md5sum chrpath xz
-	required_utilities = "patch diffstat texi2html makeinfo cvs svn bzip2 tar gzip gawk wget intltoolize python perl xz"
+	required_utilities = "patch diffstat texi2html makeinfo svn bzip2 tar gzip gawk wget intltoolize python perl xz"
 
 	# If we'll be running qemu, perform some sanity checks
 	if data.getVar('ENABLE_BINARY_LOCALE_GENERATION', e.data, True):
