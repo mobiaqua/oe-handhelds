@@ -38,30 +38,32 @@ truncate tsort tty uname unexpand uniq unlink uptime users vdir wc who whoami ye
 
 prepare_tools() {
 	OE_BASE=`pwd -P`
-	rm -f ${OE_BASE}/oe/bin/deftar
-	rm -f ${OE_BASE}/oe/bin/tar
+	/bin/rm -f ${OE_BASE}/oe/bin/deftar
+	/bin/rm -f ${OE_BASE}/oe/bin/tar
+	/bin/rm -f ${OE_BASE}/oe/bin/\]
+	/bin/rm -f ${OE_BASE}/oe/bin/\[
 
 	get_os
 	case $OS in
 	Darwin)
 		if [ -e /opt/local/bin/gnutar ]; then
-			ln -s /opt/local/bin/gnutar ${OE_BASE}/oe/bin/tar
+			/bin/ln -s /opt/local/bin/gnutar ${OE_BASE}/oe/bin/tar
 		elif [ -e /sw/bin/gtar ]; then
-			ln -s /sw/bin/gtar ${OE_BASE}/oe/bin/tar
+			/bin/ln -s /sw/bin/gtar ${OE_BASE}/oe/bin/tar
 		fi
 		if [ -e /usr/bin/tar ]; then
-			ln -s /usr/bin/tar ${OE_BASE}/oe/bin/deftar
+			/bin/ln -s /usr/bin/tar ${OE_BASE}/oe/bin/deftar
 		fi
 		for i in $gnutools; do
-			rm -f ${OE_BASE}/oe/bin/$i
+			/bin/rm -f ${OE_BASE}/oe/bin/$i
 			if [ -e /opt/local/bin/g$i ]; then
-				ln -s /opt/local/bin/g$i ${OE_BASE}/oe/bin/$i
+				/bin/ln -s /opt/local/bin/g$i ${OE_BASE}/oe/bin/$i
 			elif [ -e /sw/sbin/g$i ]; then
-				ln -s /sw/sbin/g$i ${OE_BASE}/oe/bin/$i
+				/bin/ln -s /sw/sbin/g$i ${OE_BASE}/oe/bin/$i
 			fi
 		done
 
-		if [ ! -e /opt/local/bin/gnutar && ! -e /sw/bin/gtar ]; then
+		if [ ! -e /opt/local/bin/gnutar ] && [ ! -e /sw/bin/gtar ]; then
 			echo "* ERROR *  Missing GNU tar!"
 			return 1
 		fi
@@ -76,7 +78,7 @@ prepare_tools() {
 		;;
 	Linux)
 		if [ -e /bin/tar ]; then
-			ln -s /bin/tar ${OE_BASE}/oe/bin/deftar
+			/bin/ln -s /bin/tar ${OE_BASE}/oe/bin/deftar
 		fi
 	esac
 
