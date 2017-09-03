@@ -10,9 +10,10 @@ DEPENDS_virtclass-native = "virtual/libusb1-native"
 SRC_URI = "http://www.intra2net.com/en/developer/libftdi/download/libftdi1-${PV}.tar.bz2 \
            file://autotools.patch \
           "
+S = "${WORKDIR}/libftdi1-${PV}"
 
-SRC_URI[md5sum] = "89dff802d89c4c0d55d8b4665fd52d0b"
-SRC_URI[sha256sum] = "a6ea795c829219015eb372b03008351cee3fb39f684bff3bf8a4620b558488d6"
+SRC_URI[md5sum] = "0c09fb2bb19a57c839fa6845c6c780a2"
+SRC_URI[sha256sum] = "ec36fb49080f834690c24008328a5ef42d3cf584ef4060f3a35aa4681cb31b74"
 
 inherit autotools binconfig pkgconfig
 
