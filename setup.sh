@@ -34,6 +34,8 @@ prepare_tools() {
 	rm -f ${OE_BASE}/oe/bin/tar
 	rm -f ${OE_BASE}/oe/bin/sed
 	rm -f ${OE_BASE}/oe/bin/readlink
+	rm -f ${OE_BASE}/oe/bin/stat
+	rm -f ${OE_BASE}/oe/bin/install
 
 	get_os
 	case $OS in
@@ -57,6 +59,18 @@ prepare_tools() {
 			ln -s /sw/sbin/greadlink ${OE_BASE}/oe/bin/readlink
 		fi
 
+		if [ -e /opt/local/bin/gstat ]; then
+			ln -s /opt/local/bin/gstat ${OE_BASE}/oe/bin/stat
+		elif [ -e /sw/sbin/gstat ]; then
+			ln -s /sw/sbin/gstat ${OE_BASE}/oe/bin/stat
+		fi
+
+		if [ -e /opt/local/bin/ginstall ]; then
+			ln -s /opt/local/bin/ginstall ${OE_BASE}/oe/bin/install
+		elif [ -e /sw/sbin/ginstall ]; then
+			ln -s /sw/sbin/ginstall ${OE_BASE}/oe/bin/install
+		fi
+
 		if [ ! -e ${OE_BASE}/oe/bin/tar ]; then
 			echo "* ERROR *  Missing GNU tar!"
 			return 1
@@ -66,7 +80,15 @@ prepare_tools() {
 			return 1
 		fi
 		if [ ! -e ${OE_BASE}/oe/bin/readlink ]; then
-			echo "* ERROR *  Missing GNU readlink!"
+			echo "* ERROR *  Missing GNU readlink (coreutils)!"
+			return 1
+		fi
+		if [ ! -e ${OE_BASE}/oe/bin/stat ]; then
+			echo "* ERROR *  Missing GNU stat (coreutils)!"
+			return 1
+		fi
+		if [ ! -e ${OE_BASE}/oe/bin/install ]; then
+			echo "* ERROR *  Missing GNU install (coreutils)!"
 			return 1
 		fi
 		;;
