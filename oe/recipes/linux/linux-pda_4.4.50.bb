@@ -4,7 +4,7 @@ LICENSE = "GPL"
 
 #DEFAULT_PREFERENCE = "-1"
 
-DEPENDS = "coreutils-native elf-native"
+DEPENDS = "elf-native"
 
 FILESPATHPKG =. "linux-pda:"
 
