@@ -6,7 +6,7 @@ LICENSE = "GPL"
 
 DEPENDS = "elf-native"
 
-FILESPATHPKG =. "linux-pda:"
+FILESPATHPKG =. "linux-pda-4.4:"
 
 inherit kernel
 
@@ -21,8 +21,8 @@ SRC_URI = "https://www.kernel.org/pub/linux/kernel/v4.x/linux-${PV}.tar.xz \
            file://defconfig \
           "
 
-SRC_URI[md5sum] = "6f7f4cb7ceaac770eadf0c7a18ef5225"
-SRC_URI[sha256sum] = "e4944ca5bb0bdf63a7e97dc7fbdd38bcc820d8b3b57c4a3a7b3bf9c8a48216b7"
+SRC_URI[md5sum] = "702fcc3596d8d00b330eeb38313d1155"
+SRC_URI[sha256sum] = "144fe8dd773ec317fa06109b8d7bd04141bf1941daa03799fb4f437bbbb919b4"
 
 S = "${WORKDIR}/linux-${PV}"
 
