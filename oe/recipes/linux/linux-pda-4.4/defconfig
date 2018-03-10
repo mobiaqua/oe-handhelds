@@ -1,6 +1,6 @@
 #
 # Automatically generated file; DO NOT EDIT.
-# Linux/arm 4.4.88 Kernel Configuration
+# Linux/arm 4.4.120 Kernel Configuration
 #
 CONFIG_ARM=y
 CONFIG_SYS_SUPPORTS_APM_EMULATION=y
@@ -544,6 +544,7 @@ CONFIG_DEFAULT_TCP_CONG="cubic"
 # CONFIG_L2TP is not set
 # CONFIG_BRIDGE is not set
 CONFIG_HAVE_NET_DSA=y
+# CONFIG_NET_DSA is not set
 # CONFIG_VLAN_8021Q is not set
 # CONFIG_DECNET is not set
 # CONFIG_LLC2 is not set
@@ -617,6 +618,7 @@ CONFIG_SA1100_FIR=y
 # CONFIG_CEPH_LIB is not set
 # CONFIG_NFC is not set
 # CONFIG_LWTUNNEL is not set
+# CONFIG_DST_CACHE is not set
 CONFIG_HAVE_BPF_JIT=y
 
 #
