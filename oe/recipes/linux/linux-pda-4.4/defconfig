@@ -1,6 +1,6 @@
 #
 # Automatically generated file; DO NOT EDIT.
-# Linux/arm 4.4.120 Kernel Configuration
+# Linux/arm 4.4.178 Kernel Configuration
 #
 CONFIG_ARM=y
 CONFIG_SYS_SUPPORTS_APM_EMULATION=y
@@ -111,6 +111,7 @@ CONFIG_GENERIC_SCHED_CLOCK=y
 # CONFIG_SYSFS_DEPRECATED is not set
 # CONFIG_RELAY is not set
 # CONFIG_BLK_DEV_INITRD is not set
+# CONFIG_CC_OPTIMIZE_FOR_PERFORMANCE is not set
 CONFIG_CC_OPTIMIZE_FOR_SIZE=y
 CONFIG_SYSCTL=y
 CONFIG_ANON_INODES=y
@@ -1555,8 +1556,6 @@ CONFIG_IRQCHIP=y
 # CONFIG_ANDROID is not set
 # CONFIG_NVMEM is not set
 # CONFIG_STM is not set
-# CONFIG_STM_DUMMY is not set
-# CONFIG_STM_SOURCE_CONSOLE is not set
 # CONFIG_INTEL_TH is not set
 
 #

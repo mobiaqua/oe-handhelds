@@ -5,11 +5,11 @@ diff -urp old/Makefile new/Makefile
  
  HOSTCC       = gcc
  HOSTCXX      = g++
--HOSTCFLAGS   = -Wall -Wmissing-prototypes -Wstrict-prototypes -O2 -fomit-frame-pointer -std=gnu89
-+HOSTCFLAGS   = -Wall -Wmissing-prototypes -Wstrict-prototypes -O2 -fomit-frame-pointer -std=gnu89 $(HOST_INC)
+-HOSTCFLAGS   := -Wall -Wmissing-prototypes -Wstrict-prototypes -O2 -fomit-frame-pointer -std=gnu89
++HOSTCFLAGS   := -Wall -Wmissing-prototypes -Wstrict-prototypes -O2 -fomit-frame-pointer -std=gnu89 $(HOST_INC)
  HOSTCXXFLAGS = -O2
  
- ifeq ($(shell $(HOSTCC) -v 2>&1 | grep -c "clang version"), 1)
+ # Decide whether to build built-in, modular, or both.
 diff -urp old/scripts/mod/sumversion.c new/scripts/mod/sumversion.c
 --- old/scripts/mod/sumversion.c	2013-01-05 20:17:13.000000000 +0100
 +++ new/scripts/mod/sumversion.c	2013-01-05 20:28:53.000000000 +0100
