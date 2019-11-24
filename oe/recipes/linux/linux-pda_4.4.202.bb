@@ -21,8 +21,8 @@ SRC_URI = "https://www.kernel.org/pub/linux/kernel/v4.x/linux-${PV}.tar.xz \
            file://defconfig \
           "
 
-SRC_URI[md5sum] = "4aa17ee169e2e0fe4748fe60f4d16925"
-SRC_URI[sha256sum] = "c3598c22b7994b3bebc3059e8ab85bc212c53550eb401baab3f29f8d007a043d"
+SRC_URI[md5sum] = "c4b4eaef472495b2eb0b7b1bd9c1a112"
+SRC_URI[sha256sum] = "fdacceeae22d1a0467cae50c15e6e754bfb8bb8e8010623df0d8fd78f4adb929"
 
 S = "${WORKDIR}/linux-${PV}"
 
