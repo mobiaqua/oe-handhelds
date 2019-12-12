@@ -10,10 +10,9 @@ BBCLASSEXTEND = "native nativesdk"
 
 PR = "r1"
 
-SRCREV = "0dcc646bb536c293f6e53c802d85c6bdd416867a"
+SRCREV = "f20f2be7825e34b5273af17fc0740c60bd352b32"
 
 SRC_URI = "git://github.com/libusb/libusb.git;protocol=git \
-           file://patch-libusb_os_darwin_usb.h.devel.diff \
           "
 
 S = "${WORKDIR}/git"
