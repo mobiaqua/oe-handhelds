@@ -14,12 +14,9 @@ BBCLASSEXTEND = "native nativesdk"
 #FIXME: remove the following
 ARM_INSTRUCTION_SET = "arm"
 
-SRC_URI = "ftp://ftp.alsa-project.org/pub/lib/${BP}.tar.bz2 \
-           file://Check-if-wordexp-function-is-supported.patch \
-           file://0001-build-Do-not-try-to-detect-cross-compiler.patch \
-"
-SRC_URI[md5sum] = "de67e0eca72474d6b1121037dafe1024"
-SRC_URI[sha256sum] = "73043c35eb9636be0f4af6a240235c213f12a25feb1f04aeeac8cb7e30fcbdd0"
+SRC_URI = "https://www.alsa-project.org/files/pub/lib/${BP}.tar.bz2"
+SRC_URI[md5sum] = "82ddd3698469beec147e4f4a67134ea0"
+SRC_URI[sha256sum] = "958e260e3673f1f6ff6b2d2c0df3fc2e469bea5b2957163ce96ce17f23e87943"
 
 inherit autotools pkgconfig
 
