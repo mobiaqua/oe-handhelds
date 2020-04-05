@@ -12,7 +12,7 @@ inherit kernel
 
 PR = "r1"
 
-SRC_URI = "https://www.kernel.org/pub/linux/kernel/v4.x/linux-${PV}.tar.xz \
+SRC_URI = "${KERNELORG_MIRROR}/linux/kernel/v4.x/linux-${PV}.tar.xz \
            file://fix_nonlinux_compile.patch \
            file://h3600-fix-micro-port-mod.patch \
            file://h3600-fix-mtd-part.patch \
