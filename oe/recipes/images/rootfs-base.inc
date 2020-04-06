@@ -10,7 +10,7 @@ INSTALL_PKGS = "\
 	base-files base-passwd busybox kernel-modules sysvinit sysvinit-pidof netbase modutils-initscripts \
 	tinylogin initscripts update-alternatives alsa-utils alsa-state alsa-utils-alsamixer \
 	glibc-gconv-ibm850 module-init-tools-depmod ifupdown modutils-collateral dropbear \
-	util-linux-ng libstdc++ libgcc \
+	util-linux-ng libstdc++ libgcc bluez4 bluez-hcidump \
 "
 
 RRECOMMENDS += ""
